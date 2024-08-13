@@ -6,6 +6,7 @@
         "fs.h": "c",
         "wait.h": "c",
         "malloc.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "unistd.h": "c"
     }
 }
