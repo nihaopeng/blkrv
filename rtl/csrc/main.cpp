@@ -1,7 +1,7 @@
-#include <iostream>
+#include<iostream>
+#include<verilated.h>
+#include<verilated_vcd_c.h> //可选，如果要导出vcd则需要加上
 #include "Vtop.h"  // create `top.v`,so use `Vtop.h`
-#include "verilated.h"
-#include "verilated_vcd_c.h" //可选，如果要导出vcd则需要加上
 
 int main(int argc, char** argv, char** env) {
     VerilatedContext* contextp = new VerilatedContext;
