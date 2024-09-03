@@ -6,15 +6,16 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-VSRC := $(wildcard vsrc/*.v)
-CSRC := $(wildcard csrc/*.cpp)
-VINCLUDE :=-I./vsrc/
+VSRC := $(wildcard vsrc/core/*.v)
+VMAIN := vsrc/top.v
+CSRC := $(wildcard csrc/src/*.cpp)
+CMAIN := csrc/main.cpp
 TOP_MODULE :=--top-module top
 
 default:
 	@echo $(VSRC)
 	@echo $(CSRC)
-	$(VERILATOR) -cc --build --trace --exe -j $(TOP_MODULE) $(VSRC) $(CSRC) 
+	$(VERILATOR) -cc --build --trace --exe -j $(TOP_MODULE) $(VMAIN) $(VSRC) $(CMAIN) $(CSRC) 
 	obj_dir/Vtop
 
 maintainer-copy::
