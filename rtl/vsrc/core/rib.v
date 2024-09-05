@@ -55,6 +55,8 @@ always @(*) begin
                 s1_we_o=m1_we_i;
                 m1_read_data_o=s1_read_data_i;
             end
+			default:begin
+			end
         endcase
     end
     //m0
@@ -72,6 +74,8 @@ always @(*) begin
                 s1_we_o=m0_we_i;
                 m0_read_data_o=s1_read_data_i;
             end
+			default:begin
+			end
         endcase
     end
 end
