@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.v": "verilog",
         "errno.h": "c",
         "signal.h": "c",
         "sched.h": "c",
@@ -7,6 +8,7 @@
         "wait.h": "c",
         "malloc.h": "c",
         "config.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "iostream": "cpp"
     }
 }

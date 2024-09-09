@@ -1,4 +1,3 @@
-
 #include "mem.h"
 
 mem::mem(std::string mem_file_path,uint64_t size){//unit of 'size' is BYTE
@@ -62,4 +61,25 @@ void mem::putB(uint64_t pointer,uint8_t data){
     ouf.seekp(pointer);
     ouf.write(reinterpret_cast<const char*>(&data), sizeof(data));
     ouf.flush();
+}
+
+void mem::put4B_from_file(uint64_t start_pointer,std::string file_path){
+    std::ifstream file(file_path);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file" << std::endl;
+        throw std::runtime_error("fail to open file");
+    }
+    std::string line;
+    uint32_t value;
+    uint64_t pointer=start_pointer;
+    while (std::getline(file, line)) {
+        // 将十六进制字符串转换为无符号整数
+        std::stringstream ss(line);
+        ss >> std::hex >> value;
+        // 打印或使用value
+        this->put4B(pointer,value);
+        std::cout << "The value is: " << std::hex << value << std::endl;
+        pointer+=4;
+    }
+    file.close();
 }
