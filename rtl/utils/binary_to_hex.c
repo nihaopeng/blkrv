@@ -66,10 +66,30 @@ int main(int argc,char *argv[])
         return -1;
     }
 //    printf("%ld\n", count);
-    for(int i=0;i<count;i++)
-    {
-        printf("%02X ",(unsigned char)buffer[i]);
+    int tmp=0;
+    // for(int i=count-1;i>=0;i--)
+    // {
+    //     if(tmp%4==0){
+    //         printf("\n%d:",tmp);
+    //     }
+    //     printf("%02X",(unsigned char)buffer[i]);
+    //     tmp++;
+    // }
+    if(count>3){
+        for(int i=3;i<count;i+=4){
+            printf("\n%d:\t",i-3);
+            for(int j=0;j<4;j++){
+                printf("%02X",(unsigned char)buffer[i-j]);
+            }
+        }
+    }else{
+        for(int i=count-1;i>=0;i--)
+        {
+            printf("%02X",(unsigned char)buffer[i]);
+        }
     }
+    
+    printf("\n");
     free(buffer);
     fclose(bfile);
     return 0;

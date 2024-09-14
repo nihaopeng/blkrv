@@ -4,6 +4,10 @@ module ifu(
     input[31:0] new_pc_i,
     input[31:0] inst_i,
     input hold_flag_i,
+    input interrupt_flag_i,
+    input mret_flag_i,
+    input[31:0] mtvec_i,
+    input[31:0] mepc_i,
     output reg[31:0] pc_val_o,
     output reg[31:0] inst_o,
     output reg read_valid_o,
@@ -12,15 +16,25 @@ module ifu(
     input write_ready_i
 );
     always @(posedge clk_i) begin
-        if(jump_flag_i) begin
+        if(interrupt_flag_i) begin
+            pc_val_o<=mtvec_i;
+            inst_o<=32'd0;
+            read_valid_o<=1'b1;
+        end
+        else if(mret_flag_i) begin
+            pc_val_o<=mepc_i;
+            inst_o<=32'd0;
+            read_valid_o<=1'b1;
+        end
+        else if(jump_flag_i) begin
             pc_val_o<=new_pc_i;
-            inst_o<=inst_i;
+            inst_o<=32'd0;
             read_valid_o<=1'b1;
         end
         else if(hold_flag_i) begin
-            pc_val_o<=pc_val_o;
+            pc_val_o<=pc_val_o-4;
             inst_o<=32'd0;
-            read_valid_o<=1'b0;
+            read_valid_o<=1'b1;
         end
         else begin
             if(read_valid_i) begin

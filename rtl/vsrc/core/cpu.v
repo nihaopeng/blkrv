@@ -8,12 +8,15 @@ module cpu(
     output read_req_o,
     output we_o,
     input read_valid_i,
-    output write_ready_o
+    output write_ready_o,
+    input[3:0] interrupt_port_i,//中断端口
+    input interrupt_flag_i,
+    output interrupt_response_o,
+    output mie_o
 );
 wire[31:0] pc_ifu,pc_id,pc_exu;
 wire[31:0] cur_inst;
 assign read_req_o=1'b1;
-assign we_o=1'b0;
 wire lui,auipc,jal,jalr,bj,load,store,calc,calci,sys;
 wire[4:0] r1_id,r2_id,rd_id;
 wire[2:0] op_type;
@@ -21,13 +24,17 @@ wire[6:0] op_type2;
 wire[31:0] imm,new_pc,data2regs,r1,r2,exu_addr_v,writeback_data;
 wire jump_flag,regs_we,regs_read_valid,ifu_read_valid;
 wire if2id_read_valid,id2if_write_ready,id2exu_read_valid,id2exu_write_ready;
-wire hold_flag;
+wire hold_flag,jump_inst_flag,mret_flag,interrupt_response;
 
 ifu ifu(
     .clk_i(clk_i),
     .new_pc_i(new_pc),
     .inst_i(data_i),
     .hold_flag_i(hold_flag),
+    .interrupt_flag_i(interrupt_flag_i),
+    .mret_flag_i(mret_flag),
+    .mtvec_i(mtvec),
+    .mepc_i(mepc),
     .jump_flag_i(jump_flag),
     .pc_val_o(pc_ifu),
     .inst_o(cur_inst),
@@ -42,6 +49,9 @@ id id(
     .pc_i(pc_ifu),
     .inst_i(cur_inst),
     .hold_flag_i(hold_flag),
+    .jump_flag_i(jump_flag),
+    .interrupt_flag_i(interrupt_flag_i),
+    .mret_flag_i(mret_flag),
     .lui_o(lui),
     .auipc_o(auipc),
     .jal_o(jal),
@@ -68,17 +78,17 @@ assign addr_o=(load|store)?exu_addr_v:pc_ifu;
 assign we_o=(store)?1'b1:1'b0;
 assign regs_read_valid=(load)?read_valid_i:id2exu_read_valid;
 assign ifu_read_valid=(load)?1'b0:read_valid_i;
-// assign hold_flag=((load||store)&&!read_valid_i)?1'b1:1'b0;
-// always @(posedge clk_i) begin
-//     if()
-// end
-// assign writeback_data=(load)?data_i:data2regs;
+
 pipeline_ctrl ctrl(
     .clk_i(clk_i),
     .rst(),
     .inst_i(cur_inst),
+    .jump_flag_i(jump_flag),
     .hold_flag_o(hold_flag),
-    .read_valid_i(read_valid_i)
+    .mret_flag_o(mret_flag),
+    .read_valid_i(read_valid_i),
+    .interrupt_flag_i(interrupt_flag_i),
+    .interrupt_response_o(interrupt_response_o)
 );
 exu exu(
     .clk_i(clk_i),
@@ -107,6 +117,7 @@ exu exu(
     // .mask2mem_o(mask_o),
     .mem_op_type_o(mem_op_type_o),
     .dataFRmem_i(data_i),
+    .csr_i(csr),
     .jump_flag_o(jump_flag),
     .hold_flag_o(),
     .regs_we_o(regs_we),
@@ -122,6 +133,8 @@ regs regs(
 	.r2_id_i(r2_id),
 	.rd_id_i(rd_id),
 	.we_i(regs_we),
+    .interrupt_flag_i(interrupt_flag_i),
+    .mret_flag_i(mret_flag),
 	.write_data_i(data2regs),
 	.r1_o(r1),
 	.r2_o(r2),
@@ -130,5 +143,22 @@ regs regs(
     .read_valid_i(regs_read_valid),
     .write_ready_o(),
     .write_ready_i()
+);
+wire[31:0] csr,mtvec,mepc;
+
+csrs csrs(
+    .clk_i(clk_i),
+    .rst(),
+    .interrupt_flag_i(interrupt_flag_i),
+    .we_i(sys),
+    .r1_i(r1),
+    .imm_i(imm),
+    .mret_flag_i(mret_flag),
+    .mie_o(mie_o),
+    .mcause_i({28'd0,interrupt_port_i}),
+    .csr_o(csr),
+    .cur_pc_i(pc_ifu),
+    .mtvec_o(mtvec),
+    .mepc_o(mepc)
 );
 endmodule
