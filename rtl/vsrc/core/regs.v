@@ -6,7 +6,9 @@ module regs(
 	input[4:0] rd_id_i,
 	input we_i,
     input interrupt_flag_i,
+    input syscall_flag_i,
     input mret_flag_i,
+    input sret_flag_i,
 	input[31:0] write_data_i,
 	output[31:0] r1_o,
 	output[31:0] r2_o,
@@ -29,7 +31,18 @@ always @(posedge clk_i) begin
         end
         read_valid_o<=1'b1;
     end
+    else if(syscall_flag_i) begin
+        for(i=0;i<32;i++) begin
+            REGS_CP[i]<=REGS[i];
+        end
+        read_valid_o<=1'b1;
+    end
     else if(mret_flag_i) begin
+        for(i=0;i<32;i++) begin
+            REGS[i]<=REGS_CP[i];
+        end
+    end
+    else if(sret_flag_i) begin
         for(i=0;i<32;i++) begin
             REGS[i]<=REGS_CP[i];
         end

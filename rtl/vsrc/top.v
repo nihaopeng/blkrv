@@ -33,7 +33,7 @@ module top(
 );
 wire[31:0] load_addr_v,load_addr_t;
 wire[31:0] m0_read_data;
-wire[31:0] write_data,write_data_mask;
+wire[31:0] write_data,write_data_mask,satp;
 wire[2:0] m0_mem_op_type;
 wire[3:0] interrupt_port;
 wire m0_read_req;
@@ -52,11 +52,13 @@ cpu cpu(
     .interrupt_flag_i(interrupt_flag),
     .interrupt_port_i(interrupt_port),
     .interrupt_response_o(interrupt_response),
-    .mie_o(mie)
+    .mie_o(mie),
+    .satp_o(satp)
 );
 mmu mmu(
     .addr_i(load_addr_v),
-    .addr_t_o(load_addr_t)
+    .addr_t_o(load_addr_t),
+    .satp_i(satp)
 );
 rib rib(
     .clk(clk),  

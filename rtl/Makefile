@@ -10,7 +10,7 @@ endif
 cc := g++ 
 
 # some variable about verilog
-VSRC :=$(wildcard vsrc/core/*.v vsrc/top.v)
+VSRC :=$(wildcard vsrc/core/*.v vsrc/*.v)
 VINCLUDE :=./vsrc/core
 TOP_MODULE :=--top-module top
 

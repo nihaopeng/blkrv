@@ -5,14 +5,17 @@ module pipeline_ctrl (
     input jump_flag_i,
     output hold_flag_o,
     output mret_flag_o,
+    output sret_flag_o,
     input read_valid_i,
     input interrupt_flag_i,
-    output reg interrupt_response_o
+    output reg interrupt_response_o,
+    output reg syscall_flag_o
 );
-    reg hold_flag,jump_inst_flag,mret_flag;
+    reg hold_flag,jump_inst_flag,mret_flag,sret_flag;
     
     assign hold_flag_o=hold_flag;
     assign mret_flag_o=mret_flag;
+    assign sret_flag_o=sret_flag;
     // assign jump_inst_flag_o=jump_inst_flag;
     // reg tmp;
     // reg tmp1;
@@ -31,15 +34,32 @@ module pipeline_ctrl (
                 hold_flag<=1'b0;
             end
 
-            if((inst_i[6:0]==7'b1110011&&inst_i[31:20]==12'b001100000010)&&mret_flag==1'b0) begin
+            if((inst_i==32'h30200073)&&mret_flag==1'b0) begin
                 mret_flag<=1'b1;
+            end
+            else if(inst_i==32'h10200073) begin
+                sret_flag<=1'b1;
             end
             else if(mret_flag) begin
                 mret_flag<=1'b0;
                 // tmp<=1'b0;
             end
+            else if(sret_flag) begin
+                sret_flag<=1'b0;
+            end
             else begin
                 mret_flag<=1'b0;
+                sret_flag<=1'b0;
+            end
+
+            if(inst_i==32'h00000073) begin
+                syscall_flag_o<=1'b1;
+            end
+            else if(syscall_flag_o) begin
+                syscall_flag_o<=1'b0;
+            end
+            else begin
+                syscall_flag_o<=1'b0;
             end
         end 
         

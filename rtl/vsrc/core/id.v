@@ -5,7 +5,9 @@ module id (
     input hold_flag_i,
     input jump_flag_i,
     input interrupt_flag_i,
+    input syscall_flag_i,
     input mret_flag_i,
+    input sret_flag_i,
     output reg lui_o,
     output reg auipc_o,
     output reg jal_o,
@@ -52,7 +54,31 @@ always @(posedge clk) begin
         calc_o<=1'b0;
         sys_o<=1'b0;
     end
+    else if(syscall_flag_i) begin
+        lui_o<=1'b0;
+        auipc_o<=1'b0;
+        jal_o<=1'b0;
+        jalr_o<=1'b0;
+        bj_o<=1'b0;
+        load_o<=1'b0;
+        store_o<=1'b0;
+        calci_o<=1'b0;
+        calc_o<=1'b0;
+        sys_o<=1'b0;
+    end
     else if(mret_flag_i) begin
+        lui_o<=1'b0;
+        auipc_o<=1'b0;
+        jal_o<=1'b0;
+        jalr_o<=1'b0;
+        bj_o<=1'b0;
+        load_o<=1'b0;
+        store_o<=1'b0;
+        calci_o<=1'b0;
+        calc_o<=1'b0;
+        sys_o<=1'b0;
+    end
+    else if(sret_flag_i) begin
         lui_o<=1'b0;
         auipc_o<=1'b0;
         jal_o<=1'b0;

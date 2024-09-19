@@ -5,9 +5,13 @@ module ifu(
     input[31:0] inst_i,
     input hold_flag_i,
     input interrupt_flag_i,
+    input syscall_flag_i,
     input mret_flag_i,
+    input sret_flag_i,
     input[31:0] mtvec_i,
     input[31:0] mepc_i,
+    input[31:0] stvec_i,
+    input[31:0] sepc_i,
     output reg[31:0] pc_val_o,
     output reg[31:0] inst_o,
     output reg read_valid_o,
@@ -21,8 +25,18 @@ module ifu(
             inst_o<=32'd0;
             read_valid_o<=1'b1;
         end
+        else if(syscall_flag_i) begin
+            pc_val_o<=stvec_i;
+            inst_o<=32'd0;
+            read_valid_o<=1'b1;
+        end
         else if(mret_flag_i) begin
             pc_val_o<=mepc_i;
+            inst_o<=32'd0;
+            read_valid_o<=1'b1;
+        end
+        else if(sret_flag_i) begin
+            pc_val_o<=sepc_i;
             inst_o<=32'd0;
             read_valid_o<=1'b1;
         end
