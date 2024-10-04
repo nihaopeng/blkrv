@@ -52,9 +52,13 @@ always @(posedge clk_i) begin
     end
     else if(syscall_flag_i) begin
         REGS[sepc_a]<=cur_pc_i-4;
+        REGS[satp_a][31]<=1'b0;
     end
     else if(mret_flag_i) begin
         REGS[mstatus_a][mie]<=REGS[mstatus_a][mpie];
+    end
+    else if(sret_flag_i) begin
+        REGS[satp_a][31]<=1'b1;
     end
     //sret 不做其他操作
     else if(we_i) begin

@@ -35,7 +35,6 @@ all:verilog2cc $(OBJS)
 	@echo $(VSRC)
 	@echo $(CSRC)
 	cc $(wildcard $(VERILOG2CPP)/*.o) $(OBJS) -o $(EXECUTABLE) -lstdc++ -lm -pthread
-	rm -f $(OBJS)
 	./BLKRv
 
 # --cc to generate c++ code, --exe for wrapper file, --build for obj_dir .o	

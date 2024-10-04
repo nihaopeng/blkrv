@@ -14,7 +14,8 @@
                 "/usr/lib/gcc/x86_64-linux-gnu/9/include",
                 "/usr/local/include",
                 "/usr/include/x86_64-linux-gnu",
-                "/usr/include"
+                "/usr/include",
+                "${workspaceFolder}/os/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

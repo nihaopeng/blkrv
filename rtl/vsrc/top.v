@@ -2,8 +2,19 @@ module top(
     input clk,
     input int_port0,
     input int_port1,
+    input int_port2,
+    input int_port3,
+    input int_port4,
+    input int_port5,
+    input int_port6,
     output int_response0,
     output int_response1,
+    output int_response2,
+    output int_response3,
+    output int_response4,
+    output int_response5,
+    output int_response6,
+
     output[31:0] s0_addr,
     output[31:0] s0_write_data,
     input[31:0] s0_read_data,
@@ -29,7 +40,43 @@ module top(
     output s2_we,
     input s2_read_valid,
     input s2_write_ready,
-    output s2_req
+    output s2_req,
+
+    output[31:0] s3_addr,
+    output[31:0] s3_write_data,
+    input[31:0] s3_read_data,
+    output[2:0] s3_mem_op_type,
+    output s3_we,
+    input s3_read_valid,
+    input s3_write_ready,
+    output s3_req,
+
+    output[31:0] s4_addr,
+    output[31:0] s4_write_data,
+    input[31:0] s4_read_data,
+    output[2:0] s4_mem_op_type,
+    output s4_we,
+    input s4_read_valid,
+    input s4_write_ready,
+    output s4_req,
+
+    output[31:0] s5_addr,
+    output[31:0] s5_write_data,
+    input[31:0] s5_read_data,
+    output[2:0] s5_mem_op_type,
+    output s5_we,
+    input s5_read_valid,
+    input s5_write_ready,
+    output s5_req,
+
+    output[31:0] s6_addr,
+    output[31:0] s6_write_data,
+    input[31:0] s6_read_data,
+    output[2:0] s6_mem_op_type,
+    output s6_we,
+    input s6_read_valid,
+    input s6_write_ready,
+    output s6_req
 );
 wire[31:0] load_addr_v,load_addr_t;
 wire[31:0] m0_read_data;
@@ -105,6 +152,41 @@ rib rib(
     .s2_read_valid_i(s2_read_valid),
     .s2_we_o(s2_we),
     .s2_req_o(s2_req),
+
+    //slave3
+    .s3_addr_o(s3_addr),
+    .s3_write_data_o(s3_write_data),
+    .s3_read_data_i(s3_read_data),
+    .s3_mem_op_type_o(s3_mem_op_type),
+    .s3_read_valid_i(s3_read_valid),
+    .s3_we_o(s3_we),
+    .s3_req_o(s3_req),
+
+    //slave4
+    .s4_addr_o(s4_addr),
+    .s4_write_data_o(s4_write_data),
+    .s4_read_data_i(s4_read_data),
+    .s4_mem_op_type_o(s4_mem_op_type),
+    .s4_read_valid_i(s4_read_valid),
+    .s4_we_o(s4_we),
+    .s4_req_o(s4_req),
+
+    //slave5
+    .s5_addr_o(s5_addr),
+    .s5_write_data_o(s5_write_data),
+    .s5_read_data_i(s5_read_data),
+    .s5_mem_op_type_o(s5_mem_op_type),
+    .s5_read_valid_i(s5_read_valid),
+    .s5_we_o(s5_we),
+    .s5_req_o(s5_req),
+
+    .s6_addr_o(s6_addr),
+    .s6_write_data_o(s6_write_data),
+    .s6_read_data_i(s6_read_data),
+    .s6_mem_op_type_o(s6_mem_op_type),
+    .s6_read_valid_i(s6_read_valid),
+    .s6_we_o(s6_we),
+    .s6_req_o(s6_req),
     
     .hold_flag_o(),
     .read_valid_o(devices_valid),
@@ -117,9 +199,19 @@ interrupt_ctrl interrupt_ctrl(
 
     .port0_i(int_port0),
     .port1_i(int_port1),
+    .port2_i(int_port2),
+    .port3_i(int_port3),
+    .port4_i(int_port4),
+    .port5_i(int_port5),
+    .port6_i(int_port6),
 
     .response0_o(int_response0),
     .response1_o(int_response1),
+    .response2_o(int_response2),
+    .response3_o(int_response3),
+    .response4_o(int_response4),
+    .response5_o(int_response5),
+    .response6_o(int_response6),
 
     .interrupt_response_i(interrupt_response),
     .interrupt_port_o(interrupt_port),
