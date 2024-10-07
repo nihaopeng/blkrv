@@ -6,7 +6,7 @@ uint8_t blocks[MAX_BLOCK]={0};
 
 /*get a block number that is 0, 0 represents free
 fail return -1*/
-int16_t alloc_block(){
+uint32_t alloc_block(){
     for(int i=0;i<MAX_BLOCK;i++){
         if(!blocks[i]){
             return i;

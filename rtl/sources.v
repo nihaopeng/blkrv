@@ -254,14 +254,14 @@ module rib(
     output reg s5_we_o,
     output s5_req_o,
 
-    // //slave6
-    // output reg[31:0] s6_addr_o,
-    // output reg[31:0] s6_write_data_o,
-    // input[31:0] s6_read_data_i,
-    // output[2:0] s6_mem_op_type_o,
-    // input s6_read_valid_i,
-    // output reg s6_we_o,
-    // output s6_req_o,
+    //slave6
+    output reg[31:0] s6_addr_o,
+    output reg[31:0] s6_write_data_o,
+    input[31:0] s6_read_data_i,
+    output[2:0] s6_mem_op_type_o,
+    input s6_read_valid_i,
+    output reg s6_we_o,
+    output s6_req_o,
 
     // //slave7
     // output reg[31:0] s2_addr_o,
@@ -349,6 +349,11 @@ always @(*) begin
     s5_mem_op_type_o=3'd0;
     s5_we_o=1'b0;
     s5_req_o=1'b0;
+    s6_addr_o=32'd0;
+    s6_write_data_o=32'd0;
+    s6_mem_op_type_o=3'd0;
+    s6_we_o=1'b0;
+    s6_req_o=1'b0;
     if(m1_req_i) begin
         case(m1_addr_i[31:28])
             slave0:begin
@@ -358,11 +363,6 @@ always @(*) begin
                 s0_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s0_read_data_i;
                 s0_req_o=1'b1;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave1:begin
                 s1_addr_o={4'd0,m1_addr_i[27:0]};
@@ -370,12 +370,7 @@ always @(*) begin
                 s1_we_o=m1_we_i;
                 s1_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s1_read_data_i;
-                s0_req_o=1'b0;
                 s1_req_o=1'b1;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave2:begin
                 s2_addr_o={4'd0,m1_addr_i[27:0]};
@@ -383,12 +378,7 @@ always @(*) begin
                 s2_we_o=m1_we_i;
                 s2_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s2_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
                 s2_req_o=1'b1;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave3:begin
                 s3_addr_o={4'd0,m1_addr_i[27:0]};
@@ -396,12 +386,7 @@ always @(*) begin
                 s3_we_o=m1_we_i;
                 s3_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s3_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
                 s3_req_o=1'b1;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave4:begin
                 s4_addr_o={4'd0,m1_addr_i[27:0]};
@@ -409,12 +394,7 @@ always @(*) begin
                 s4_we_o=m1_we_i;
                 s4_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s4_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
                 s4_req_o=1'b1;
-                s5_req_o=1'b0;
             end
             slave5:begin
                 s5_addr_o={4'd0,m1_addr_i[27:0]};
@@ -422,12 +402,15 @@ always @(*) begin
                 s5_we_o=m1_we_i;
                 s5_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s5_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
                 s5_req_o=1'b1;
+            end
+            slave6:begin
+                s6_addr_o={4'd0,m1_addr_i[27:0]};
+                s6_write_data_o=m1_write_data_i;
+                s6_we_o=m1_we_i;
+                s6_mem_op_type_o=m1_mem_op_type_i;
+                m1_read_data_o=s6_read_data_i;
+                s6_req_o=1'b1;
             end
 			default:begin
 			end
@@ -443,11 +426,6 @@ always @(*) begin
                 s0_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s0_read_data_i;
                 s0_req_o=1'b1;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave1:begin
                 s1_addr_o={4'd0,m0_addr_i[27:0]};
@@ -455,12 +433,7 @@ always @(*) begin
                 s1_we_o=m0_we_i;
                 s1_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s1_read_data_i;
-                s0_req_o=1'b0;
                 s1_req_o=1'b1;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave2:begin
                 s2_addr_o={4'd0,m0_addr_i[27:0]};
@@ -468,12 +441,7 @@ always @(*) begin
                 s2_we_o=m0_we_i;
                 s2_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s2_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
                 s2_req_o=1'b1;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave3:begin
                 s3_addr_o={4'd0,m0_addr_i[27:0]};
@@ -481,12 +449,7 @@ always @(*) begin
                 s3_we_o=m0_we_i;
                 s3_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s3_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
                 s3_req_o=1'b1;
-                s4_req_o=1'b0;
-                s5_req_o=1'b0;
             end
             slave4:begin
                 s4_addr_o={4'd0,m0_addr_i[27:0]};
@@ -494,12 +457,7 @@ always @(*) begin
                 s4_we_o=m0_we_i;
                 s4_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s4_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
                 s4_req_o=1'b1;
-                s5_req_o=1'b0;
             end
             slave5:begin
                 s5_addr_o={4'd0,m0_addr_i[27:0]};
@@ -507,12 +465,15 @@ always @(*) begin
                 s5_we_o=m0_we_i;
                 s5_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s5_read_data_i;
-                s0_req_o=1'b0;
-                s1_req_o=1'b0;
-                s2_req_o=1'b0;
-                s3_req_o=1'b0;
-                s4_req_o=1'b0;
                 s5_req_o=1'b1;
+            end
+            slave6:begin
+                s6_addr_o={4'd0,m0_addr_i[27:0]};
+                s6_write_data_o=m0_write_data_i;
+                s6_we_o=m0_we_i;
+                s6_mem_op_type_o=m0_mem_op_type_i;
+                m0_read_data_o=s6_read_data_i;
+                s6_req_o=1'b1;
             end
 			default:begin
 			end
@@ -531,12 +492,14 @@ module top(
     input int_port3,
     input int_port4,
     input int_port5,
+    input int_port6,
     output int_response0,
     output int_response1,
     output int_response2,
     output int_response3,
     output int_response4,
     output int_response5,
+    output int_response6,
 
     output[31:0] s0_addr,
     output[31:0] s0_write_data,
@@ -590,7 +553,16 @@ module top(
     output s5_we,
     input s5_read_valid,
     input s5_write_ready,
-    output s5_req
+    output s5_req,
+
+    output[31:0] s6_addr,
+    output[31:0] s6_write_data,
+    input[31:0] s6_read_data,
+    output[2:0] s6_mem_op_type,
+    output s6_we,
+    input s6_read_valid,
+    input s6_write_ready,
+    output s6_req
 );
 wire[31:0] load_addr_v,load_addr_t;
 wire[31:0] m0_read_data;
@@ -693,6 +665,14 @@ rib rib(
     .s5_read_valid_i(s5_read_valid),
     .s5_we_o(s5_we),
     .s5_req_o(s5_req),
+
+    .s6_addr_o(s6_addr),
+    .s6_write_data_o(s6_write_data),
+    .s6_read_data_i(s6_read_data),
+    .s6_mem_op_type_o(s6_mem_op_type),
+    .s6_read_valid_i(s6_read_valid),
+    .s6_we_o(s6_we),
+    .s6_req_o(s6_req),
     
     .hold_flag_o(),
     .read_valid_o(devices_valid),
@@ -709,6 +689,7 @@ interrupt_ctrl interrupt_ctrl(
     .port3_i(int_port3),
     .port4_i(int_port4),
     .port5_i(int_port5),
+    .port6_i(int_port6),
 
     .response0_o(int_response0),
     .response1_o(int_response1),
@@ -716,6 +697,7 @@ interrupt_ctrl interrupt_ctrl(
     .response3_o(int_response3),
     .response4_o(int_response4),
     .response5_o(int_response5),
+    .response6_o(int_response6),
 
     .interrupt_response_i(interrupt_response),
     .interrupt_port_o(interrupt_port),
@@ -731,7 +713,7 @@ module mmu(
     output[31:0] addr_t_o,
     input[31:0] satp_i
 );
-    assign addr_t_o=(satp_i[31])?(addr_i+{4'h0,satp_i[27:0]}):addr_i;
+    assign addr_t_o=(satp_i[31])?(addr_i+{1'h0,satp_i[30:0]}):addr_i;
 endmodule
 
 module interrupt_ctrl (
@@ -743,6 +725,7 @@ module interrupt_ctrl (
     input port3_i,
     input port4_i,
     input port5_i,
+    input port6_i,
 
     output reg response0_o,
     output reg response1_o,
@@ -750,6 +733,7 @@ module interrupt_ctrl (
     output reg response3_o,
     output reg response4_o,
     output reg response5_o,
+    output reg response6_o,
 
     input interrupt_response_i,
     output reg[3:0] interrupt_port_o,
@@ -763,6 +747,7 @@ module interrupt_ctrl (
         response3_o<=1'b0;
         response4_o<=1'b0;
         response5_o<=1'b0;
+        response6_o<=1'b0;
         if(mie_i) begin
             if(port0_i) begin
                 interrupt_port_o<=4'h0;
@@ -793,6 +778,11 @@ module interrupt_ctrl (
                 interrupt_port_o<=4'h5;
                 interrupt_flag_o<=1'b1;
                 response5_o<=interrupt_response_i;
+            end
+            else if(port5_i) begin
+                interrupt_port_o<=4'h6;
+                interrupt_flag_o<=1'b1;
+                response6_o<=interrupt_response_i;
             end
             else begin
                 interrupt_port_o<=4'h0;
@@ -1096,9 +1086,13 @@ always @(posedge clk_i) begin
     end
     else if(syscall_flag_i) begin
         REGS[sepc_a]<=cur_pc_i-4;
+        REGS[satp_a][31]<=1'b0;
     end
     else if(mret_flag_i) begin
         REGS[mstatus_a][mie]<=REGS[mstatus_a][mpie];
+    end
+    else if(sret_flag_i) begin
+        REGS[satp_a][31]<=1'b1;
     end
     //sret 不做其他操作
     else if(we_i) begin
@@ -1574,7 +1568,7 @@ assign data2mem_o=(op_type_i==3'b000)?({24'd0,r2_i[7:0]}):
                   (op_type_i==3'b001)?({16'd0,r2_i[15:0]}):
                   (op_type_i==3'b010)?({r2_i}):32'd0;
 
-assign mem_op_type_o=(load_i)?(op_type_i):
+assign mem_op_type_o=(load_i)?((op_type_i==3'b100)?3'b001:((op_type_i==3'b101)?3'b010:op_type_i)):
                      (store_i)?(op_type_i):3'b010;
                      
 wire csr_we;

@@ -1,3 +1,6 @@
+#ifndef _SYSCALL_H_
+#define _SYSCALL_H_
+
 #include "ini.h"
 
 #define _syscall0(type,name) \
@@ -7,7 +10,7 @@ type name(void) \
     __asm__ volatile(\
         "li a7, %1\n"\
         "ecall\n"\
-        "mov %0, a0\n"\
+        "mv %0, a0\n"\
         : "=r"(__res)\
         : "i"(_NR_##name)\
         : "memory");\
@@ -22,11 +25,11 @@ type name(atype a) \
     uint32_t __res;\
     __asm__ volatile (\
         "li a7, %1\n"\
-        "li a0, %2\n"\
+        "mv a0, %2\n"\
         "ecall\n"\
-        "mov %0, a0\n"\
+        "mv %0, a0\n"\
         : "=r"(__res)\
-        : "i"(_NR_##name),"i"((uint32_t)a)\
+        : "i"(_NR_##name),"r"((uint32_t)a)\
         : "memory");\
     if (__res>=0) \
 	    return (type) __res; \
@@ -39,12 +42,12 @@ type name(atype a,btype b) \
     uint32_t __res;\
     __asm__ volatile (\
         "li a7, %1\n"\
-        "li a0, %2\n"\
-        "li a1, %3\n"\
+        "mv a0, %2\n"\
+        "mv a1, %3\n"\
         "ecall\n"\
-        "mov %0, a0\n"\
+        "mv %0, a0\n"\
         : "=r"(__res)\
-        : "i"(_NR_##name), "i"((uint32_t)a), "i"((uint32_t)b)\
+        : "i"(_NR_##name), "r"((uint32_t)a), "r"((uint32_t)b)\
         : "memory");\
     if (__res>=0) \
 	    return (type) __res; \
@@ -58,15 +61,20 @@ type name(atype a,btype b,ctype c) \
     uint32_t __res; \
     __asm__ volatile (\
         "li a7, %1\n" \
-        "li a0, %2\n" \
-        "li a1, %3\n" \
-        "li a2, %4\n" \
+        "mv a0, %2\n"\
+        "mv a1, %3\n"\
+        "mv a2, %4\n" \
         "ecall\n" \
-        "mov %0, a0\n" \
+        "mv %0, a0\n" \
         : "=r"(__res) \
-        : "i"(_NR_##name), "i"((uint32_t)a), "i"((uint32_t)b) , "i"((uint32_t)c) \
+        : "i"(_NR_##name), "r"((uint32_t)a), "r"((uint32_t)b) , "r"((uint32_t)c) \
         : "memory"); \
     if (__res>=0) \
 	    return (type) __res; \
     return -1; \
 }
+
+#endif // !_SYSCALL_H_
+
+
+

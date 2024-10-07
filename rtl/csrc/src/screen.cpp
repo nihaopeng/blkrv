@@ -25,4 +25,16 @@ void screen::process(Vtop* top){
             }
         }
     }
+    //show content
+    if(this->getB(3)==1){
+        for(int i=4;;i++){
+            char ch=this->getB(i);
+            this->putB(i,0);
+            if(ch=='\0'){
+                break;
+            }
+            printf("%c",ch);
+        }
+        this->putB(3,0);
+    }
 }

@@ -70,6 +70,15 @@
         "netfwd": "cpp",
         "stdio.h": "c",
         "set_gate.h": "c",
-        "ini.h": "c"
+        "ini.h": "c",
+        "cassert": "c",
+        "cerrno": "c",
+        "cfloat": "c",
+        "climits": "c",
+        "ios": "c",
+        "queue": "c",
+        "str.h": "c",
+        "stdint.h": "c",
+        "stdint-gcc.h": "c"
     }
 }

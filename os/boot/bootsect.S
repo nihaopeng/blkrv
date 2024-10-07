@@ -1,9 +1,10 @@
 
 kernel_size=0x100#1MB
-kernel_start=0x34
+kernel_start=0x94
 
 _start:
     addi x1,x0,0
+    addi x2,x0,0
     lui x1,0x60000#加载flash的首地址
     addi x1,x1,0x200#定位到flash512字节
     lui x2,0x10000#加载ram的首地址

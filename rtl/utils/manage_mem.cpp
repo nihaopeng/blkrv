@@ -55,11 +55,12 @@ int main(int argc, char** argv) {
             uint8_t data;
             src_file.seekg(src_start+i);
             src_file.read(reinterpret_cast<char*>(&data), sizeof(data));
-            printf("%c\n",data);
+            printf("%d",data);
             tar_file.seekp(tar_start+i);
             tar_file.write(reinterpret_cast<const char*>(&data), sizeof(data));
             tar_file.flush();
         }
     }
+    printf("\n");
     return 0;
 }

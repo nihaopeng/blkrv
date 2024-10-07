@@ -95,7 +95,7 @@ assign data2mem_o=(op_type_i==3'b000)?({24'd0,r2_i[7:0]}):
                   (op_type_i==3'b001)?({16'd0,r2_i[15:0]}):
                   (op_type_i==3'b010)?({r2_i}):32'd0;
 
-assign mem_op_type_o=(load_i)?(op_type_i):
+assign mem_op_type_o=(load_i)?((op_type_i==3'b100)?3'b001:((op_type_i==3'b101)?3'b010:op_type_i)):
                      (store_i)?(op_type_i):3'b010;
                      
 wire csr_we;
