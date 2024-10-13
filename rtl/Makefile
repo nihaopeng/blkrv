@@ -21,6 +21,7 @@ CINCLUDE :=./csrc/include
 # the include and src of verilator
 SYSPATH :=/usr/local/share/verilator/include
 SYSPATH1:=/usr/local/share/verilator/include/vltstd 
+SYSPATH2:=/usr/share/verilator/include
 SYSSRC := $(wildcard $(SYSPATH)/*.cpp)
 
 # directory of result of verilator compiling
@@ -44,7 +45,7 @@ verilog2cc:
 
 # all cpp file will exeucte below action
 %.o:%.cpp
-	$(cc) -c $< -o $@ -I$(CINCLUDE) -I$(SYSPATH) -I$(SYSPATH1) -I$(VERILOG2CPP)
+	$(cc) -c $< -o $@ -I$(CINCLUDE) -I$(SYSPATH) -I$(SYSPATH1) -I$(SYSPATH2) -I$(VERILOG2CPP)
 
 clean:
 	rm -rf obj_dir

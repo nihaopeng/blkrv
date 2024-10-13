@@ -1,2 +1,4 @@
 .vscode/
 rtl/wave.vcd
+rtl/boj_dir/
+rtl/csrc/src/*.o
