@@ -27,7 +27,7 @@ int main(int argc, char** argv, char** env) {
         tfp->dump(contextp->time()); //dump wave
         contextp->timeInc(1);
 
-        mydevices.process(top);
+    //    mydevices.process(top);
 
         top->clk=1;
         top->eval();

@@ -4,8 +4,8 @@
 .text
 .global _start,_gdt_search,_idt_search
 _start:
-    la a0,_gdt_search
-    csrrw zero,stvec,a0
+    la a0,_gdt_search//syscall_table adrr
+    csrrw zero,stvec,a0//syscall addr
     li a0,0
     li a1,0
     li a2,0

@@ -25,4 +25,10 @@ int free_block(uint16_t block_num){
     return 0;
 }
 
+int memset_i(char* addr,char ch){
+    char *a = (addr);
+    *(a) = (ch);
+    return 0;
+}
+
 #endif // !_MM_H_
