@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include <string.h>
-#include<fstream>
+#include <cstring>
+#include <fstream>
+#include <cstdint>
 
 int main(int argc, char** argv) {
     std::fstream src_file,tar_file;
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
         }
     }
     if(!src_file||!tar_file){
-        printf("can not open the file");
+        printf("can not open file\n");
         return 0;
     }else{
         uint32_t data;

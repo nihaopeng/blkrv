@@ -4,6 +4,10 @@ int main(){
     init_std();
     print("hell%c,%c%c%c%c%c\n",'o','w','o','r','l','d');
     print("%s\n","hello,world2");
+    print("%s\n","hello,world3");
+    print("%s\n","hello,world4");
+    print("%s\n","hello,world5");
+    
     print("rrrrrr      vv          vv\n");
     print("rr    rr     vv        vv\n");
     print("rr    rr      vv      vv\n");
