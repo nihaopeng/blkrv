@@ -1,5 +1,4 @@
 .vscode/
-rtl/wave.vcd
-rtl/BLKRv
-rtl/obj_dir/
-rtl/csrc/src/*.o
+wave.vcd
+build/
+test/
