@@ -14,6 +14,7 @@ devices::devices(){
     this->my_screen=new screen("./devices/screen",1<<20-1);
     std::cout<<"$init net_card"<<std::endl;
     this->my_net_card=new net_card("./devices/net_card",1<<20-1);
+    system("make loadmem");
 }
 
 devices::~devices(){

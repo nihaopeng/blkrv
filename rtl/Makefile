@@ -23,6 +23,7 @@ BUILD_ROOT := ./build
 OBJ_PATH := $(BUILD_ROOT)/objs
 VERILOG_PATH := $(BUILD_ROOT)/verilog
 EXECUTABLE_PATH := $(BUILD_ROOT)/dist
+DEVICES_PATH := ./devices
 
 # some variable about wrapper file
 CSRC_PATH := ./csrc/src
@@ -41,6 +42,7 @@ build_dir:
 	@mkdir -p $(OBJ_PATH)
 	@mkdir -p $(EXECUTABLE_PATH)
 	@mkdir -p $(BUILD_ROOT)/bios
+	@mkdir -p $(DEVICES_PATH)
 
 # --cc to generate c++ code, --exe for wrapper file, --build for obj_dir .o	
 # below is to make verilog code converted into c++ code
@@ -72,7 +74,7 @@ loadmem:mkutils mkbios
 #	加载sys
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 4768 -tar_start 512 -tar_end 5280
 
-run:loadmem
+run:
 	$(EXECUTABLE_NAME)
 
 clean:

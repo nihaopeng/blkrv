@@ -3,3 +3,4 @@ wave.vcd
 build/
 test/
 *.o
+devices/
