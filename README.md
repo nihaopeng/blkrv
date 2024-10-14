@@ -15,20 +15,19 @@ riscv-unknow-elf-gcc(tutorial:https://blog.csdn.net/m0_59161987/article/details/
 `cd os/`
 
 `make`
-### load os into flash
-`cd rtl/utils/`
-
-`./load_mem.sh`
-### compile verilog and run
+### compile verilog
 `cd rtl/`
 
 `make`
 
+### it's time to run!
+`make run`
+
 ## some details
 ### instructions
-![](./preDesign/基础指令测试/instructions.png)
+![](./img/instructions.png)
 ### hardware architecture
-![](./preDesign/arch.png)
+![](./img/arch.png)
 ### test result
-![](./preDesign/res.png)
+![](./img/res.png)
 
