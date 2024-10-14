@@ -8,7 +8,7 @@ linux
 
 make
 
-[riscv-unknow-elf-gcc](tutorial:https://blog.csdn.net/m0_59161987/article/details/136761879)(required march:rv32i, mabi:ilp32)
+[riscv-unknow-elf-gcc](https://blog.csdn.net/m0_59161987/article/details/136761879)(required march:rv32i, mabi:ilp32)
 
 ## usage
 ### compile os
