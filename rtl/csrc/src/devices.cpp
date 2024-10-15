@@ -15,6 +15,12 @@ devices::devices(){
     std::cout<<"$init net_card"<<std::endl;
     this->my_net_card=new net_card("./devices/net_card",1<<20-1);
     system("make loadmem");
+    this->my_bios->sync();
+    this->my_flash->sync();
+    this->my_keyboard->sync();
+    this->my_net_card->sync();
+    this->my_ram->sync();
+    this->my_screen->sync();
 }
 
 devices::~devices(){

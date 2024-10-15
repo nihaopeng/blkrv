@@ -4,7 +4,7 @@
 #include "ram.h"
 #include "utils.h"
 
-class keyboard:ram
+class keyboard:public ram
 {
 public:
     keyboard(std::string mem_file_path,uint32_t size);

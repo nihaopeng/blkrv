@@ -1,6 +1,7 @@
 #include "mem.h"
 
 mem::mem(std::string mem_file_path,uint32_t size){//unit of 'size' is BYTE
+    this->mem_file_path=mem_file_path;
     if(access((mem_file_path).c_str(),F_OK)!=0){//file not exist
         this->fp.open(mem_file_path,std::ios::binary|std::ios::out);
         uint32_t d=0;
@@ -57,4 +58,9 @@ void mem::put4B_from_file(uint32_t start_pointer,std::string file_path){
     }
     
     file.close();
+}
+
+void mem::sync(){
+    this->fp.close();
+    this->fp.open(this->mem_file_path,std::ios::binary|std::ios::out|std::ios::in);
 }

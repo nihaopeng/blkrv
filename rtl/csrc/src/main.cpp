@@ -16,7 +16,7 @@ int main(int argc, char** argv, char** env) {
     
     std::cout<<"start initializing devices..."<<std::endl;
     devices mydevices;
-    // std::cout<<mydevices.my_bios->get4B(0)<<std::endl;
+    std::cout<<mydevices.my_bios->get4B(0)<<std::endl;
     clock_t start,end;
     start=clock();
     top->clk=0;

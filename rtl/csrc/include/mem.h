@@ -17,6 +17,7 @@ class mem{
         ~mem();
         virtual void process(Vtop* top);
         void put4B_from_file(uint32_t start_pointer,std::string file_path);
+        void sync();
 };
 #endif // !_MEM_H_
 
