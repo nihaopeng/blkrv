@@ -35,3 +35,6 @@ https://gitee.com/c-nameless/blkrv-pre-design
 ### test result
 ![](./img/res.png)
 
+## os
+[syscall_func](./os/doc/syscall_func.md)
+   
