@@ -2,6 +2,7 @@
 #define _STR_H_
 #include "ini.h"
 #include "math.h"
+#include "drivers.h"
 
 uint32_t str_len(const char* str){
     uint32_t i=0;
@@ -51,34 +52,29 @@ void split(const char* str,char separator,uint32_t* node){
     }    
 }
 
-
-void itoa(int num,char* str,int radix){
-    int i = 0;
-    int sum;
-    uint32_t num1 = num;  //如果是负数求补码，必须将他的绝对值放在无符号位中在进行求反码
-    char str1[33] = { 0 };
-    if (num<0) {              //求出负数的补码
-        num = -num;
-        num1 = ~num;
-        num1 += 1;
+void itoa(int num, char *str) {
+    if (num == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return;
     }
-    if (num == 0) {             
-        str1[i] = '0';
-        
-        i++;
+    int isNegative = num < 0;
+    int n = isNegative ? -num : num;
+    // Generate the string from the digits
+    int pos=0;
+    while (n != 0) {
+        int temp = mod(n , 10);  // Get the last digit
+        str[pos++] = temp + '0';  // Convert the digit to a character
+        n = div(n , 10);  // Remove the last digit
     }
-    while(num1 !=0) {                      //进行进制运算
-        sum = mod(num1 , radix);
-        str1[i] = (sum > 9) ? (sum - 10) + 'a' : sum + '0';
-        num1 = div(num1 , radix);
-        i++;
+    if (isNegative) {
+        str[pos++] = '-';
     }
-    i--;
-    int j = 0;
-    str[i+1]='\0';
-    for (i; i >= 0; i--) {               //逆序输出 
-        str[i] = str1[j];
-        j++;
+    str[pos] = '\0';  // Null terminate the string
+    for (int i = 0; i < div(pos , 2); i++) {
+        char temp = str[i];
+        str[i] = str[pos - i - 1];
+        str[pos - i - 1] = temp;
     }
 }
 #endif // !_STR_H_

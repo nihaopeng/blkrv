@@ -42,7 +42,15 @@ int print(const char* fmt,...){//only support 'c' now;
                     }
                     break;
                 case 'd':
-                    
+                    va_addr=va_n*4;
+                    get_va(va_addr,va);
+                    va_n++;
+                    char s_t[33];
+                    itoa((int)va,s_t);
+                    string_length=str_len(s_t);
+                    for(int s=0;s<string_length;s++){
+                        out_cache[out_cache_n++]=s_t[s];
+                    }
                     break;
                 default:
                     break;

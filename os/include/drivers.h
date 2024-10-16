@@ -9,7 +9,7 @@ _syscall2(int,vprint,char*,str,uint32_t,length);
 
 int vprint_i(char* str,uint32_t length){
     for(int i=0;i<length;i++){
-        char ch=*(out_cache+i);
+        char ch=*(str+i);
         char* addr=(char*)SCREEN_CACHE1_ADDR+i;
         memset_i(addr,ch);
     }
