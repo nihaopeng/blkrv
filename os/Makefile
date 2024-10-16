@@ -11,7 +11,7 @@ _START := ./init/_start.S
 BOOTSECT := ./boot/bootsect.S
 
 all:build_dir bootsect _start sys
-	$(cc) -o ./build/init/sysimg ./build/init/_start.o ./build/init/main.o -I$(INCLUDE) -nostdlib -fPIE
+	$(cc) -o ./build/init/sysimg ./build/init/_start.o ./build/init/main.o ./console/console.c -I$(INCLUDE) -nostdlib -fPIE
 
 _start:$(_START)
 	$(cc) -c ./init/_start.S -o ./build/init/_start.o -march=rv32i_zicsr

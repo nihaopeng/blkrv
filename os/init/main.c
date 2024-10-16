@@ -1,4 +1,5 @@
 #include "std.h"
+#include "console.h"
 
 int main(){
     init_std();
@@ -15,4 +16,5 @@ int main(){
     print("still in building...\n");
     int d_test=-21474;
     print("d fmt test:%d\n",d_test);
+    init_console();
 }
