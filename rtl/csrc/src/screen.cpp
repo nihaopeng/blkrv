@@ -27,6 +27,8 @@ void screen::process(Vtop* top){
     }
     //show content
     if(this->getB(3)==1){
+        // printf("t;");
+        // printf("%x%x;\n",this->get4B(4),this->get4B(8));
         for(int i=4;;i++){
             char ch=this->getB(i);
             this->putB(i,0);

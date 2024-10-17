@@ -32,7 +32,7 @@ bootsect:$(BOOTSECT)
 	$(cc) -c ./boot/bootsect.S -o ./build/boot/bootsect.o -march=rv32i_zicsr
 
 sys:$(MAIN)
-	$(cc) -c ./init/main.c -o ./build/init/main.o -I$(INCLUDE)
+	$(cc) -c ./init/main.c -o ./build/init/main.o -I$(INCLUDE) -fPIE
 
 %.o:%.c
 	$(cc) -c $< -o $@ -I$(INCLUDE) -fPIE
