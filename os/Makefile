@@ -2,6 +2,8 @@ cc := riscv32-unknown-elf-gcc
 as := riscv32-unknown-elf-as
 ld := riscv32-unknown-elf-ld
 
+BUILD_DIR := ./build/
+
 INCLUDE := ./include
 
 MAIN := ./init/main.c
@@ -12,8 +14,13 @@ BOOTSECT := ./boot/bootsect.S
 
 CONSOLE := ./console/console.c
 
-all:build_dir bootsect _start u_console sys
-	$(cc) -o ./build/init/sysimg ./build/init/_start.o ./build/init/main.o ./build/init/console.o -I$(INCLUDE) -nostdlib -fPIE
+KERNEL_SRC := ./kernel
+
+SRC_FILES = $(shell find ./kernel -name *.c)
+OBJ_FILES = $(SRC_FILES:%.c=%.o)
+
+all:build_dir bootsect _start u_console sys $(OBJ_FILES)
+	$(cc) -o ./build/init/sysimg $(OBJ_FILES) ./build/init/_start.o  ./build/init/console.o  ./build/init/main.o  -I$(INCLUDE) -nostdlib -fPIE
 
 _start:$(_START)
 	$(cc) -c ./init/_start.S -o ./build/init/_start.o -march=rv32i_zicsr
@@ -27,9 +34,13 @@ bootsect:$(BOOTSECT)
 sys:$(MAIN)
 	$(cc) -c ./init/main.c -o ./build/init/main.o -I$(INCLUDE) -fPIE
 
+%.o:%.c
+	$(cc) -c $< -o $@ -I$(INCLUDE)
+
 build_dir:
 	@mkdir -p ./build/init
 	@mkdir -p ./build/boot
 
 clean:
 	@rm -rf ./build
+	@rm -rf $(OBJ_FILES)

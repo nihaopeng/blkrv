@@ -106,6 +106,9 @@ int input(const char* fmt,...){
     return 0;
 }
 
+_syscall2(int,vprint,char*,str,uint32_t,length);
+_syscall0(char,vgetch);
+
 void init_std(){
     int* gdt_addr_vprint=(int*)(&syscall_table[_NR_vprint]);
     int* func_addr_vprint=(int*)(&vprint_i);

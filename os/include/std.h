@@ -14,8 +14,8 @@ extern int in_cache_mutex;
 extern int in_cache_frontp;
 extern int in_cache_backp;
 
-_syscall2(int,vprint,char*,str,uint32_t,length);
-_syscall0(char,vgetch);
+int vprint(char* str,uint32_t length);
+char vgetch();
 
 #define get_va(n,va) \
 __asm__ volatile( \

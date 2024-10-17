@@ -4,10 +4,11 @@
 #include "ini.h"
 #include "mm.h"
 #include "str.h"
+#include "math.h"
 #include "set_gate.h"
 #include "syscall.h"
 
-uint8_t FILES[4096]={0};
+extern uint8_t FILES[4096];
 
 typedef struct file
 {
@@ -37,13 +38,17 @@ int open_i(const char* file_path,inode* inode);
 
 void init_fs();
 
-_syscall2(int,read,uint32_t,inode_id,char*,buf);
+// _syscall2(int,read,uint32_t,inode_id,char*,buf);
+int read(uint32_t inode_id,char* buf);
 
-_syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
+// _syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
+int write(uint32_t inode_id,char* buf,uint32_t length);
 
-_syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
+// _syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
+int create(uint32_t dir_inode_id,char* file_path,char type);
 
-_syscall1(uint32_t,open,const char*,file_path);
+// _syscall1(uint32_t,open,const char*,file_path);
+uint32_t open(const char* file_path);
 
 #endif // !_FILE_H_
 

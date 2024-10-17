@@ -1,5 +1,7 @@
 #include "file.h"
 
+uint8_t FILES[4096]={0};
+
 uint32_t alloc_inode(){
     for(int i=0;i<4096;i++){
         if(!FILES[i]){
@@ -43,7 +45,7 @@ inode* get_inode_by_id(uint32_t id){
 void read_i(uint32_t inode_id,char* buf){//we hope your buf has been init;
     inode* file_tmp=get_inode_by_id(inode_id);
     uint32_t block_tmp=file_tmp->start_block;
-    int block_num=file_tmp->size/(BLOCK_SIZE)+1;
+    int block_num=div(file_tmp->size,(BLOCK_SIZE))+1;
     uint32_t pos=0;
     for(int i=0;i<block_num;i++){
         uint32_t j=0;
@@ -59,7 +61,7 @@ void read_i(uint32_t inode_id,char* buf){//we hope your buf has been init;
 void write_i(uint32_t inode_id,char* buf,uint32_t length){//未实现清除原有block的功能；
     inode* file_tmp=get_inode_by_id(inode_id);
     uint32_t block_tmp=file_tmp->start_block;
-    int block_num=length/(BLOCK_SIZE)+1;
+    int block_num=div(length,(BLOCK_SIZE))+1;
     uint32_t pos=0;
     for(int i=0;i<block_num;i++){
         uint32_t j=0;
@@ -125,3 +127,11 @@ int create_i(uint32_t dir_inode, char* file_name,char type){
     file_tmp->start_block=alloc_block();
     file_tmp->type=type;
 }
+
+_syscall2(int,read,uint32_t,inode_id,char*,buf);
+
+_syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
+
+_syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
+
+_syscall1(uint32_t,open,const char*,file_path);

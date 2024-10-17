@@ -1,5 +1,8 @@
 #include "drivers.h"
 
+char out_cache[IO_CACHE];
+int out_cache_mutex=0;
+
 int vprint_i(char* str,uint32_t length){
     for(uint32_t i=0;i<length;i++){
         char ch=*(str+i);
