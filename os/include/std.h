@@ -7,7 +7,15 @@
 #include "syscall.h"
 #include "drivers.h"
 
-extern char out_cache[1024*1024];
+extern char out_cache[IO_CACHE];
+extern int out_cache_mutex;
+extern char in_cache[IO_CACHE];
+extern int in_cache_mutex;
+extern int in_cache_frontp;
+extern int in_cache_backp;
+
+_syscall2(int,vprint,char*,str,uint32_t,length);
+_syscall0(char,vgetch);
 
 #define get_va(n,va) \
 __asm__ volatile( \
@@ -17,7 +25,9 @@ __asm__ volatile( \
     :"r"(n) \
 );
 
-int print(const char* fmt,...);//only support 'c' now;
+int print(const char* fmt,...);
+
+int input(const char* fmt,...);
 
 void init_std();
 

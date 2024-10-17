@@ -14,6 +14,13 @@ void delete_inode(uint32_t inode_id){
 
 }
 
+void init_fs(){
+    _set_gate(_NR_read,&read_i);
+    _set_gate(_NR_write,&write_i);
+    _set_gate(_NR_open,&open_i);
+    _set_gate(_NR_create,&create_i);
+}
+
 inode* get_inode_by_id(uint32_t id){
     inode* file_tmp=(inode*)(FILE_TABLE_ADDR+id<<8);
     // uint32_t size,start_block;

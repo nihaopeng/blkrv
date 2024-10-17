@@ -1,6 +1,7 @@
 #include "math.h"
 
 int abs(int a){
+    if(a==0x7fffffff)return a;
     return a>0?a:-a;
 }
 
@@ -35,6 +36,7 @@ int mod(int a,int b){
             quotient -= multiple;
         }
     }
+    
     // result 现在是 a 除以 b 的余数
     return result;
 }

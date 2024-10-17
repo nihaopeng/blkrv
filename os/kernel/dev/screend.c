@@ -1,7 +1,7 @@
 #include "drivers.h"
 
 int vprint_i(char* str,uint32_t length){
-    for(int i=0;i<length;i++){
+    for(uint32_t i=0;i<length;i++){
         char ch=*(str+i);
         char* addr=(char*)SCREEN_CACHE1_ADDR+i;
         memset_i(addr,ch);

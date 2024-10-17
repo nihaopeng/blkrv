@@ -8,20 +8,21 @@ uint32_t str_len(const char* str){
 }
 
 int str_cmp(char* str1,char* str2){//same return 1,else return 0;
-    uint32_t i;
+    uint32_t i=0;
     if(str_len(str1)!=str_len(str2))
         return 0;
     while(str1[i]!='\0'&&str2[i]!='\0'){
         if(str1[i]!=str2[i]){
             return 0;
         }
+        i++;
     }
     return 1;
 }
 
 void str_cpy(char* src,char* dst){//
     uint32_t data_len=str_len(src);
-    for(int i=0;i<data_len;i++){
+    for(uint32_t i=0;i<data_len;i++){
         dst[i]=src[i];
     }
 }
@@ -31,7 +32,7 @@ void str_cpy_s(char* src,char* dst,uint32_t start,uint32_t end){//[]
     for(int i=0;i<MAX_NAME;i++){
         dst[i]=0;
     }
-    for(int i=start;i<=end;i++){
+    for(uint32_t i=start;i<=end;i++){
         dst[i]=src[i];
     }
 }
@@ -41,7 +42,7 @@ void str_cpy_s(char* src,char* dst,uint32_t start,uint32_t end){//[]
 void split(const char* str,char separator,uint32_t* node){
     uint32_t length=str_len(str);
     uint32_t pos=0;
-    for(int i=0;i<length;i++){
+    for(uint32_t i=0;i<length;i++){
         if(str[i]==separator){
             node[pos++]=i;
         }
@@ -72,4 +73,22 @@ void itoa(int num, char *str) {
         str[i] = str[pos - i - 1];
         str[pos - i - 1] = temp;
     }
+}
+
+int atoi(char* str){
+    int res = 0;
+    int sign = 1;
+    while (*str==32) str++;
+    if (*str == '+' || *str == '-') {
+        sign = (*str == '-') ? -1 : 1;
+        str++;
+    }
+	while (*str>='0'&&*str<='9') {
+        res = mul(res , 10) + (*str - '0');
+        str++;
+    }
+    if(res==INT_MIN){
+    	return res;
+	}
+    return mul(sign , res);
 }
