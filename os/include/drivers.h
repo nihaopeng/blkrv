@@ -2,21 +2,16 @@
 #define _DRIVERS_H_
 #include "syscall.h"
 #include "mm.h"
+#include "math.h"
 
-char out_cache[1024*1024];
+char out_cache[IO_CACHE];
+int out_cache_mutex=0;
+char in_cache[IO_CACHE];
+int in_cache_mutex=0;
+int in_cache_frontp=0,in_cache_backp=0;
 
-_syscall2(int,vprint,char*,str,uint32_t,length);
+int vprint_i(char* str,uint32_t length);
 
-int vprint_i(char* str,uint32_t length){
-    for(int i=0;i<length;i++){
-        char ch=*(str+i);
-        char* addr=(char*)SCREEN_CACHE1_ADDR+i;
-        memset_i(addr,ch);
-    }
-    char* ctrl_addr=(char*)SCREEN_CTRL_ADDR+3;
-    memset_i(ctrl_addr,1);
-    return 0;
-}
-
+int vgetch_i();
 
 #endif // !_DRIVERS_H_

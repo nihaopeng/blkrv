@@ -35,16 +35,11 @@ int create_i(uint32_t dir_inode,char* file_path,char type);
 
 int open_i(const char* file_path,inode* inode);
 
-void init_fs(){
-    _set_syscall_gate(_NR_read,&read_i);
-    _set_syscall_gate(_NR_write,&write_i);
-    _set_syscall_gate(_NR_open,&open_i);
-    _set_syscall_gate(_NR_create,&create_i);
-}
+void init_fs();
 
-_syscall2(void,read,uint32_t,inode_id,char*,buf);
+_syscall2(int,read,uint32_t,inode_id,char*,buf);
 
-_syscall3(void,write,uint32_t,inode_id,char*,buf,uint32_t,length);
+_syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
 
 _syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
 

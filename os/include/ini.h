@@ -24,8 +24,15 @@
 #define _NR_read 4
 #define _NR_create 5
 #define _NR_vprint 6
+#define _NR_vgetch 7
 
 #define NULL 0
+
+#define IO_CACHE 1024*1024
+#define FMT_STRING_SIZE 64
+
+#define INT_MAX  2147483647
+#define INT_MIN -2147483648
 
 #endif // !_INI_H_
 
