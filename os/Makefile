@@ -20,7 +20,7 @@ SRC_FILES = $(shell find ./kernel -name *.c)
 OBJ_FILES = $(SRC_FILES:%.c=%.o)
 
 all:build_dir bootsect _start u_console sys $(OBJ_FILES)
-	$(cc) -o ./build/init/sysimg $(OBJ_FILES) ./build/init/_start.o  ./build/init/console.o  ./build/init/main.o  -I$(INCLUDE) -nostdlib -fPIE
+	$(cc) -o ./build/init/sysimg ./build/init/_start.o $(OBJ_FILES) ./build/init/console.o  ./build/init/main.o  -I$(INCLUDE) -nostdlib -fPIE
 
 _start:$(_START)
 	$(cc) -c ./init/_start.S -o ./build/init/_start.o -march=rv32i_zicsr
@@ -32,10 +32,10 @@ bootsect:$(BOOTSECT)
 	$(cc) -c ./boot/bootsect.S -o ./build/boot/bootsect.o -march=rv32i_zicsr
 
 sys:$(MAIN)
-	$(cc) -c ./init/main.c -o ./build/init/main.o -I$(INCLUDE) -fPIE
+	$(cc) -c ./init/main.c -o ./build/init/main.o -I$(INCLUDE)
 
 %.o:%.c
-	$(cc) -c $< -o $@ -I$(INCLUDE)
+	$(cc) -c $< -o $@ -I$(INCLUDE) -fPIE
 
 build_dir:
 	@mkdir -p ./build/init

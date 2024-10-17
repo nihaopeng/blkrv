@@ -110,10 +110,6 @@ _syscall2(int,vprint,char*,str,uint32_t,length);
 _syscall0(char,vgetch);
 
 void init_std(){
-    int* gdt_addr_vprint=(int*)(&syscall_table[_NR_vprint]);
-    int* func_addr_vprint=(int*)(&vprint_i);
-    _set_gate(gdt_addr_vprint,func_addr_vprint);
-    int* gdt_addr_vgetch=(int*)(&syscall_table[_NR_vgetch]);
-    int* func_addr_vgetch=(int*)(&vgetch_i);
-    _set_gate(gdt_addr_vgetch,func_addr_vgetch);
+    regist_stdout();
+    regist_stdin();
 }

@@ -3,6 +3,8 @@
 #include "syscall.h"
 #include "mm.h"
 #include "math.h"
+#include "dt.h"
+#include "set_gate.h"
 
 int vprint_i(char* str,uint32_t length);
 

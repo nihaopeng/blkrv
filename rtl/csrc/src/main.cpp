@@ -24,15 +24,15 @@ int main(int argc, char** argv, char** env) {
 
         top->clk=0;
         top->eval();
-        // tfp->dump(contextp->time()); //dump wave
-        // contextp->timeInc(1);
+        tfp->dump(contextp->time()); //dump wave
+        contextp->timeInc(1);
 
         mydevices.process(top);
 
         top->clk=1;
         top->eval();
-        // tfp->dump(contextp->time()); //dump wave
-        // contextp->timeInc(1);
+        tfp->dump(contextp->time()); //dump wave
+        contextp->timeInc(1);
     }
     end=clock();
     printf("timecost:%f s\n",((double)(end-start))/CLOCKS_PER_SEC);
