@@ -1,15 +1,11 @@
 #include "std.h"
 
-int in_cache_mutex=0;
-int in_cache_frontp=0,in_cache_backp=0;
-int out_cache_mutex=0;
-desc_table syscall_table;
-desc_table inter_table;
-char out_cache[IO_CACHE];
-char in_cache[IO_CACHE];
-
 _syscall2(int,vprint,char*,str,uint32_t,length);
 _syscall0(char,vgetch);
+
+int out_cache_mutex=0;
+int in_cache_mutex=0;
+char out_cache[IO_CACHE];
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);
@@ -119,44 +115,9 @@ int input(const char* fmt,...){
 
 // extern desc_table inter_table;
 
-int vgetch_i(){
-    if(in_cache_frontp!=in_cache_backp){
-        char ch=in_cache[in_cache_frontp];
-        in_cache_frontp++;
-        in_cache_frontp=mod(in_cache_frontp,1024*1024);
-        return ch;
-    }else{
-        return -1;
-    }
-}
-
-void regist_stdin(){//放在这里是为了避免vgetch_i被编译在GOT表中
-    int* gdt_addr_vgetch=(int*)(&syscall_table[_NR_vgetch]);
-    int* func_addr_vgetch=(int*)(&vgetch_i);
-    _set_gate(gdt_addr_vgetch,func_addr_vgetch);
-}
-
-
 // extern desc_table syscall_table;
 
-int vprint_i(char* str,uint32_t length){
-    for(uint32_t i=0;i<length;i++){
-        char ch=*(str+i);
-        char* addr=(char*)SCREEN_CACHE1_ADDR+i;
-        memset_i(addr,ch);
-    }
-    char* ctrl_addr=(char*)SCREEN_CTRL_ADDR+3;
-    memset_i(ctrl_addr,1);
-    return 0;
-}
-
-void regist_stdout(){//放在这里是为了避免vprint_i被编译在GOT表中
-    int* gdt_addr_vprint=(int*)(&syscall_table[_NR_vprint]);
-    int* func_addr_vprint=(int*)(&vprint_i);
-    _set_gate(gdt_addr_vprint,func_addr_vprint);
-}
-
-void init_std(){
-    regist_stdout();
-    regist_stdin();
-}
+// void init_std(){
+//     regist_stdout();
+//     regist_stdin();
+// }

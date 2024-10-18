@@ -5,14 +5,7 @@
 #include "str.h"
 #include "set_gate.h"
 #include "syscall.h"
-#include "drivers.h"
-
-extern char out_cache[IO_CACHE];
-extern int out_cache_mutex;
-extern char in_cache[IO_CACHE];
-extern int in_cache_mutex;
-extern int in_cache_frontp;
-extern int in_cache_backp;
+#include "dt.h"
 
 int vprint(char* str,uint32_t length);
 char vgetch();
@@ -28,8 +21,6 @@ __asm__ volatile( \
 int print(const char* fmt,...);
 
 int input(const char* fmt,...);
-
-void init_std();
 
 #endif // !_STD_H_
 
