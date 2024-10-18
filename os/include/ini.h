@@ -27,7 +27,7 @@
 #define _NR_create 5
 #define _NR_vprint 6
 #define _NR_vgetch 7
-#define _NI_kbdown 0
+#define _NI_kbdown 2
 
 #define NULL 0
 

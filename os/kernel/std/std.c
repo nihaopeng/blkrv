@@ -1,7 +1,6 @@
 #include "std.h"
 
 _syscall2(int,vprint,char*,str,uint32_t,length);
-_syscall0(char,vgetch);
 
 int out_cache_mutex=0;
 int in_cache_mutex=0;
@@ -77,7 +76,10 @@ int input(const char* fmt,...){
                 char ch=vgetch();
                 if(ch==10||ch==32){
                    if(p==0)continue;else break;
+                }else if(ch==0){
+                    continue;
                 }else{
+                    // print("%c",ch);
                     fmts[p++]=ch;
                 }
             }

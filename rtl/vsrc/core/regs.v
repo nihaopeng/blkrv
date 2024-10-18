@@ -20,31 +20,32 @@ module regs(
     input write_ready_i 
 );
 reg[31:0] REGS[31:0];
-reg[31:0] REGS_CP[31:0];
+reg[31:0] REGS_CP_S[31:0];
+reg[31:0] REGS_CP_M[31:0];
 assign	r1_o=REGS[r1_id_i];
 assign	r2_o=REGS[r2_id_i];
 integer i;
 always @(posedge clk_i) begin
     if(interrupt_flag_i) begin
         for(i=0;i<32;i++) begin
-            REGS_CP[i]<=REGS[i];
+            REGS_CP_M[i]<=REGS[i];
         end
         read_valid_o<=1'b1;
     end
     else if(syscall_flag_i) begin
         for(i=0;i<32;i++) begin
-            REGS_CP[i]<=REGS[i];
+            REGS_CP_S[i]<=REGS[i];
         end
         read_valid_o<=1'b1;
     end
     else if(mret_flag_i) begin
         for(i=0;i<32;i++) begin
-            REGS[i]<=REGS_CP[i];
+            REGS[i]<=REGS_CP_M[i];
         end
     end
     else if(sret_flag_i) begin
         for(i=0;i<32;i++) begin
-            REGS[i]<=REGS_CP[i];
+            REGS[i]<=REGS_CP_S[i];
         end
     end
     else if(read_valid_i) begin

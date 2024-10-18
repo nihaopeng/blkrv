@@ -7,11 +7,11 @@
 
 int vprint_i(char* str,uint32_t length);
 
-int vgetch_i();
+char vgetch();
 
 void regist_stdout(int* dt_table_addr);
 
-void regist_stdin(int* dt_table_addr);
+// void regist_stdin(int* dt_table_addr);
 
 void regist_keydown_int(int* dt_addr);
 

@@ -6,9 +6,9 @@
 #include "set_gate.h"
 #include "syscall.h"
 #include "dt.h"
+#include "drivers.h"
 
 int vprint(char* str,uint32_t length);
-char vgetch();
 
 #define get_va(n,va) \
 __asm__ volatile( \
