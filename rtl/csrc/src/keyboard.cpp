@@ -1,6 +1,6 @@
 #include "keyboard.h"
 
-keyboard::keyboard(std::string mem_file_path,uint32_t size):ram(mem_file_path,size){
+keyboard::keyboard(uint32_t size):vmem(size){
 }
 keyboard::~keyboard(){
 }
@@ -22,7 +22,10 @@ void keyboard::process(Vtop* top){
             }
         }else{
             switch(top->s2_mem_op_type){
-                case 0:top->s2_read_data=uint8_t(this->getB(top->s2_addr));break;
+                case 0:
+                    top->s2_read_data=uint8_t(this->getB(top->s2_addr));
+                    printf("ir:%c",top->s2_read_data);
+                    break;
                 case 1:top->s2_read_data=uint16_t(this->get2B(top->s2_addr));break;
                 case 2:top->s2_read_data=uint32_t(this->get4B(top->s2_addr));break;
                 default:break;

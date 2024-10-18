@@ -1,6 +1,6 @@
 #include "screen.h"
 
-screen::screen(std::string mem_file_path,uint32_t size):ram(mem_file_path,size){
+screen::screen(uint32_t size):vmem(size){
 
 }
 

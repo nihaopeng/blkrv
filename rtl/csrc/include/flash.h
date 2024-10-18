@@ -1,8 +1,8 @@
 #ifndef _FLASH_H_
 #define _FLASH_H_
-#include "mem_rw.h"
+#include "nvmem.h"
 
-class flash:public mem_rw
+class flash:public nvmem
 {
 public:
     flash(std::string mem_file_path,uint32_t size);

@@ -1,6 +1,6 @@
 #include "bios.h"
 
-bios::bios(std::string mem_file_path,uint32_t size):mem_r(mem_file_path,size){
+bios::bios(std::string mem_file_path,uint32_t size):nvmem(mem_file_path,size){
 
 }
 

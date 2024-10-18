@@ -16,14 +16,11 @@ CONSOLE := ./console/console.c
 
 KERNEL_SRC := ./kernel
 
-SRC_FILES_C = $(shell find ./kernel -name *.c)
-OBJ_FILES_C = $(SRC_FILES_C:%.c=%.o)
+SRC_FILES = $(shell find ./kernel -name *.c)
+OBJ_FILES = $(SRC_FILES:%.c=%.o)
 
-SRC_FILES_S = $(shell find ./kernel -name *.S)
-OBJ_FILES_S = $(SRC_FILES_S:%.S=%.o)
-
-all:build_dir bootsect _start u_console sys $(OBJ_FILES_C) $(OBJ_FILES_S)
-	$(cc) -o ./build/init/sysimg ./build/init/_start.o $(OBJ_FILES_C) $(OBJ_FILES_S) ./build/init/console.o  ./build/init/main.o  -I$(INCLUDE) -nostdlib -fPIE
+all:build_dir bootsect _start u_console sys $(OBJ_FILES)
+	$(cc) -o ./build/init/sysimg ./build/init/_start.o $(OBJ_FILES) ./build/init/console.o  ./build/init/main.o  -I$(INCLUDE) -nostdlib -fPIE
 
 _start:$(_START)
 	$(cc) -c ./init/_start.S -o ./build/init/_start.o -march=rv32i_zicsr
@@ -39,9 +36,6 @@ sys:$(MAIN)
 
 %.o:%.c
 	$(cc) -c $< -o $@ -I$(INCLUDE) -fPIE
-
-%.o:%.S
-	$(cc) -c $< -o $@
 
 build_dir:
 	@mkdir -p ./build/init

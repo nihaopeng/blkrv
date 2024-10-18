@@ -12,7 +12,7 @@ int vprint_i(char* str,uint32_t length){
 }
 
 
-void regist_stdout(gdt_addr_vprint){//放在这里是为了避免vprint_i被编译在GOT表中
+void regist_stdout(int* gdt_addr_vprint){//放在这里是为了避免vprint_i被编译在GOT表中
     // 
     int* func_addr_vprint=(int*)(&vprint_i);
     _set_gate(gdt_addr_vprint,func_addr_vprint);

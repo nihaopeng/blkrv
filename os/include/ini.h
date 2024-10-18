@@ -15,6 +15,8 @@
 #define SCREEN_CTRL_ADDR   0x30000000
 #define SCREEN_CACHE1_ADDR (char *)0x30000004
 #define SCREEN_CACHE2_ADDR (char *)0x30010004
+//size is 1
+#define KEYBOARD_CACHE_ADDR (char*)0x20000000
 
 #define MAX_NAME 128
 
@@ -25,6 +27,7 @@
 #define _NR_create 5
 #define _NR_vprint 6
 #define _NR_vgetch 7
+#define _NI_kbdown 0
 
 #define NULL 0
 

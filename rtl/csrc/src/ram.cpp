@@ -1,15 +1,7 @@
 #include "ram.h"
 
-ram::ram(std::string mem_file_path,uint32_t size):mem_rw(mem_file_path,size){
-    uint32_t d=0;
-    //from the start to init the mem;
-    for(uint64_t i=0;i<size;i+=4){
-        printf("\r(size:%dByte)process:%f/100",size,(float(i+4)/size)*100);
-        this->fp.seekp(i);
-        this->fp.write(reinterpret_cast<const char*>(&d),sizeof(d));
-    }
-    this->fp.flush();
-    std::cout<<std::endl;
+ram::ram(uint32_t size):vmem(size){
+    
 }
 
 ram::~ram(){

@@ -7,7 +7,7 @@ uint32_t str_len(const char* str){
     return i;
 }
 
-int str_cmp(char* str1,char* str2){//same return 1,else return 0;
+int str_cmp(const char* str1,const char* str2){//same return 1,else return 0;
     uint32_t i=0;
     if(str_len(str1)!=str_len(str2))
         return 0;
@@ -20,14 +20,14 @@ int str_cmp(char* str1,char* str2){//same return 1,else return 0;
     return 1;
 }
 
-void str_cpy(char* src,char* dst){//
+void str_cpy(const char* src,char* dst){//
     uint32_t data_len=str_len(src);
     for(uint32_t i=0;i<data_len;i++){
         dst[i]=src[i];
     }
 }
 
-void str_cpy_s(char* src,char* dst,uint32_t start,uint32_t end){//[]
+void str_cpy_s(const char* src,char* dst,uint32_t start,uint32_t end){//[]
     // uint32_t data_len=str_len(src);
     for(int i=0;i<MAX_NAME;i++){
         dst[i]=0;
@@ -75,7 +75,7 @@ void itoa(int num, char *str) {
     }
 }
 
-int atoi(char* str){
+int atoi(const char* str){
     int res = 0;
     int sign = 1;
     while (*str==32) str++;

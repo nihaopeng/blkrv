@@ -1,12 +1,12 @@
 #ifndef _RAM_H_
 #define _RAM_H_
 
-#include "mem_rw.h"
+#include "vmem.h"
 
-class ram:public mem_rw
+class ram:public vmem
 {
 public:
-    ram(std::string mem_file_path,uint32_t size);
+    ram(uint32_t size);
     ~ram();
     void process(Vtop* top) override;
 };

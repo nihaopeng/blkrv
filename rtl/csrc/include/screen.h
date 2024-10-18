@@ -1,12 +1,12 @@
 #ifndef _SCREEN_H_
 #define _SCREEN_H_
 
-#include"ram.h"
+#include"vmem.h"
 
-class screen:public ram
+class screen:public vmem
 {
 public:
-    screen(std::string mem_file_path,uint32_t size);
+    screen(uint32_t size);
     ~screen();
     void process(Vtop* top) override;
 };

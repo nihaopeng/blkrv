@@ -46,7 +46,7 @@ assign sepc_o=REGS[sepc_a];
 always @(posedge clk_i) begin
     if(interrupt_flag_i) begin
         REGS[mepc_a]<=cur_pc_i-8;
-        REGS[mcause_a]<=mcause_i<<2;
+        REGS[mcause_a]<=mcause_i;
         REGS[mstatus_a][mie]<=1'b0;
         REGS[mstatus_a][mpie]<=1'b1;
     end

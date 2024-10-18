@@ -65,8 +65,8 @@ int input(const char* fmt,...){
     int fmt_len=str_len(fmt);
     int va_n=1;
     uint32_t va=0;
-    while(in_cache_mutex);
-    in_cache_mutex=1;
+    // while(in_cache_mutex);
+    // in_cache_mutex=1;
     for(int i=0;i<fmt_len;i++){
         if(fmt[i]=='%'){
             char fmts[FMT_STRING_SIZE];
@@ -112,12 +112,3 @@ int input(const char* fmt,...){
     }
     return 0;
 }
-
-// extern desc_table inter_table;
-
-// extern desc_table syscall_table;
-
-// void init_std(){
-//     regist_stdout();
-//     regist_stdin();
-// }

@@ -1,13 +1,13 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
-#include "ram.h"
+#include "vmem.h"
 #include "utils.h"
 
-class keyboard:public ram
+class keyboard:public vmem
 {
 public:
-    keyboard(std::string mem_file_path,uint32_t size);
+    keyboard(uint32_t size);
     ~keyboard();
     void process(Vtop* top) override;
 };
