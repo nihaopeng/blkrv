@@ -14,6 +14,8 @@ devices::devices(){
     this->my_screen=new screen(1<<20-1);
     std::cout<<"$init net_card"<<std::endl;
     this->my_net_card=new net_card(1<<20-1);
+    std::cout<<"$init pmc"<<std::endl;
+    this->my_pmc=new pmc(0);
     system("make loadmem");
     this->my_bios->sync();
     this->my_flash->sync();

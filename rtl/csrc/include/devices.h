@@ -6,6 +6,7 @@
 #include "bios.h"
 #include "flash.h"
 #include "net_card.h"
+#include "pmc.h"
 
 class devices
 {
@@ -17,6 +18,7 @@ public:
     flash* my_flash;
     screen* my_screen;
     net_card* my_net_card;
+    pmc* my_pmc;
     devices();
     ~devices();
     void process(Vtop* top);

@@ -4,8 +4,9 @@ int in_cache_frontp=0,in_cache_backp=0;
 char in_cache[IO_CACHE];
 
 char vgetch(){
-    if(in_cache_frontp!=in_cache_backp){
-        char c=in_cache[in_cache_frontp++];
+    if(in_cache_frontp<in_cache_backp){
+        char c=in_cache[in_cache_frontp];
+        in_cache_frontp++;
         // in_cache_frontp=mod(in_cache_frontp,IO_CACHE);
         return c;
     }else{
@@ -21,7 +22,8 @@ void keydown_interrupt(){
         :"=r"(ch)
         :"i"(KEYBOARD_CACHE_ADDR)
     );
-    in_cache[in_cache_backp++]=ch;
+    in_cache[in_cache_backp]=ch;
+    in_cache_backp++;
 }
 
 // void regist_stdin(int* dt_addr){//放在这里是为了避免vgetch_i被编译在GOT表中

@@ -1,6 +1,7 @@
 #include "std.h"
 
 _syscall2(int,vprint,char*,str,uint32_t,length);
+_syscall0(int,powoff);
 
 int out_cache_mutex=0;
 int in_cache_mutex=0;
@@ -64,8 +65,6 @@ int input(const char* fmt,...){
     int fmt_len=str_len(fmt);
     int va_n=1;
     uint32_t va=0;
-    // while(in_cache_mutex);
-    // in_cache_mutex=1;
     for(int i=0;i<fmt_len;i++){
         if(fmt[i]=='%'){
             char fmts[FMT_STRING_SIZE];
@@ -75,14 +74,20 @@ int input(const char* fmt,...){
             while(1){
                 char ch=vgetch();
                 if(ch==10||ch==32){
-                   if(p==0)continue;else break;
-                }else if(ch==0){
-                    continue;
-                }else{
-                    // print("%c",ch);
+                    print("%c",ch);
+                   if(p==0)continue;
+                   else break;
+                }else if(ch>=32&&ch<=126){
+                    print("%c",ch);
                     fmts[p++]=ch;
+                }else{
+                    continue;
                 }
             }
+            // int l=str_len(fmts);
+            // for(int s=0;s<l;s++){
+            //     print("%d\n",fmts[s]);
+            // }
             switch (fmt[i+1])
             {
                 case 'c':
@@ -113,4 +118,9 @@ int input(const char* fmt,...){
         }
     }
     return 0;
+}
+
+int shutdown(){
+    print("\n---!powoff now!---\n");
+    powoff();
 }

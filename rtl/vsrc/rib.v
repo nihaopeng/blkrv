@@ -81,14 +81,14 @@ module rib(
     output reg s6_we_o,
     output s6_req_o,
 
-    // //slave7
-    // output reg[31:0] s2_addr_o,
-    // output reg[31:0] s2_write_data_o,
-    // input[31:0] s2_read_data_i,
-    // output[2:0] s2_mem_op_type_o,
-    // input s2_read_valid_i,
-    // output reg s2_we_o,
-    // output s2_req_o,
+    //slave7
+    output reg[31:0] s7_addr_o,
+    output reg[31:0] s7_write_data_o,
+    input[31:0] s7_read_data_i,
+    output[2:0] s7_mem_op_type_o,
+    input s7_read_valid_i,
+    output reg s7_we_o,
+    output s7_req_o,
 
     // //slave8
     // output reg[31:0] s2_addr_o,
@@ -108,8 +108,6 @@ module rib(
     // output reg s2_we_o,
     // output s2_req_o,
 
-
-    
     output reg hold_flag_o,
     output reg read_valid_o,
     input write_ready_i,
@@ -172,6 +170,11 @@ always @(*) begin
     s6_mem_op_type_o=3'd0;
     s6_we_o=1'b0;
     s6_req_o=1'b0;
+    s7_addr_o=32'd0;
+    s7_write_data_o=32'd0;
+    s7_mem_op_type_o=3'd0;
+    s7_we_o=1'b0;
+    s7_req_o=1'b0;
     if(m1_req_i) begin
         case(m1_addr_i[31:28])
             slave0:begin
@@ -229,6 +232,14 @@ always @(*) begin
                 s6_mem_op_type_o=m1_mem_op_type_i;
                 m1_read_data_o=s6_read_data_i;
                 s6_req_o=1'b1;
+            end
+            slave7:begin
+                s7_addr_o={4'd0,m1_addr_i[27:0]};
+                s7_write_data_o=m1_write_data_i;
+                s7_we_o=m1_we_i;
+                s7_mem_op_type_o=m1_mem_op_type_i;
+                m1_read_data_o=s7_read_data_i;
+                s7_req_o=1'b1;
             end
 			default:begin
 			end
@@ -292,6 +303,14 @@ always @(*) begin
                 s6_mem_op_type_o=m0_mem_op_type_i;
                 m0_read_data_o=s6_read_data_i;
                 s6_req_o=1'b1;
+            end
+            slave7:begin
+                s7_addr_o={4'd0,m0_addr_i[27:0]};
+                s7_write_data_o=m0_write_data_i;
+                s7_we_o=m0_we_i;
+                s7_mem_op_type_o=m0_mem_op_type_i;
+                m0_read_data_o=s7_read_data_i;
+                s7_req_o=1'b1;
             end
 			default:begin
 			end

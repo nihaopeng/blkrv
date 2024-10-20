@@ -22,7 +22,7 @@ module pipeline_ctrl (
     // reg[1:0] tmp1;
     always @(posedge clk_i) begin
         if(jump_flag_i==1'b0) begin//由于此模块与译码模块处于同一流水段，因此需要避免产生jump信号时又产生hold信号导致流水线混乱
-            if((inst_i[6:0]==7'b0000011||inst_i[6:0]==7'b0100011)&&hold_flag==1'b0&&mret_flag==1'b0) begin
+            if((inst_i[6:0]==7'b0000011||inst_i[6:0]==7'b0100011)&&hold_flag==1'b0&&mret_flag==1'b0&&interrupt_flag_i==1'b0) begin
                 hold_flag<=1'b1;
                 // tmp<=1'b1;
             end

@@ -29,9 +29,6 @@ void str_cpy(const char* src,char* dst){//
 
 void str_cpy_s(const char* src,char* dst,uint32_t start,uint32_t end){//[]
     // uint32_t data_len=str_len(src);
-    for(int i=0;i<MAX_NAME;i++){
-        dst[i]=0;
-    }
     for(uint32_t i=start;i<=end;i++){
         dst[i]=src[i];
     }

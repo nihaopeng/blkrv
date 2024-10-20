@@ -27,6 +27,9 @@
 #define _NR_create 5
 #define _NR_vprint 6
 #define _NR_vgetch 7
+#define _NR_powoff 8
+
+//interrupt num should same with hardware port
 #define _NI_kbdown 2
 
 #define NULL 0

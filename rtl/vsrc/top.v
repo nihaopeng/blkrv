@@ -76,7 +76,16 @@ module top(
     output s6_we,
     input s6_read_valid,
     input s6_write_ready,
-    output s6_req
+    output s6_req,
+
+    output[31:0] s7_addr,
+    output[31:0] s7_write_data,
+    input[31:0] s7_read_data,
+    output[2:0] s7_mem_op_type,
+    output s7_we,
+    input s7_read_valid,
+    input s7_write_ready,
+    output s7_req
 );
 wire[31:0] load_addr_v,load_addr_t;
 wire[31:0] m0_read_data;
@@ -187,6 +196,14 @@ rib rib(
     .s6_read_valid_i(s6_read_valid),
     .s6_we_o(s6_we),
     .s6_req_o(s6_req),
+
+    .s7_addr_o(s7_addr),
+    .s7_write_data_o(s7_write_data),
+    .s7_read_data_i(s7_read_data),
+    .s7_mem_op_type_o(s7_mem_op_type),
+    .s7_read_valid_i(s7_read_valid),
+    .s7_we_o(s7_we),
+    .s7_req_o(s7_req),
     
     .hold_flag_o(),
     .read_valid_o(devices_valid),

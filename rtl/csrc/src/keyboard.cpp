@@ -5,15 +5,14 @@ keyboard::keyboard(uint32_t size):vmem(size){
 keyboard::~keyboard(){
 }
 void keyboard::process(Vtop* top){
+    top->int_port2=0;
+    top->s2_read_valid=0;
     if(utils::kbhit()){
         top->int_port2=1;
         char ch=getchar();
         // std::cout<<ch<<std::endl;
         this->putB(0,ch);
         top->s2_read_valid=1;
-    }else{
-        top->int_port2=0;
-        top->s2_read_valid=0;
     }
     if(top->s2_req){
         if(top->s2_we){
@@ -25,14 +24,12 @@ void keyboard::process(Vtop* top){
             }
         }else{
             switch(top->s2_mem_op_type){
-                case 0:
-                    top->s2_read_data=uint8_t(this->getB(top->s2_addr));
-                    printf("%c",top->s2_read_data);
-                    break;
+                case 0:top->s2_read_data=uint8_t(this->getB(top->s2_addr));break;
                 case 1:top->s2_read_data=uint16_t(this->get2B(top->s2_addr));break;
                 case 2:top->s2_read_data=uint32_t(this->get4B(top->s2_addr));break;
                 default:break;
             }
+            // printf("%d",top->s2_read_data);
         }
     }
 }

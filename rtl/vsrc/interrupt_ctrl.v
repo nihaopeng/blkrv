@@ -30,7 +30,7 @@ module interrupt_ctrl (
         response4_o<=1'b0;
         response5_o<=1'b0;
         response6_o<=1'b0;
-        if(mie_i) begin
+        if(mie_i&&!interrupt_flag_o) begin
             if(port0_i) begin
                 interrupt_port_o<=4'h0;
                 interrupt_flag_o<=1'b1;

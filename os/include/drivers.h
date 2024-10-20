@@ -9,10 +9,14 @@ int vprint_i(char* str,uint32_t length);
 
 char vgetch();
 
-void regist_stdout(int* dt_table_addr);
+void regist_stdout(int* dt_addr);
 
 // void regist_stdin(int* dt_table_addr);
 
 void regist_keydown_int(int* dt_addr);
+
+void regist_keydown_int(int* dt_addr);
+
+void regist_poweroff(int* dt_addr);
 
 #endif // !_DRIVERS_H_

@@ -15,6 +15,7 @@ _start:
     li a3,0
     li a4,0
     li a5,0
+    li sp,0x10800000
     j main
 
 _gdt_search:

@@ -17,8 +17,13 @@ int main(){
     int d_test=-21474;
     print("d fmt test:%d\n",d_test);
     init_console();
-    char test;
+    char ch;
+    char test[20];
+    int a=0;
     print("input test:");
-    input("%c",&test);
-    print("%c\n",test);
+    // input("%d",&a);
+    // print("%d\n",a);
+    input("%s%d",&test,&a);
+    print("%s,%d\n",test,a);
+    shutdown();
 }

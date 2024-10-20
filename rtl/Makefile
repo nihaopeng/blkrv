@@ -70,9 +70,9 @@ loadmem:mkutils mkbios
 #	加载bios中的拉取指令
 	@$(EXECUTABLE_PATH)/manage_mem -src $(BUILD_ROOT)/bios/bios.o -tar ./devices/bios -src_start 52 -src_end 1139 -tar_start 0 -tar_end 1087
 #	加载bootsect
-	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 127 -tar_start 0 -tar_end 75
+	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 220 -tar_start 0 -tar_end 168
 #	加载sys
-	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 10300 -tar_start 512 -tar_end 10812
+	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 10580 -tar_start 512 -tar_end 11092
 
 run:
 	$(EXECUTABLE_NAME)

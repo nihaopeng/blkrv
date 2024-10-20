@@ -10,6 +10,8 @@
 
 int vprint(char* str,uint32_t length);
 
+int powoff();
+
 #define get_va(n,va) \
 __asm__ volatile( \
     "add a1,s0,%1\n" \
@@ -21,6 +23,8 @@ __asm__ volatile( \
 int print(const char* fmt,...);
 
 int input(const char* fmt,...);
+
+int shutdown();
 
 #endif // !_STD_H_
 
