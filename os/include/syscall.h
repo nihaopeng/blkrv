@@ -6,7 +6,7 @@
 #define _syscall0(type,name) \
 type name(void) \
 { \
-    int __res;\
+    type __res;\
     __asm__ volatile(\
         "li a7, %1\n"\
         "ecall\n"\
@@ -14,15 +14,13 @@ type name(void) \
         : "=r"(__res)\
         : "i"(_NR_##name)\
         : "memory");\
-    if (__res>=0) \
-	    return (int)__res; \
-    return -1; \
+    return (type) __res; \
 }
 
 #define _syscall1(type,name,atype,a) \
 type name(atype a) \
 { \
-    int __res;\
+    type __res;\
     __asm__ volatile (\
         "li a7, %1\n"\
         "mv a0, %2\n"\
@@ -31,15 +29,13 @@ type name(atype a) \
         : "=r"(__res)\
         : "i"(_NR_##name),"r"(a)\
         : "memory");\
-    if (__res>=0) \
-	    return (int) __res; \
-    return -1; \
+	return (type) __res; \
 }
 
 #define _syscall2(type,name,atype,a,btype,b) \
 type name(atype a,btype b) \
 { \
-    int __res;\
+    type __res;\
     __asm__ volatile (\
         "li a7, %1\n"\
         "mv a0, %2\n"\
@@ -49,16 +45,14 @@ type name(atype a,btype b) \
         : "=r"(__res)\
         : "i"(_NR_##name), "r"(a), "r"(b)\
         : "memory");\
-    if (__res>=0) \
-	    return (int) __res; \
-    return -1; \
+    return (type) __res; \
 }
 
 
 #define _syscall3(type,name,atype,a,btype,b,ctype,c) \
 type name(atype a,btype b,ctype c) \
 { \
-    int __res; \
+    type __res; \
     __asm__ volatile (\
         "li a7, %1\n" \
         "mv a0, %2\n"\
@@ -69,9 +63,7 @@ type name(atype a,btype b,ctype c) \
         : "=r"(__res) \
         : "i"(_NR_##name), "r"(a), "r"(b) , "r"(c) \
         : "memory"); \
-    if (__res>=0) \
-	    return (int) __res; \
-    return -1; \
+    return (type) __res; \
 }
 
 #endif // !_SYSCALL_H_

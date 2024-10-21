@@ -27,9 +27,9 @@ int main(int argc, char** argv, char** env) {
         tfp->dump(contextp->time()); //dump wave
         contextp->timeInc(1);
 
-        // if(top->s1_req&&top->s1_we&&top->s1_addr==0x007fffac){
-        //     printf("w:%x cnt:%d",top->s1_write_data,i);
-        // }
+        if(top->s1_req&&top->s1_addr==0x00001fac){
+            printf("w:%x cnt:%d",top->s1_write_data,i);
+        }
         mydevices.process(top);
         if(mydevices.my_pmc->powm(top)){
             break;
@@ -41,7 +41,7 @@ int main(int argc, char** argv, char** env) {
         contextp->timeInc(1);
     }
     end=clock();
-    printf("timecost:%f s\n",((double)(end-start))/CLOCKS_PER_SEC);
+    printf("timecost:%f s\ndevices shuting down...\n",((double)(end-start))/CLOCKS_PER_SEC);
     delete top;
     tfp->close();
     delete contextp;

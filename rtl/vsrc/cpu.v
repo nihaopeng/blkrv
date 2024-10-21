@@ -25,7 +25,8 @@ wire[6:0] op_type2;
 wire[31:0] imm,new_pc,data2regs,r1,r2,exu_addr_v,writeback_data;
 wire jump_flag,regs_we,regs_read_valid,ifu_read_valid;
 wire if2id_read_valid,id2if_write_ready,id2exu_read_valid,id2exu_write_ready;
-wire hold_flag,jump_inst_flag,mret_flag,sret_flag,interrupt_response,syscall_flag,jumped_flag;
+wire hold_flag,jump_inst_flag,mret_flag,sret_flag,interrupt_response,syscall_flag;
+wire[1:0] pc_change_flag;
 
 ifu ifu(
     .clk_i(clk_i),
@@ -45,7 +46,7 @@ ifu ifu(
     .inst_o(cur_inst),
     .read_valid_o(if2id_read_valid),
     .read_valid_i(ifu_read_valid),
-    .jumped_flag_o(jumped_flag),
+    .pc_change_flag_o(pc_change_flag),
     .write_ready_o(),
     .write_ready_i()
 );
@@ -164,7 +165,7 @@ csrs csrs(
     .interrupt_flag_i(interrupt_flag_i),
     .syscall_flag_i(syscall_flag),
     .jump_flag_i(jump_flag),
-    .jumped_flag_i(jumped_flag),
+    .pc_change_flag_i(pc_change_flag),
     .we_i(sys),
     .r1_i(r1),
     .imm_i(imm),

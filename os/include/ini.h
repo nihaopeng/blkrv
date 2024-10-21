@@ -20,7 +20,7 @@
 
 #define MAX_NAME 128
 
-#define _NR_open 0
+#define _NR_open 1
 #define _NR_delete 2
 #define _NR_write 3
 #define _NR_read 4
@@ -28,6 +28,7 @@
 #define _NR_vprint 6
 #define _NR_vgetch 7
 #define _NR_powoff 8
+#define _NR_kbhit 9
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

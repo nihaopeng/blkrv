@@ -1,8 +1,5 @@
 #include "std.h"
 
-_syscall2(int,vprint,char*,str,uint32_t,length);
-_syscall0(int,powoff);
-
 int out_cache_mutex=0;
 int in_cache_mutex=0;
 char out_cache[IO_CACHE];
@@ -72,7 +69,7 @@ int input(const char* fmt,...){
             int va_addr=0;
             int num=0;
             while(1){
-                char ch=vgetch();
+                char ch=0;vgetch(&ch);
                 if(ch==10||ch==32){
                     print("%c",ch);
                    if(p==0)continue;
@@ -84,10 +81,6 @@ int input(const char* fmt,...){
                     continue;
                 }
             }
-            // int l=str_len(fmts);
-            // for(int s=0;s<l;s++){
-            //     print("%d\n",fmts[s]);
-            // }
             switch (fmt[i+1])
             {
                 case 'c':

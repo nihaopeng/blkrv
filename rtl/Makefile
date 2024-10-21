@@ -67,12 +67,12 @@ mkbios:
 	@riscv32-unknown-elf-gcc -c ./asm/bios.s -o $(BUILD_ROOT)/bios/bios.o -march=rv32i_zicsr
 
 loadmem:mkutils mkbios
-#	加载bios中的拉取指令
+#	加载bios中的拉取指令，定制
 	@$(EXECUTABLE_PATH)/manage_mem -src $(BUILD_ROOT)/bios/bios.o -tar ./devices/bios -src_start 52 -src_end 1139 -tar_start 0 -tar_end 1087
-#	加载bootsect
+#	加载bootsect,定制
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 220 -tar_start 0 -tar_end 168
 #	加载sys
-	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 10580 -tar_start 512 -tar_end 11092
+	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 1048576 -tar_start 512 -tar_end 1049088
 
 run:
 	$(EXECUTABLE_NAME)

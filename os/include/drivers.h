@@ -4,19 +4,34 @@
 #include "mm.h"
 #include "math.h"
 #include "set_gate.h"
+#include "syscall.h"
 
 int vprint_i(char* str,uint32_t length);
 
-char vgetch();
+int vprint(char* str,uint32_t length);
 
-void regist_stdout(int* dt_addr);
+int vgetch_i(char* ch);
 
-// void regist_stdin(int* dt_table_addr);
+int vgetch(char* ch);
 
-void regist_keydown_int(int* dt_addr);
+int kbhit_i(int* ifhit);
+
+int kbhit(int* ifhit);
+
+int poweroff_i();
+
+int powoff();
+
+void regist_vprint(int* dt_addr);
 
 void regist_keydown_int(int* dt_addr);
 
 void regist_poweroff(int* dt_addr);
+
+void regist_vgetch(int* dt_addr);
+
+void regist_kbhit(int* dt_addr);
+
+void regist_powoff(int* dt_addr);
 
 #endif // !_DRIVERS_H_

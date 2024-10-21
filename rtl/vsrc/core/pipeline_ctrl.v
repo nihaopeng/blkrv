@@ -37,7 +37,7 @@ module pipeline_ctrl (
             if((inst_i==32'h30200073)&&mret_flag==1'b0) begin
                 mret_flag<=1'b1;
             end
-            else if(inst_i==32'h10200073) begin
+            else if(inst_i==32'h10200073&&interrupt_flag_i==1'b0) begin
                 sret_flag<=1'b1;
             end
             else if(mret_flag) begin
@@ -52,7 +52,7 @@ module pipeline_ctrl (
                 sret_flag<=1'b0;
             end
 
-            if(inst_i==32'h00000073) begin
+            if(inst_i==32'h00000073&&interrupt_flag_i==1'b0) begin
                 syscall_flag_o<=1'b1;
             end
             else if(syscall_flag_o) begin

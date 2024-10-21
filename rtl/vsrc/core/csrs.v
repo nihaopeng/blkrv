@@ -4,7 +4,7 @@ module csrs (
     input interrupt_flag_i,
     input syscall_flag_i,
     input jump_flag_i,
-    input jumped_flag_i,
+    input[1:0] pc_change_flag_i,
     input we_i,
     input[31:0] r1_i,
     input[31:0] imm_i,
@@ -47,13 +47,15 @@ assign stvec_o=REGS[stvec_a];
 assign sepc_o=REGS[sepc_a];
 always @(posedge clk_i) begin
     if(interrupt_flag_i) begin
-        if(jumped_flag_i) begin
+        if(pc_change_flag_i==2'b10) begin
+            REGS[mepc_a]<=cur_pc_i;
+        end
+        else if(pc_change_flag_i==2'b01) begin
             REGS[mepc_a]<=cur_pc_i-4;
         end
         else begin
             REGS[mepc_a]<=cur_pc_i-8;
         end
-        
         REGS[mcause_a]<=mcause_i;
         REGS[mstatus_a][mie]<=1'b0;
         REGS[mstatus_a][mpie]<=1'b1;

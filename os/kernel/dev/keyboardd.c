@@ -3,14 +3,22 @@
 int in_cache_frontp=0,in_cache_backp=0;
 char in_cache[IO_CACHE];
 
-char vgetch(){
-    if(in_cache_frontp<in_cache_backp){
-        char c=in_cache[in_cache_frontp];
+_syscall1(int,vgetch,char*,ch);
+_syscall1(int,kbhit,int*,ifhit);
+
+int vgetch_i(char* ch){//change to syscall
+    if(in_cache_frontp!=in_cache_backp){
+        *ch=in_cache[in_cache_frontp];
         in_cache_frontp++;
-        // in_cache_frontp=mod(in_cache_frontp,IO_CACHE);
-        return c;
+        in_cache_frontp=mod(in_cache_frontp,IO_CACHE);
+    }
+}
+
+int kbhit_i(int* ifhit){//change to syscall
+    if(in_cache_frontp!=in_cache_backp){
+        *ifhit=1;
     }else{
-        return 0;
+        *ifhit=0;
     }
 }
 
@@ -24,15 +32,20 @@ void keydown_interrupt(){
     );
     in_cache[in_cache_backp]=ch;
     in_cache_backp++;
+    in_cache_backp=mod(in_cache_backp,IO_CACHE);
 }
-
-// void regist_stdin(int* dt_addr){//放在这里是为了避免vgetch_i被编译在GOT表中
-//     int* func_addr_vgetch=(int*)(&vgetch_i);
-//     // _set_syscall_gate(_NR_vgetch,func_addr_vgetch);
-//     _set_gate(dt_addr,func_addr_vgetch);
-// }
 
 void regist_keydown_int(int* dt_addr){
     int* func_addr_keydown_interrupt=(int*)(&keydown_interrupt);
     _set_gate(dt_addr,func_addr_keydown_interrupt);
+}
+
+void regist_vgetch(int* dt_addr){
+    int* func_addr_vgetch_i=(int*)(&vgetch_i);
+    _set_gate(dt_addr,func_addr_vgetch_i);
+}
+
+void regist_kbhit(int* dt_addr){
+    int* func_addr_kbhit_i=(int*)(&kbhit_i);
+    _set_gate(dt_addr,func_addr_kbhit_i);
 }
