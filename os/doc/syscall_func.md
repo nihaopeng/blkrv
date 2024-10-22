@@ -5,8 +5,8 @@
 ||kill|int status|杀死进程|uint32_t pid|
 ||sleep|int status|睡眠,单位秒|uint32_t time|
 ||open|int status|打开文件,获取文件inodeid|const char* file_path|uint32_t* fid|
-||read|int status|读取文件，一次性读取全部，限制文件大小为4MB|uint32_t fid|char* recv|
-||write|int status|写文件，每次写都会清空文件|uint32_t fid|const char* write_data|uint32_t length|
+||read|int status|读取文件|uint32_t fid|char* recv|uint32_t start|uint32_t count|
+||write|int status|写文件，每次写都会清空文件|uint32_t fid|const char* write_data|uint32_t count|
 ||create|int status|创建文件|const char* file_path|char type|
 ||fstat|int status|查看文件inode|const char* file_path|inode* inode_t|
 ||update_inode|int status|更新inode|inode inode_t|

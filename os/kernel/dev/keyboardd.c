@@ -3,9 +3,6 @@
 int in_cache_frontp=0,in_cache_backp=0;
 char in_cache[IO_CACHE];
 
-_syscall1(int,vgetch,char*,ch);
-_syscall1(int,kbhit,int*,ifhit);
-
 int vgetch_i(char* ch){//change to syscall
     if(in_cache_frontp!=in_cache_backp){
         *ch=in_cache[in_cache_frontp];
@@ -34,6 +31,9 @@ void keydown_interrupt(){
     in_cache_backp++;
     in_cache_backp=mod(in_cache_backp,IO_CACHE);
 }
+
+_syscall1(int,vgetch,char*,ch);
+_syscall1(int,kbhit,int*,ifhit);
 
 void regist_keydown_int(int* dt_addr){
     int* func_addr_keydown_interrupt=(int*)(&keydown_interrupt);

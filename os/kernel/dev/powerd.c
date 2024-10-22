@@ -1,7 +1,5 @@
 #include "drivers.h"
 
-_syscall0(int,powoff);
-
 int poweroff_i(){
     __asm__ volatile(
         "li a0,0x70000000\n"
@@ -9,6 +7,8 @@ int poweroff_i(){
         ::
     );
 }
+
+_syscall0(int,powoff);
 
 void regist_poweroff(int* dt_addr){
     int* func_addr_poweroff=(int*)(&poweroff_i);

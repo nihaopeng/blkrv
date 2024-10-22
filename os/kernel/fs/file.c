@@ -1,137 +1,162 @@
 #include "file.h"
 
-uint8_t FILES[4096]={0};
+//通过id获取结构体inode
+int get_inode_by_id(uint32_t inode_id,inode** inode_get){
+    //获取对应inode的地址，hash索引
+    void* inode_addr=(void*)FILE_TABLE_ADDR+mul(INODE_SIZE,inode_id);
+    *inode_get=(inode*)inode_addr;
+}
 
-uint32_t alloc_inode(){
-    for(int i=0;i<4096;i++){
-        if(!FILES[i]){
-            FILES[i]=1;
-            return i;
+//删除从startblock开始的block链表
+int delete_block_link(uint32_t start_block){
+    int* inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul(start_block,BLOCK_SIZE));
+    uint32_t cur_block=start_block;
+    while(1){
+        uint32_t next=(((uint32_t)*inst_4byte_addr)>>4)<<4;
+        if(next==0)
+            break;
+        else{
+            free_block(cur_block);
+            cur_block=next;
+            inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul((int)(cur_block),BLOCK_SIZE));
         }
     }
-    return 0;
 }
 
-void delete_inode(uint32_t inode_id){
-
-}
-
-void init_fs(){
-    _set_gate(_NR_read,&read_i);
-    _set_gate(_NR_write,&write_i);
-    _set_gate(_NR_open,&open_i);
-    _set_gate(_NR_create,&create_i);
-}
-
-inode* get_inode_by_id(uint32_t id){
-    inode* file_tmp=(inode*)(FILE_TABLE_ADDR+id<<8);
-    // uint32_t size,start_block;
-    // uint8_t type;
-    // __asm__ volatile (
-    //     "li a0,%3\n"
-    //     "lw %0,128(a0)\n"
-    //     "lw %1,132(a0)\n"
-    //     "lb %2,136(a0)\n"
-    //     :"=r"(size),"=r"(start_block),"=r"(type)
-    //     :"r"(inode_addr)
-    // );
-    // file_tmp->file_name=(char*)inode_addr;
-    // file_tmp->size=size;
-    // file_tmp->start_block=start_block;
-    // file_tmp->type=type;
-    return file_tmp;
-}
-
-void read_i(uint32_t inode_id,char* buf){//we hope your buf has been init;
-    inode* file_tmp=get_inode_by_id(inode_id);
-    uint32_t block_tmp=file_tmp->start_block;
-    int block_num=div(file_tmp->size,(BLOCK_SIZE))+1;
-    uint32_t pos=0;
-    for(int i=0;i<block_num;i++){
-        uint32_t j=0;
-        for(;j<BLOCK_SIZE;j++){
-            buf[pos++]=*(char*)(FILE_DATA_ADDR+block_tmp<<12+j);
-        }
-        j++;
-        block_tmp=*(int*)(FILE_DATA_ADDR+block_tmp<<12+j);
-    }
-    buf[pos]='\0';
-}
-
-void write_i(uint32_t inode_id,char* buf,uint32_t length){//未实现清除原有block的功能；
-    inode* file_tmp=get_inode_by_id(inode_id);
-    uint32_t block_tmp=file_tmp->start_block;
-    int block_num=div(length,(BLOCK_SIZE))+1;
-    uint32_t pos=0;
-    for(int i=0;i<block_num;i++){
-        uint32_t j=0;
-        for(;j<BLOCK_SIZE;j++){
-            *(char*)(FILE_DATA_ADDR+block_tmp<<12+j)=buf[pos++];
-        }
-        j++;
-        block_tmp=alloc_block();
-        *(int*)(FILE_DATA_ADDR+block_tmp<<12+j)=block_tmp;
-    }
-    file_tmp->size=length;
-}
-
-int get_id_by_name(uint32_t inode_id,char* name){
-    uint32_t id_tmp;
-    char data[MAX_NAME];
-    read(inode_id,data);
-    uint32_t leaf_inode_id;
-    for(uint32_t i=0;i<str_len(data);i+=4){
-        leaf_inode_id=*(const uint32_t*)&data[i];
-        if(str_cmp(get_inode_by_id(leaf_inode_id)->file_name,name)){
-            return leaf_inode_id;
+int find_file_in_dir(uint32_t inode_id,const char* name){
+    char files[1024];
+    int i=0;
+    inode* ino;
+    while(read_i(inode_id,files,i,1024)!=-1){
+        i+=1024;
+        for(int j=0;j<1024;j+=4){
+            get_inode_by_id(*(int*)(&files[j]),&ino);
+            if(str_cmp(ino->file_name,name)){
+                return *(int*)(&files[j]);
+            }
         }
     }
     return -1;
 }
 
-int open_i(const char* file_path,inode* inode){
-    uint32_t cur_inode_id=0;
-    uint32_t path_len=str_len(file_path);
-    char tmp[MAX_NAME];
-    uint32_t start=1;
-    for(int i=1;i<path_len;i++){
-        if(file_path[i]=='/'){//separate;
-            str_cpy_s(file_path,tmp,start,i-1);
-            start=i+1;
-            uint32_t cur_inode_id=get_id_by_name(cur_inode_id,tmp);
-        }else if(i==path_len-1){//leaf file
-            str_cpy_s(file_path,tmp,start,i-1);
-            uint32_t cur_inode_id=get_id_by_name(cur_inode_id,tmp);
-        }
-        if(cur_inode_id==-1){//file not exist
-            return -1;
+int create_inode(const char* file_name,char type){
+    inode* tmp=(inode*)FILE_TABLE_ADDR;
+    for(int i=0;i<FILE_NUM;i++){
+        if(tmp->type==0){
+            str_cpy(file_name,tmp->file_name);
+            tmp->size=0;
+            tmp->start_block=alloc_block();
+            tmp->type=type;
+            return i;
+        }else{
+            tmp+=1;
         }
     }
-    //the cur_inode is leaf
-    inode=get_inode_by_id(cur_inode_id);
+    return -1;
+}
+
+int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
+    inode* ino;
+    get_inode_by_id(inode_id,&ino);
+    if(start>ino->size){
+        return -1;
+    }
+    char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(ino->start_block,BLOCK_SIZE));
+    int tmp=0;
+    int cnt=0;
+    for(int i=0;i<count;i++){
+        if(mod(tmp++,4092)==0){
+            uint32_t next=*((uint32_t*)addr);
+            if(next>>28==0)break;//if nas not been used
+            addr=(char*)(((void*)FILE_DATA_ADDR)+mul(((next<<4)>>4),BLOCK_SIZE));//calc addr of next block;
+        }
+        if(count==start){
+            *buf=*addr;buf+=1;
+        }
+        addr+=1;//get data;
+    }
+    *buf='\0';
     return 0;
 }
 
-int create_i(uint32_t dir_inode, char* file_name,char type){
-    //写文件夹内容
-    char data[MAX_NAME];
-    read(dir_inode,data);
-    uint32_t data_len=str_len(data);
-    uint32_t new_inode=alloc_inode();
-    *(uint32_t*)&data[data_len]=new_inode;
-    write(dir_inode,data,data_len+4);
-    //增加inode节点
-    inode* file_tmp=(inode*)(FILE_TABLE_ADDR+new_inode<<8);
-    str_cpy(file_tmp->file_name,file_name);
-    file_tmp->size=0;
-    file_tmp->start_block=alloc_block();
-    file_tmp->type=type;
+int write_i(uint32_t inode_id,char* buf,uint32_t count){
+    inode* ino=NULL;
+    get_inode_by_id(inode_id,&ino);
+    //delete primitive block
+    delete_block_link(ino->start_block);
+    //write data
+    uint32_t srtblk=alloc_block();
+    ino->start_block=srtblk;
+    char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(srtblk,BLOCK_SIZE));
+    int tmp=0;
+    int cnt=0;
+    while(count--){
+        if(mod(tmp++,4092)==0){
+            uint32_t new_block=alloc_block();
+            *(int*)addr+=new_block;//设置指向的下一个block;
+            addr=(char*)(((void*)FILE_DATA_ADDR)+mul(new_block,BLOCK_SIZE));//calc addr of next block;
+        }
+        *addr=*buf;buf+=1;addr+=1;//put data;
+    }
+    ino->size=count;
 }
 
-_syscall2(int,read,uint32_t,inode_id,char*,buf);
+int open_i(const char* file_path,uint32_t* inode_id,int* status){
+    //解析地址
+    char file_path_p[129];
+    if(file_path[str_len(file_path)-1]!='/'){
+        str_cpy(file_path,file_path_p);
+        file_path_p[str_len(file_path_p)]='/';
+    }
+    uint32_t file_path_len=str_len(file_path_p);
+    char stack[128];
+    int stack_ptr=0;
+    uint32_t cur_inode_id=0;
+    for(int i=1;i<file_path_len;i++){
+        if(file_path[i]=='/'){
+            stack[stack_ptr]='\0';
+            int in=find_file_in_dir(cur_inode_id,stack);
+            if(in!=-1)
+                cur_inode_id=in;
+            else{
+                *status=-1;
+                return 0;
+            }
+            stack_ptr=0;
+        }else{
+            stack[stack_ptr++]=file_path_p[i];
+        }
+    }
+    *inode_id=cur_inode_id;
+    *status=0;
+    return 0;
+}
 
+int create_i(const char* file_name,char type,uint32_t* inode_id){
+    *inode_id=create_inode(file_name,type);
+}
+
+_syscall4(int,read,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,count);
 _syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
+_syscall3(int,create,const char*,file_path,char,type,uint32_t*,inode_id);
+_syscall3(int,open,const char*,file_path,uint32_t*,inode_id,int*,status);
 
-_syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
+void regist_read(int* dt_adrr){
+    int* func_addr_read=(int*)(&read_i);
+    _set_gate(dt_adrr,func_addr_read);
+}
 
-_syscall1(uint32_t,open,const char*,file_path);
+void regist_write(int* dt_adrr){
+    int* func_addr_write=(int*)(&write_i);
+    _set_gate(dt_adrr,func_addr_write);
+}
+
+void regist_open(int* dt_adrr){
+    int* func_addr_open=(int*)(&open_i);
+    _set_gate(dt_adrr,func_addr_open);
+}
+
+void regist_create(int* dt_adrr){
+    int* func_addr_create=(int*)(&create_i);
+    _set_gate(dt_adrr,func_addr_create);
+}

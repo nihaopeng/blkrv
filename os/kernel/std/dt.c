@@ -16,3 +16,14 @@ void init_std(){
     regist_vgetch(gdt_addr_vgetch);
     regist_kbhit(gdt_addr_kbhit);
 }
+
+void init_fs(){
+    int* gdt_addr_read=(int*)(&syscall_table[_NR_read]);
+    int* gdt_addr_write=(int*)(&syscall_table[_NR_write]);
+    int* gdt_addr_open=(int*)(&syscall_table[_NR_open]);
+    int* gdt_addr_create=(int*)(&syscall_table[_NR_create]);
+    regist_read(gdt_addr_read);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    regist_write(gdt_addr_write);
+    regist_open(gdt_addr_open);
+    regist_create(gdt_addr_create);
+}

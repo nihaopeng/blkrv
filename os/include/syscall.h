@@ -66,6 +66,24 @@ type name(atype a,btype b,ctype c) \
     return (type) __res; \
 }
 
+#define _syscall4(type,name,atype,a,btype,b,ctype,c,dtype,d) \
+type name(atype a,btype b,ctype c,dtype d) \
+{ \
+    type __res; \
+    __asm__ volatile (\
+        "li a7, %1\n"\
+        "mv a0, %2\n"\
+        "mv a1, %3\n"\
+        "mv a2, %4\n"\
+        "mv a3, %5\n"\
+        "ecall\n" \
+        "mv %0, a0\n" \
+        : "=r"(__res) \
+        : "i"(_NR_##name), "r"(a), "r"(b) , "r"(c), "r"(d) \
+        : "memory"); \
+    return (type) __res; \
+}
+
 #endif // !_SYSCALL_H_
 
 

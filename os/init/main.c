@@ -3,8 +3,7 @@
 
 int main(){
     init_std();
-    print("hell%c,%c%c%c%c%c\n",'o','w','o','r','l','d');
-    print("%s\n","hello,world2"); 
+    init_fs();
     print("rrrrrr      vv         vv\n");
     print("rr    rr     vv       vv\n");
     print("rr    rr      vv     vv\n");
@@ -12,20 +11,9 @@ int main(){
     print("rrrr            vv vv\n");
     print("rr  rr           vvv\n");
     print("rr    rr          v\n\n");
-    print("still in building...\n");
     init_console();
-    int a=0;
-    print("input:");
-    input("%d",&a);
-    print("%d",a);
-    while(1){
-        a=0;
-        kbhit(&a);
-        if(a){
-            char ch;vgetch(&ch);
-            print("hit:%c\n",ch);
-            if(ch=='q')break;
-        }
-    }
+    int inode_id=-1,status=0;
+    open("/",&inode_id,&status);
+    print("inode:%d",inode_id);
     shutdown();
 }

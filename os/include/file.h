@@ -8,8 +8,6 @@
 #include "set_gate.h"
 #include "syscall.h"
 
-extern uint8_t FILES[4096];
-
 typedef struct file
 {
     /* data */
@@ -17,38 +15,44 @@ typedef struct file
     uint32_t size;
     uint32_t start_block;
     uint8_t type;
-    //24 bit reserved
+    //119 bit reserved
 }inode;
 
-uint32_t alloc_inode();
+int get_inode_by_id(uint32_t inode_id,inode** inode_get);
 
-void delete_inode(uint32_t inode_id);
+int delete_block_link(uint32_t start_block);
 
-inode* get_inode_by_id(uint32_t id);
+int find_file_in_dir(uint32_t inode_id,const char* name);
 
-int get_id_by_name(uint32_t inode_id,char* name);
+int create_inode(const char* file_name,char type);
 
-void read_i(uint32_t inode_id,char* buf);
+int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-void write_i(uint32_t inode_id,char* buf,uint32_t length);
+int write_i(uint32_t inode_id,char* buf,uint32_t count);
 
-int create_i(uint32_t dir_inode,char* file_path,char type);
+int create_i(const char* file_path,char type,uint32_t* inode_id);
 
-int open_i(const char* file_path,inode* inode);
-
-void init_fs();
+int open_i(const char* file_path,uint32_t* inode_id,int* status);
 
 // _syscall2(int,read,uint32_t,inode_id,char*,buf);
-int read(uint32_t inode_id,char* buf);
+int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 // _syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
-int write(uint32_t inode_id,char* buf,uint32_t length);
+int write(uint32_t inode_id,char* buf,uint32_t count);
 
 // _syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
-int create(uint32_t dir_inode_id,char* file_path,char type);
+int create(const char* file_path,char type,uint32_t* inode_id);
 
 // _syscall1(uint32_t,open,const char*,file_path);
-uint32_t open(const char* file_path);
+int open(const char* file_path,uint32_t* inode_id,int* status);
+
+void regist_read(int* dt_addr);
+
+void regist_write(int* dt_addr);
+
+void regist_open(int* dt_addr);
+
+void regist_create(int* dt_addr);
 
 #endif // !_FILE_H_
 
