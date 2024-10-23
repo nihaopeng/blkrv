@@ -46,7 +46,7 @@ int create_inode(const char* file_name,char type){
             str_cpy(file_name,tmp->file_name);
             tmp->size=0;
             tmp->start_block=alloc_block();
-            tmp->type=type;
+            tmp->type=(uint8_t)type;
             return i;
         }else{
             tmp+=1;
@@ -127,8 +127,14 @@ int open_i(const char* file_path,uint32_t* inode_id,int* status){
             stack[stack_ptr++]=file_path_p[i];
         }
     }
-    *inode_id=cur_inode_id;
-    *status=0;
+    inode* ino;
+    get_inode_by_id(cur_inode_id,&ino);
+    if(ino->type!=0){
+        *inode_id=cur_inode_id;
+        *status=0;
+    }else{
+        *status=-1;
+    }
     return 0;
 }
 

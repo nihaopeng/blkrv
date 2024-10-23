@@ -7,9 +7,9 @@ devices::devices(){
     std::cout<<"$init keyboard"<<std::endl;
     this->my_keyboard=new keyboard(4);
     std::cout<<"$init ram"<<std::endl;
-    this->my_ram=new ram(1<<27-1);
+    this->my_ram=new ram(1<<28);
     std::cout<<"$init flash"<<std::endl;
-    this->my_flash=new flash("./devices/flash",1<<20-1);
+    this->my_flash=new flash("./devices/flash",1<<28);
     std::cout<<"$init screen"<<std::endl;
     this->my_screen=new screen(1<<20-1);
     std::cout<<"$init net_card"<<std::endl;
