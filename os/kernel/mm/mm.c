@@ -20,6 +20,7 @@ uint32_t alloc_block(){
         if(!blocks[i]){
             int* addr=((int*)(((void*)FILE_DATA_ADDR)+mul(i,BLOCK_SIZE)))+1023;
             *addr=0x10000000;
+            blocks[i]=1;
             return i;
         }
     }

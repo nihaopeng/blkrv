@@ -20,7 +20,8 @@ int main(int argc, char** argv, char** env) {
     clock_t start,end;
     start=clock();
     top->clk=0;
-    for(int i=0;;i++){
+    int i=0;
+    for(;;i++){
 
         top->clk=0;
         top->eval();
@@ -41,7 +42,7 @@ int main(int argc, char** argv, char** env) {
         contextp->timeInc(1);
     }
     end=clock();
-    printf("timecost:%f s\ndevices shuting down...\n",((double)(end-start))/CLOCKS_PER_SEC);
+    printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);
     delete top;
     tfp->close();
     delete contextp;

@@ -16,6 +16,9 @@ void flash::process(Vtop* top){
                 case 2:this->put4B(top->s6_addr,uint32_t(top->s6_write_data));break;
                 default:break;
             }
+            // if(top->s6_addr==0x200000){
+            //     printf("w:%d,t:%d,r:%d\n",top->s6_write_data,top->s6_mem_op_type,this->getB(top->s6_addr));
+            // }
         }else{
             switch(top->s6_mem_op_type){
                 case 0:top->s6_read_data=uint8_t(this->getB(top->s6_addr));break;

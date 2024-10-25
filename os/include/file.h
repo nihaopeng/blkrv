@@ -7,6 +7,7 @@
 #include "math.h"
 #include "set_gate.h"
 #include "syscall.h"
+#include "std.h"
 
 typedef struct file
 {
@@ -26,11 +27,13 @@ int find_file_in_dir(uint32_t inode_id,const char* name);
 
 int create_inode(const char* file_name,char type);
 
+int seek(uint32_t inode_id,uint32_t byte_num);
+
 int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-int write_i(uint32_t inode_id,char* buf,uint32_t count);
+int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-int create_i(const char* file_path,char type,uint32_t* inode_id);
+int create_i(const char* file_path,char type,uint32_t* inode_id,int* status);
 
 int open_i(const char* file_path,uint32_t* inode_id,int* status);
 
@@ -38,10 +41,10 @@ int open_i(const char* file_path,uint32_t* inode_id,int* status);
 int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 // _syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
-int write(uint32_t inode_id,char* buf,uint32_t count);
+int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 // _syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
-int create(const char* file_path,char type,uint32_t* inode_id);
+int create(const char* file_path,char type,uint32_t* inode_id,int* status);
 
 // _syscall1(uint32_t,open,const char*,file_path);
 int open(const char* file_path,uint32_t* inode_id,int* status);

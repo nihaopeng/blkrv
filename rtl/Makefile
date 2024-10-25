@@ -34,7 +34,7 @@ CINCLUDE :=./csrc/include
 # final executable file
 EXECUTABLE_NAME := $(EXECUTABLE_PATH)/BLKRv
 
-all:info build_dir verilog2cc $(OBJS) mkexecutable
+all:info build_dir verilog2cc $(OBJS) mkexecutable mkutils
 
 # create necessary directory
 build_dir:
@@ -60,7 +60,7 @@ info:
 	@echo $(VSRC)
 	@echo $(CSRC)
 
-mkutils:
+mkutils:./utils/manage_mem.cpp
 	$(cc) ./utils/manage_mem.cpp -o $(EXECUTABLE_PATH)/manage_mem
 
 mkbios:
@@ -73,6 +73,9 @@ loadmem:mkutils mkbios
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 220 -tar_start 0 -tar_end 168
 #	加载sys
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 1048576 -tar_start 512 -tar_end 1049088
+
+clearflash:
+	@$(EXECUTABLE_PATH)/manage_mem -src ./devices/flash_c -tar ./devices/flash -src_start 2097152 -src_end 5242880 -tar_start 2097152 -tar_end 5242880
 
 run:
 	$(EXECUTABLE_NAME)

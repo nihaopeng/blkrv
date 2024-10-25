@@ -89,3 +89,10 @@ int atoi(const char* str){
 	}
     return mul(sign , res);
 }
+
+void uint32_to_char(uint32_t value, char *buf) {
+    buf[0] = value & 0xFF;
+    buf[1] = (value >> 8) & 0xFF;
+    buf[2] = (value >> 16) & 0xFF;
+    buf[3] = (value >> 24) & 0xFF;
+}

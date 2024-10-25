@@ -18,4 +18,6 @@ void itoa(int num, char *str);
 
 int atoi(const char* str);
 
+void uint32_to_char(uint32_t value, char *buf);
+
 #endif // !_STR_H_

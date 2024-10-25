@@ -51,7 +51,9 @@ int main(int argc, char** argv) {
         return 0;
     }
     if(src_file&&tar_file){
-        for(uint64_t i=0;i<=tar_end-tar_start;i++){
+        uint64_t len=tar_end-tar_start;
+        for(uint64_t i=0;i<=len;i++){
+            printf("%lu/%lu\r",i,len);
             uint8_t data;
             src_file.seekg(src_start+i);
             src_file.read(reinterpret_cast<char*>(&data), sizeof(data));
