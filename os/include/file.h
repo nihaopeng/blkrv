@@ -27,6 +27,8 @@ int find_file_in_dir(uint32_t inode_id,const char* name);
 
 int create_inode(const char* file_name,char type);
 
+int delete_inode(uint32_t inode_id);
+
 int seek(uint32_t inode_id,uint32_t byte_num);
 
 int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);

@@ -19,4 +19,7 @@ interrupt信号遇到holdflag指令执行导致存储pc值错误
 触发中断时syscall修改pc
 解决，ifu的syscall信号处添加pcchange信号
 
+syscall4出现无法传参的错误，这由于编译器编译内联汇编时无法识别a寄存器参数位置，导致覆盖
+解决，将参数先存到t寄存器，再传给ecall系统调用函数
+
 ![alt text](image.png)

@@ -17,17 +17,22 @@ int main(){
         get_inode_by_id(inode_id,&ino);
         print("inode_id:%d;start_b:%d\n",inode_id,ino->start_block);
     }
-    create("/home1/test",'d',&inode_id,&status);
-    if(status==-2){
-        print("file has been exists\n");
-    }else if(status==-1){
-        print("path not exists\n");
+    create("/home",'d',&inode_id,&status);
+    create("/home/test",'d',&inode_id,&status);
+    create("/home/test/test",'f',&inode_id,&status);
+    create("/home/test1",'f',&inode_id,&status);
+    open("/home/test/test",&inode_id,&status);
+    char t[4500];
+    memset_s(t,'t',4500);
+    char t1[4500];
+    if(!status){
+        get_inode_by_id(inode_id,&ino);
+        write(inode_id,t,0,45);
+        read(inode_id,t1,0,4500);
+        print("read_len:%d\n",str_len(t1));
+    }else{
+        print("can not open file\n");
     }
-    open("/home1/test",&inode_id,&status);
-    get_inode_by_id(inode_id,&ino);
-    if(status!=-1)
-        print("home_inode_id:%d;start_b:%d\n",inode_id,ino->start_block);
-    else
-        print("file not exists\n");
+    delete_inode(inode_id);
     shutdown();
 }

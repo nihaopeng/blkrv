@@ -30,6 +30,7 @@ uint32_t alloc_block(){
 /*free a block
 fail return -1*/
 int free_block(uint16_t block_num){
+    // printk("free block:%d\n",block_num);
     if(blocks[block_num]){
         blocks[block_num]=0;
         int* addr=((int*)(((void*)FILE_DATA_ADDR)+mul(block_num,BLOCK_SIZE)))+1023;

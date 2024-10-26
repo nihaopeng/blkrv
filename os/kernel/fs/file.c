@@ -9,16 +9,17 @@ int get_inode_by_id(uint32_t inode_id,inode** inode_get){
 
 //删除从startblock开始的block链表
 int delete_block_link(uint32_t start_block){
-    int* inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul(start_block,BLOCK_SIZE));
+    // printk("delete start block:%d\n",start_block);
+    int* inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul(start_block,BLOCK_SIZE))+1023;
     uint32_t cur_block=start_block;
     while(1){
-        uint32_t next=(((uint32_t)*inst_4byte_addr)>>4)<<4;
-        if(next==0)
+        if(cur_block==0)
             break;
         else{
             free_block(cur_block);
+            inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul((int)(cur_block),BLOCK_SIZE))+1023;
+            uint32_t next=(((uint32_t)*inst_4byte_addr)<<4)>>4;
             cur_block=next;
-            inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul((int)(cur_block),BLOCK_SIZE));
         }
     }
 }
@@ -61,24 +62,13 @@ int create_inode(const char* file_name,char type){
     return -1;
 }
 
-int seek(uint32_t inode_id,uint32_t byte_num){
-    // inode* ino;
-    // get_inode_by_id(inode_id,&ino);
-    // for(int i=0;i<ino->size;i++){
-    //     if(mod(tmp++,4092)==0){
-    //         uint32_t next=*((uint32_t*)addr);
-    //         if(next>>28==0)break;//if nas not been used
-    //         addr=(char*)(((void*)FILE_DATA_ADDR)+mul(((next<<4)>>4),BLOCK_SIZE));//calc addr of next block;
-    //     }
-    //     if(i==start){
-    //         *buf=*addr;buf+=1;
-    //         cnt+=1;
-    //     }
-    //     if(cnt>=count){
-    //         break;
-    //     }
-    //     addr+=1;//get data;
-    // }
+int delete_inode(uint32_t inode_id){
+    inode* ino=(inode*)((void*)FILE_TABLE_ADDR+mul(inode_id,INODE_SIZE));
+    memset_s(ino->file_name,0,MAX_NAME);
+    ino->type=0;
+    delete_block_link(ino->start_block);
+    ino->start_block=0;
+    ino->size=0;
 }
 
 int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
@@ -91,16 +81,19 @@ int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope 
     int tmp=1;
     int cnt=0;
     for(int i=0;i<ino->size;i++){
-        if(mod(tmp++,4092)==0){
+        if(mod(tmp++,4093)==0){
             uint32_t next=*((uint32_t*)addr);
             addr=(char*)(((void*)FILE_DATA_ADDR)+mul(((next<<4)>>4),BLOCK_SIZE));//calc addr of next block;
+            i--;
             continue;
         }
         else if(i>=start){
-            *buf=*addr;buf+=1;
+            *buf=*addr;
+            buf+=1;
             cnt+=1;
         }
         if(cnt>=count){
+            // printk("\n%d,%d",cnt,count);
             break;
         }
         addr+=1;//get data;
@@ -110,7 +103,7 @@ int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope 
 }
 
 int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
-    // print("%s\n",buf);
+    // print("buf:%s;",buf);
     inode* ino=NULL;
     get_inode_by_id(inode_id,&ino);
     //write data
@@ -120,12 +113,13 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
     int cnt=0;
     int i=0;
     while(1){//递归遍历块
-        if(mod(tmp++,4092)==0){
+        if(mod(tmp++,4093)==0){
             uint32_t next=*((uint32_t*)addr);
             if(((next<<4)>>4)==0){//没有下一block
-                (*(int*)addr)=next+alloc_block();//增加指向下一block
+                (*(uint32_t*)addr)=next+alloc_block();//增加指向下一block
             }
             next=*((uint32_t*)addr);
+            // printk("alloc_inst:%d\n",next);
             addr=(char*)(((void*)FILE_DATA_ADDR)+mul(((next<<4)>>4),BLOCK_SIZE));//calc addr of next block;
             continue;
         }
@@ -162,6 +156,7 @@ int open_i(const char* file_path,uint32_t* inode_id,int* status){
             if(in!=-1)
                 cur_inode_id=in;
             else{
+                printk("path is not exist\n");
                 *status=-1;//can not find file;
                 return 0;
             }
@@ -175,16 +170,18 @@ int open_i(const char* file_path,uint32_t* inode_id,int* status){
         stack[stack_ptr]='\0';
         int in=find_file_in_dir(cur_inode_id,stack);
         if(in!=-1){
-            cur_inode_id=in;
             *inode_id=in;
+            *status=0;
         }
         else{
+            printk("file is not exist\n");
             *status=-1;
             return 0;
         }
     }else if(file_path_len==1){//只有根目录
         get_inode_by_id(0,&ino);
         if(ino->type==0){
+            printk("root hasn't been created\n");
             *status=-1;
             return 0;
         }else{
@@ -208,6 +205,7 @@ int create_i(const char* file_path,char type,uint32_t* inode_id,int* status){
             if(in!=-1)
                 cur_inode_id=in;
             else{
+                printk("path is not exist\n");
                 *status=-1;//can not find file;
                 return 0;
             }
@@ -222,16 +220,23 @@ int create_i(const char* file_path,char type,uint32_t* inode_id,int* status){
         printk("create_file_name:%s\n",stack);
         int in=find_file_in_dir(cur_inode_id,stack);
         if(in!=-1){
+            printk("file has been exist\n");
             *status=-2;//重名文件
             return 0;
         }
         else{
-            *status=0;
-            *inode_id=(uint32_t)create_inode(stack,type);
             get_inode_by_id(cur_inode_id,&ino);
-            char buf[4];
-            uint32_to_char(*inode_id,buf);
-            write_i(cur_inode_id,buf,ino->size,4);
+            if(ino->type=='d'){
+                *status=0;
+                *inode_id=(uint32_t)create_inode(stack,type);
+                char buf[4];
+                uint32_to_char(*inode_id,buf);
+                write_i(cur_inode_id,buf,ino->size,4);
+            }else{
+                printk("parent is not a dir\n");
+                *status=-3;
+                return 0;
+            }
         }
     }else if(file_path_len==1){//只有根目录
         get_inode_by_id(0,&ino);
@@ -239,6 +244,7 @@ int create_i(const char* file_path,char type,uint32_t* inode_id,int* status){
             *inode_id=create_inode(file_path,type);
             *status=0;
         }else{
+            printk("root has been exist\n");
             *status=-1;//已存在
             return 0;
         }

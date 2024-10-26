@@ -2,6 +2,7 @@
 #define _MM_H_
 #include "ini.h"
 #include "math.h"
+#include "std.h"
 
 extern uint8_t blocks[MAX_BLOCK];
 

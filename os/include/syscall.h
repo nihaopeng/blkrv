@@ -65,17 +65,21 @@ type name(atype a,btype b,ctype c) \
         : "memory"); \
     return (type) __res; \
 }
-
+//to avoid compile error
 #define _syscall4(type,name,atype,a,btype,b,ctype,c,dtype,d) \
 type name(atype a,btype b,ctype c,dtype d) \
 { \
     type __res; \
     __asm__ volatile (\
         "li a7, %1\n"\
-        "mv a0, %2\n"\
-        "mv a1, %3\n"\
-        "mv a2, %4\n"\
-        "mv a3, %5\n"\
+        "mv t0, %2\n"\
+        "mv t1, %3\n"\
+        "mv t2, %4\n"\
+        "mv t3, %5\n"\
+        "mv a0, t0\n"\
+        "mv a1, t1\n"\
+        "mv a2, t2\n"\
+        "mv a3, t3\n"\
         "ecall\n" \
         "mv %0, a0\n" \
         : "=r"(__res) \
