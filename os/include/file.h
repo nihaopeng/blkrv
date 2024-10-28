@@ -29,8 +29,6 @@ int create_inode(const char* file_name,char type);
 
 int delete_inode(uint32_t inode_id);
 
-int seek(uint32_t inode_id,uint32_t byte_num);
-
 int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
@@ -58,6 +56,9 @@ void regist_write(int* dt_addr);
 void regist_open(int* dt_addr);
 
 void regist_create(int* dt_addr);
+
+//initialize the file system
+int root();
 
 #endif // !_FILE_H_
 
