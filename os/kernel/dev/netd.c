@@ -1,6 +1,6 @@
 #include "drivers.h"
 
-int send(){
+int send(socket sock,char* buf,uint32_t buf_length){
     char ip[]="127.0.0.1";
     uint32_t port=8080;
     char message[]="http/get:1.0";
@@ -12,7 +12,7 @@ int send(){
     *(uint32_t*)NIC_SDATA_LEN_ADDR=message_len;//put at last;
 }
 
-int recv(){
+int recv(socket sock,char* buf,uint32_t buf_length){
     uint32_t rData_len=0;
     while(1){
         rData_len=*(int*)NIC_RDATA_LEN_ADDR;

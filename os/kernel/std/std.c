@@ -1,8 +1,18 @@
 #include "std.h"
 
+int stdout=-1;
+int stdout_start=0;
+
 int out_cache_mutex=0;
 int in_cache_mutex=0;
 char out_cache[IO_CACHE];
+
+
+void set_stdout(int stdouts,int stdout_starts){
+    //when you redirect to file, the stdout_start is start of file ptr
+    stdout=stdouts;
+    stdout_start=stdout_starts;
+}
 
 int printk(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);
@@ -107,7 +117,11 @@ int print(const char* fmt,...){//only support 'c' now;
         }
     }
     out_cache[out_cache_n]='\0';
-    vprint(out_cache,out_cache_n);
+    if(stdout==-1)
+        vprint(out_cache,out_cache_n);
+    else{
+        write(stdout,out_cache,stdout_start,out_cache_n);
+    }
     // out_cache_mutex=0;
     return 0;
 }

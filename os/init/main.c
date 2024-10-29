@@ -7,9 +7,9 @@ int main(){
     init_fs();
     load_blocks();
     init_console();
-
-    sendT();
-    recvT();
+    root();
+    // send();
+    // recv();
     
     shutdown();
 }

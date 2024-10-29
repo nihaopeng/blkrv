@@ -15,6 +15,9 @@ __asm__ volatile( \
     :"=r"(va) \
     :"r"(n) \
 );
+
+void set_stdout(int stdouts,int stdout_start);
+
 int printk(const char* fmt,...);
 
 int print(const char* fmt,...);

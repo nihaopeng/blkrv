@@ -5,5 +5,6 @@ int root(){
     int status;
     create("/",'d',&inode_id,&status);
     create("/include",'d',&inode_id,&status);
+    create("/tmp",'d',&inode_id,&status);
     
 }
