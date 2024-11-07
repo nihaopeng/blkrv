@@ -39,7 +39,6 @@ _start:
     addi x9,x9,4
     bgez x7,.l2#以上加载段数据,大于等于0跳转
     bnez x5,.l1
-    addi x3,zero,0
     addi x4,zero,0
     addi x5,zero,0
     addi x6,zero,0
@@ -47,11 +46,14 @@ _start:
     addi x8,zero,0
     addi x9,zero,0
     addi x10,zero,0
-    addi x1,x1,rec_addr_start#记录程序main地址的地址
-    lb x1,0(x1)#加载程序头地址
-    add x2,x2,x1
-    addi x1,zero,0
-    jalr zero,0(x2)
+    addi x1,x1,rec_addr_start#记录程序entry地址的地址
+    lw x1,0(x1)#加载entry地址
+    li x3,0xffff0000
+    add x1,x3,x1#计算物理起始地址
+    addi x3,zero,0
+    add x1,x2,x1
+    li x2,0x10800000//设置栈指针
+    jalr zero,0(x1)
 
 
 

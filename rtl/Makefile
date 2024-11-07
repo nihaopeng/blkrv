@@ -54,7 +54,7 @@ $(OBJ_PATH)/%.o: $(CSRC_PATH)/%.cpp
 	$(cc) -c $< -o $@ -I$(CINCLUDE) -I$(SYSPATH) -I$(SYSPATH1) -I$(SYSPATH2) -I$(VERILOG_PATH)
 
 mkexecutable:
-	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) -lstdc++ -lm -pthread
+	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) -lstdc++ -lm -pthread -lfltk
 
 info:
 	@echo $(VSRC)
@@ -70,12 +70,9 @@ loadmem:mkutils mkbios
 #	加载bios中的拉取指令，定制
 	@$(EXECUTABLE_PATH)/manage_mem -src $(BUILD_ROOT)/bios/bios.o -tar ./devices/bios -src_start 52 -src_end 1139 -tar_start 0 -tar_end 1087
 #	加载bootsect,定制
-	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 220 -tar_start 0 -tar_end 168
+	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 563 -tar_start 0 -tar_end 511
 #	加载sys
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 1048576 -tar_start 512 -tar_end 1049088
-
-clearflash:
-	@$(EXECUTABLE_PATH)/manage_mem -src ./devices/flash_c -tar ./devices/flash -src_start 2097152 -src_end 5242880 -tar_start 2097152 -tar_end 5242880
 
 run:
 	$(EXECUTABLE_NAME)

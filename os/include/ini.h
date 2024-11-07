@@ -13,6 +13,7 @@
 #define NULL 0
 #define BLOCK_USED 1
 #define INODE_SIZE 256
+#define MAX_PID_NUM 64
 //size is 1
 #define KEYBOARD_CACHE_ADDR 0x20000000
 

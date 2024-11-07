@@ -54,15 +54,16 @@ void net_card::send_message(const char* message,const uint32_t data_len) {
 }
 
 std::string net_card::receive_message() {
-    char buffer[1024] = {0};
-    if (sockfd != -1) {
-        ssize_t bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
-        if (bytes_received > 0) {
-            buffer[bytes_received] = '\0';
-            return std::string(buffer);
-        }
+    std::string data;
+    char buffer[1024];
+    ssize_t bytes_received;
+    printf("ready get\n");
+    bytes_received = recv(sockfd, buffer, sizeof(buffer), 0);
+    printf("size:%ld",bytes_received);
+    if(bytes_received>0){
+        data.append(buffer, bytes_received);
     }
-    return "";
+    return data;
 }
 
 void* net_card::thread_function(void* arg) {
@@ -75,15 +76,23 @@ void* net_card::thread_function(void* arg) {
             nic->connect2server(sock->ip,sock->port);
             // 发送和接收消息的循环
             nic->send_message(sock->data,sock->data_len);
-            std::string response = nic->receive_message();
-            if (!response.empty()) {
-                // std::cout << "Received: " << response << std::endl;
-                uint32_t rData_addr=4*1024*1024+4;
-                for(int l=0;l<response.size();l++){
-                    nic->putB(rData_addr+l,response[l]);
+            while(1){
+                std::string response = nic->receive_message();
+                // std::cout<<response.size()<<std::endl;
+                if (!response.empty()) {
+                    // std::cout << "Received: " << response << std::endl;
+                    uint32_t rData_addr=4*1024*1024+4;
+                    uint32_t cur_ptr=nic->get4B(4*1024*1024);
+                    for(int l=0;l<response.size();l++){
+                        nic->putB(rData_addr+cur_ptr+l,response[l]);
+                    }
+                    std::cout<<"get response!recv size:"<<response.size()<<std::endl;
+                    nic->put4B(1<<22,cur_ptr+response.size());//put at last as a mark;
+                }else{
+                    break;
                 }
-                nic->put4B(4*1024*1024,response.size());//put at last as a mark;
             }
+            
         }
     }
     return nullptr;

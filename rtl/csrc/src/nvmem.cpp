@@ -1,6 +1,7 @@
 #include "nvmem.h"
 
 nvmem::nvmem(std::string mem_file_path,uint32_t size){
+    this->size=size;
     this->mem_file_path=mem_file_path;
     if(access((mem_file_path).c_str(),F_OK)!=0){//file not exist
         this->fp.open(mem_file_path,std::ios::binary|std::ios::out);

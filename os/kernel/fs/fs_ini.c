@@ -6,5 +6,5 @@ int root(){
     create("/",'d',&inode_id,&status);
     create("/include",'d',&inode_id,&status);
     create("/tmp",'d',&inode_id,&status);
-    
+    create("/tmp/test.bin",'f',&inode_id,&status);
 }

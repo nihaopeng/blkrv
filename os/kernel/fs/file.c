@@ -11,13 +11,14 @@ int get_inode_by_id(uint32_t inode_id,inode** inode_get){
 int delete_block_link(uint32_t start_block){
     // printk("delete start block:%d\n",start_block);
     int* inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul(start_block,BLOCK_SIZE))+1023;
-    uint32_t cur_block=start_block;
+    uint32_t cur_block=(((uint32_t)*inst_4byte_addr)<<4)>>4;
+    *inst_4byte_addr=0x10000000;
     while(1){
         if(cur_block==0)
             break;
         else{
-            free_block(cur_block);
             inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul((int)(cur_block),BLOCK_SIZE))+1023;
+            free_block(cur_block);
             uint32_t next=(((uint32_t)*inst_4byte_addr)<<4)>>4;
             cur_block=next;
         }
@@ -112,6 +113,7 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
     int tmp=1;
     int cnt=0;
     int i=0;
+    //TODO:优化递归操作，每一次写入都会从头开始遍历
     while(1){//递归遍历块
         if(mod(tmp++,4093)==0){
             uint32_t next=*((uint32_t*)addr);
@@ -134,7 +136,7 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
         i+=1;
     }
     for(int j=i;j<i+BLOCK_SIZE;j++){//将剩余未写入块清除
-        if(mod(tmp++,4092)==0){
+        if(mod(tmp++,4093)==0){
             uint32_t next=*((uint32_t*)addr);
             delete_block_link((next<<4)>>4);
             break;

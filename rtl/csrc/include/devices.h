@@ -18,6 +18,7 @@ public:
     flash* my_flash;
     screen* my_screen;
     net_card* my_net_card;
+    gpu* my_gpu;
     pmc* my_pmc;
     devices();
     ~devices();
