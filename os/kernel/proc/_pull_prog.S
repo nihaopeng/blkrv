@@ -57,10 +57,9 @@ enter_prog:
     addi a0,a0,rec_addr_start#记录程序main地址的地址
     lw a0,0(a0)#加载程序头地址
     li a2,0xffff0000
-    add a0,a2,a0#计算物理起始地址
-    addi a2,zero,0
-    # add a0,a1,a0
+    add a0,a2,a0#计算物理起始地址，现在是减去0x100000的相对地址
     lui a2,0x80000#启动mmu
-    add a1,a2,a1#加载虚拟地址
-    csrrw zero,satp,a1
+    add a1,a2,a1
+    csrrw zero,satp,a1//将虚拟基址写入satp
     jalr zero,0(a0)#跳转到程序执行入口_start
+    # ret

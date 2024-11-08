@@ -1,6 +1,14 @@
 #include "drivers.h"
 
 int vprint_i(char* str,uint32_t length){
+    // str=(char*)user_to_global((void*)str);
+    uint32_t p=0;
+    __asm__ volatile(
+        "csrr %0,0x181"
+        :"=r"(p)
+    );
+    p=(p<<1)>>1;//取出mmu标志位
+    str=(char*)((void*)str+p);
     for(uint32_t i=0;i<length;i++){
         char ch=*(str+i);
         char* addr=(char*)SCREEN_CACHE1_ADDR+i;

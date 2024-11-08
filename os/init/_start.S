@@ -19,7 +19,6 @@ _gdt_search:
     lw a7,0(a7)
     li t0,0
     jalr ra,a7
-    
     sret
 
 _idt_search:

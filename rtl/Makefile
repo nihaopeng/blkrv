@@ -47,7 +47,7 @@ build_dir:
 # --cc to generate c++ code, --exe for wrapper file, --build for obj_dir .o	
 # below is to make verilog code converted into c++ code
 verilog2cc:
-	$(VERILATOR) --trace --build --cc -j $(TOP_MODULE) $(VSRC) -Mdir $(VERILOG_PATH)
+	$(VERILATOR) --trace --build --cc $(TOP_MODULE) $(VSRC) -Mdir $(VERILOG_PATH)
 
 # all cpp file will exeucte below action
 $(OBJ_PATH)/%.o: $(CSRC_PATH)/%.cpp

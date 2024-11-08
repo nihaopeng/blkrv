@@ -6,6 +6,7 @@
 #include "set_gate.h"
 #include "syscall.h"
 #include "net.h"
+#include "proc.h"
 
 int vprint_i(char* str,uint32_t length);
 

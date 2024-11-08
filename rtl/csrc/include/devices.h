@@ -7,6 +7,7 @@
 #include "flash.h"
 #include "net_card.h"
 #include "pmc.h"
+#include "gpu.h"
 
 class devices
 {

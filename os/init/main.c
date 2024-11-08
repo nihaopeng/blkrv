@@ -13,8 +13,8 @@ int main(int argc,char* argv[]){
 
     // socket sock={0,"127.0.0.1",8080};
     // char message[]="testfile";
-    // char buf[512];
-    // memset_s(buf,0,512);
+    // char buf[1024];
+    // memset_s(buf,0,1024);
     // send(sock,message,str_len(message));
     // int status=0;
     // uint32_t inode_id=0;
@@ -22,18 +22,20 @@ int main(int argc,char* argv[]){
     // inode* ino;
     // get_inode_by_id(inode_id,&ino);
     // while(1){
-    //     recv(sock,buf,32,&status);
+    //     recv(sock,buf,1024,&status);
     //     if(status==-1){
     //         break;
     //     }
-    //     write(inode_id,buf,ino->size,32);
+    //     write(inode_id,buf,ino->size,1024);
     // }
+
     uint32_t inode_id;
     uint32_t pid;
     int status=0;
     inode* ino;
     open("/tmp/test.bin",&inode_id,&status);
     print("fid:%d\nexec file...\n",inode_id);
-    exec(inode_id,0,-1,0,&pid,&status,NULL);
+    exec_i(inode_id,0,-1,0,&pid,&status,NULL);
+
     shutdown();
 }

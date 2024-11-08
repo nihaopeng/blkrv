@@ -3,7 +3,7 @@
 #include "tgaimage.h"
 //#include "model.h"
 #include "geometry.h"
-#include <conio.h>
+// #include <conio.h>
 
 // struct Color
 // {

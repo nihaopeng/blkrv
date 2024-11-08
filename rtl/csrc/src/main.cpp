@@ -3,6 +3,8 @@
 #include "Vtop.h"  // create `top.v`,so use `Vtop.h`
 #include "devices.h"
 
+vluint64_t main_time = 0;
+
 int main(int argc, char** argv, char** env) {
     std::cout<<"\033[3;1;31mstarting sim...\033[0m"<<std::endl;
     VerilatedContext* contextp = new VerilatedContext;
@@ -25,17 +27,16 @@ int main(int argc, char** argv, char** env) {
 
         top->clk=0;
         top->eval();
-        if(1){
-            tfp->dump(contextp->time()); //dump wave
-            contextp->timeInc(1);
-        }
+        tfp->dump(main_time); //dump wave
+        main_time+=1;
 
-        // if(top->s1_req&&top->s1_addr==0x00000ad8){
-        //     printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_ram->get4B(top->s1_addr));
-        // }
-        if(i>=43858737){
-            printf("inst:%x,%x\n",top->s1_addr,top->s2_addr);
+        if(top->s1_req&&top->s1_addr==0x0000035c){
+            // system("sync");
+            printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_ram->get4B(top->s1_addr));
         }
+        // if(i>=43858737){
+        //     printf("inst:%x,%x\n",top->s1_addr,top->s2_addr);
+        // }
         mydevices.process(top);
         // if(top->s1_req&&top->s1_addr==0x00000ad8){
         //     printf("test1 val:%d\n",mydevices.my_ram->get4B(top->s1_addr));
@@ -51,8 +52,10 @@ int main(int argc, char** argv, char** env) {
         // if(top->s1_req&&top->s1_addr==0x00000ad8){
         //     printf("test3 val:%d\n",mydevices.my_ram->get4B(top->s1_addr));
         // }
-        tfp->dump(contextp->time()); //dump wave
-        contextp->timeInc(1);
+        tfp->dump(main_time); //dump wave
+        main_time+=1;
+        // tfp->dump(contextp->time()); //dump wave
+        // contextp->timeInc(1);
     }
     end=clock();
     printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);

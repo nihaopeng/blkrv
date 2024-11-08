@@ -9,12 +9,12 @@ class gpu:public vmem
 {
 private:
     int if_start_up;
+    pthread_t thread;
 public:
     gpu(uint32_t size);
     ~gpu();
     void process(Vtop* top);
-    static void* gpu::thread_function(void* arg);
-    
+    static void* thread_function(void* arg);
 };
 
 #endif // !_GPU_H_

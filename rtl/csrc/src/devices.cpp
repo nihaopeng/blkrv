@@ -33,5 +33,5 @@ void devices::process(Vtop* top){
     this->my_flash->process(top);
     this->my_screen->process(top);
     this->my_net_card->process(top);
-    this->gpu->process(top);
+    this->my_gpu->process(top);
 }
