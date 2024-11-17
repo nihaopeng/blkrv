@@ -21,10 +21,14 @@ void save_contxt(uint32_t* context_reg,uint32_t* context_csr,uint32_t pc_reg);
 
 void enter_prog(uint32_t ram_start_addr);
 
-int exec_i(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]);
+int exit_i();
 
-int start_pcb(int pid);
+int exit();
 
-// void* user_to_global(void* ptr);
+int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]);
+
+int scheduler(int pid);
+
+void regist_exit(int* gdt_addr_exit);
 
 #endif // !_PROC_H_

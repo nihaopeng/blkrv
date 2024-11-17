@@ -8,6 +8,10 @@
 #include "net.h"
 #include "proc.h"
 
+void set_stdout(int stdouts,int stdout_start);
+
+int printk(const char* fmt,...);
+
 int vprint_i(char* str,uint32_t length);
 
 int vprint(char* str,uint32_t length);

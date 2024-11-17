@@ -1,36 +1,23 @@
 #include "proc.h"
 
-// uint32_t cur_pro=0;
 uint8_t pro_ids[MAX_PID_NUM]={0};
 pcb global_pcb_list[64];
 
 int init_ps(){
+    pro_ids[0]=1;
     global_pcb_list[0].pid=0;
     global_pcb_list[0].virtual_base_addr=0x00000000;
-    global_pcb_list[0].stdout=0;
+    global_pcb_list[0].stdout=-1;
     global_pcb_list[0].stdout_start=0;
 }
 
-// void enter_prog(uint32_t ram_start_addr){
-//     printk("test");
-//     __asm__ volatile (
-//         "mv a1,a0\n"
-//         "addi a0,a0,%0\n"
-//         "lw a0,0(a0)\n"
-//         "li a2,0xffff0000\n"
-//         "add a0,a2,a0\n"
-//         "addi a2,zero,0\n"
-//         "lui a2,0x80000\n"
-//         "add a1,a2,a1\n"
-//         "csrrw zero,satp,a1\n"
-//         //test
-//         "jalr zero,0(a0)\n"
-//         :
-//         :"i"(0x18)
-//     );
-// }
-
-int exec_i(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]){
+int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]){
+    __asm__ volatile (
+        "mv %0,ra"
+        :"=r"(global_pcb_list[0].pc_reg)
+        :
+    );
+    // printk("kernel exec pc:%d",global_pcb_list[0].pc_reg);
     inode* ino;
     get_inode_by_id(inode_id,&ino);
     uint32_t i;
@@ -47,7 +34,6 @@ int exec_i(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,i
     *status=-1;
     return -1;
 flag:
-    // global_pcb_list[i].priority=priority;
     global_pcb_list[i].stdout=stdout;
     global_pcb_list[i].stdout_start=stdout_start;
     //load prog
@@ -65,19 +51,51 @@ flag:
         printk("%d\r",j);
         j+=1024;
     }
-    printk("start pcb...\n");
-    start_pcb(i);
+    printk("start pcb(std_out=%d)\n",global_pcb_list[i].stdout);
+    set_stdout(global_pcb_list[i].stdout,global_pcb_list[i].stdout_start);
+    printk("enter_prog,va=%d\n",global_pcb_list[i].virtual_base_addr);
+    enter_prog(global_pcb_list[i].virtual_base_addr);
     *status=0;
 }
 
-int start_pcb(int pid){
-    // cur_pro=pid;
-    set_stdout(global_pcb_list[pid].stdout,global_pcb_list[pid].stdout_start);
-    printk("enter_prog,%d\n",global_pcb_list[pid].virtual_base_addr);
-    // __asm__ volatile("csrw satp,a0"::);
-    enter_prog(global_pcb_list[pid].virtual_base_addr);
+int exit_i(){
+    //回收资源，善后工作
+    uint32_t p=0;
+    __asm__ volatile(
+        "csrr %0,0x181\n"
+        //将satp置0
+        "csrw 0x181,0\n"
+        :"=r"(p)
+    );
+    p=(p<<4)>>4;//去除mmu以及dev标志位
+    uint32_t pid=p>>23;
+    printk("pid:%d\n",pid);
+    pro_ids[pid]=0;
+    
+    //跳转调度器
+    scheduler(pid);
 }
 
-// void* user_to_global(void* ptr){
-//     return (void*)(ptr+global_pcb_list[cur_pro].virtual_base_addr);
-// }
+
+//TODO; better scheduler
+int scheduler(int pid){
+    for(int i=MAX_PID_NUM-1;i>=1;i--){
+        if(pro_ids[i]){
+            set_stdout(global_pcb_list[pid].stdout,global_pcb_list[pid].stdout_start);
+            __asm__ volatile(
+                "lui a0,0x80000\n"
+                "add a1,%0,a0\n"
+                "csrw satp,a1\n"
+                "jalr zero,%1\n"
+                :
+                :"r"(global_pcb_list[i].virtual_base_addr),"r"(global_pcb_list[i].pc_reg)
+            );
+        }
+    }
+    shutdown();
+}
+
+void regist_exit(int* gdt_addr_exit){
+    int* func_addr_exit=(int*)(&exit_i);
+    _set_gate(gdt_addr_exit,func_addr_exit);
+}

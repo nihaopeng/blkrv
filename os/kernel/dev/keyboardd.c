@@ -32,9 +32,6 @@ void keydown_interrupt(){
     in_cache_backp=mod(in_cache_backp,IO_CACHE);
 }
 
-_syscall1(int,vgetch,char*,ch);
-_syscall1(int,kbhit,int*,ifhit);
-
 void regist_keydown_int(int* dt_addr){
     int* func_addr_keydown_interrupt=(int*)(&keydown_interrupt);
     _set_gate(dt_addr,func_addr_keydown_interrupt);

@@ -41,6 +41,7 @@
 #define _NR_vgetch 6
 #define _NR_powoff 7
 #define _NR_kbhit 8
+#define _NR_exit 9
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

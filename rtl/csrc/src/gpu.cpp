@@ -8,7 +8,7 @@ gpu::~gpu(){pthread_join(thread, nullptr);}
 
 void* gpu::thread_function(void* arg) {
     gpu* gput = static_cast<gpu*>(arg);
-    Draw2d* draw;
+    Draw2d* draw=new Draw2d();
     TGAColor color;
     while(1){
         if(gput->get4B(0)==2)
@@ -21,6 +21,7 @@ void* gpu::thread_function(void* arg) {
             color.bgra[1]=gput->getB(0x00800012);
             color.bgra[2]=gput->getB(0x00800013);
             color.bgra[3]=gput->getB(0x00800014);
+            // printf("%d,%d,%d,%d\n",x0,y0,x1,y1);
             draw->line(x0,y0,x1,y1,color);
             gput->put4B(0,0);
         }
@@ -65,6 +66,7 @@ void* gpu::thread_function(void* arg) {
             gput->put4B(0,0);
         }
     }
+    free(draw);
 }
 
 void gpu::process(Vtop* top){

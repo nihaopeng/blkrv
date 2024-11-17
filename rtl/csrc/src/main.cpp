@@ -19,6 +19,18 @@ int main(int argc, char** argv, char** env) {
     std::cout<<"start initializing devices..."<<std::endl;
     devices mydevices;
     std::cout<<mydevices.my_bios->get4B(0)<<std::endl;
+    
+    
+    // mydevices.my_gpu->put4B(0x800001,50);//x0
+    // mydevices.my_gpu->put4B(0x800005,50);//y0
+    // mydevices.my_gpu->put4B(0x800009,100);//x1
+    // mydevices.my_gpu->put4B(0x80000d,100);//y1
+    // mydevices.my_gpu->put4B(0x800011,255);//b
+    // mydevices.my_gpu->put4B(0x800012,255);//g
+    // mydevices.my_gpu->put4B(0x800013,255);//r
+    // mydevices.my_gpu->put4B(0x800014,255);//a
+    // mydevices.my_gpu->put4B(0,2);
+
     clock_t start,end;
     start=clock();
     top->clk=0;
@@ -30,7 +42,7 @@ int main(int argc, char** argv, char** env) {
         tfp->dump(main_time); //dump wave
         main_time+=1;
 
-        if(top->s1_req&&top->s1_addr==0x0000035c){
+        if(top->s1_req&&top->s1_addr==0x00801308){
             // system("sync");
             printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_ram->get4B(top->s1_addr));
         }

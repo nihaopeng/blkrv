@@ -27,3 +27,8 @@ void init_fs(){
     regist_open(gdt_addr_open);
     regist_create(gdt_addr_create);
 }
+
+void init_proc(){
+    int* gdt_addr_exit=(int*)(&syscall_table[_NR_exit]);
+    regist_exit(gdt_addr_exit);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+}

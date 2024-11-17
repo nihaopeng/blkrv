@@ -8,8 +8,6 @@ int poweroff_i(){
     );
 }
 
-_syscall0(int,powoff);
-
 void regist_poweroff(int* dt_addr){
     int* func_addr_poweroff=(int*)(&poweroff_i);
     _set_gate(dt_addr,func_addr_poweroff);

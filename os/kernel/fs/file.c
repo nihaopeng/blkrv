@@ -254,11 +254,6 @@ int create_i(const char* file_path,char type,uint32_t* inode_id,int* status){
     return 0;
 }
 
-_syscall4(int,read,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,count);
-_syscall4(int,write,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,length);
-_syscall4(int,create,const char*,file_path,char,type,uint32_t*,inode_id,int*,status);
-_syscall3(int,open,const char*,file_path,uint32_t*,inode_id,int*,status);
-
 void regist_read(int* dt_adrr){
     int* func_addr_read=(int*)(&read_i);
     _set_gate(dt_adrr,func_addr_read);
