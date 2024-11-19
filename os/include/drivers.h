@@ -12,6 +12,8 @@ void set_stdout(int stdouts,int stdout_start);
 
 int printk(const char* fmt,...);
 
+int vprintk(char* str,uint32_t length);
+
 int vprint_i(char* str,uint32_t length);
 
 int vprint(char* str,uint32_t length);
@@ -27,6 +29,8 @@ int kbhit(int* ifhit);
 int poweroff_i();
 
 int powoff();
+
+int inputk(const char* fmt,...);
 
 void regist_vprint(int* dt_addr);
 

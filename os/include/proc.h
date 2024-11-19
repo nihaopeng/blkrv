@@ -17,7 +17,9 @@ typedef struct pcb{
 
 int init_ps();
 
-void save_contxt(uint32_t* context_reg,uint32_t* context_csr,uint32_t pc_reg);
+void save_contxt(uint32_t* context_reg,uint32_t* context_csr,uint32_t* pc_reg,uint32_t cur_ra);
+
+void recover_contxt(uint32_t* context_reg,uint32_t* context_csr,uint32_t pc_reg);
 
 void enter_prog(uint32_t ram_start_addr);
 
@@ -27,7 +29,7 @@ int exit();
 
 int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]);
 
-int scheduler(int pid);
+int scheduler();
 
 void regist_exit(int* gdt_addr_exit);
 

@@ -9,8 +9,16 @@ typedef struct socket
     uint32_t target_port;
 }socket;
 
-int send(socket sock,char* buf,uint32_t buf_length);
+int send(socket* sock,char* buf,uint32_t buf_length);
 
-int recv(socket sock,char* buf,uint32_t buf_length,int* status);
+int send_i(socket* sock,char* buf,uint32_t buf_length);
+
+int recv(socket* sock,char* buf,uint32_t buf_length,int* status);
+
+int recv_i(socket* sock,char* buf,uint32_t buf_length,int* status);
+
+void regist_send(int* dt_addr);
+
+void regist_recv(int* dt_addr);
 
 #endif // !_NET_H_

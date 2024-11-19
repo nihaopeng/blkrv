@@ -10,7 +10,7 @@ void keyboard::process(Vtop* top){
     if(utils::kbhit()){
         top->int_port2=1;
         char ch=getchar();
-        // std::cout<<ch<<std::endl;
+        // std::cout<<"kb:"<<ch<<std::endl;
         this->putB(0,ch);
         top->s2_read_valid=1;
     }
@@ -26,7 +26,7 @@ void keyboard::process(Vtop* top){
             switch(top->s2_mem_op_type){
                 case 0:top->s2_read_data=uint8_t(this->getB(top->s2_addr));break;
                 case 1:top->s2_read_data=uint16_t(this->get2B(top->s2_addr));break;
-                case 2:printf("key1:%x\n%x\n",top->s2_addr,this->get4B(top->s2_addr));top->s2_read_data=uint32_t(this->get4B(top->s2_addr));break;
+                case 2:top->s2_read_data=uint32_t(this->get4B(top->s2_addr));break;
                 default:break;
             }
             // printf("%d",top->s2_read_data);

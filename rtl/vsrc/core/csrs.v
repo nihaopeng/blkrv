@@ -7,6 +7,7 @@ module csrs (
     input[1:0] pc_change_flag_i,
     input we_i,
     input[31:0] r1_i,
+    input[4:0] r1_id,
     input[31:0] imm_i,
     input mret_flag_i,
     input sret_flag_i,
@@ -25,7 +26,8 @@ parameter[11:0] mepc_a   =12'h341;
 parameter[11:0] mcause_a =12'h342;
 parameter[11:0] mstatus_a=12'h300;
 parameter[11:0] satp_a   =12'h180;
-parameter[11:0] satp_cp_a=12'h181;
+parameter[11:0] satp_s_cp_a=12'h181;
+parameter[11:0] satp_i_cp_a=12'h182;
 parameter[11:0] stvec_a  =12'h105;
 parameter[11:0] sepc_a   =12'h141;
 parameter[2:0]  CSRRW    =3'b001;
@@ -60,35 +62,35 @@ always @(posedge clk_i) begin
         REGS[mcause_a]<=mcause_i;
         REGS[mstatus_a][mie]<=1'b0;
         REGS[mstatus_a][mpie]<=1'b1;
-        REGS[satp_cp_a]<=REGS[satp_a];
+        REGS[satp_i_cp_a]<=REGS[satp_a];
         REGS[satp_a]<=32'h0;
     end
     else if(syscall_flag_i) begin
         REGS[sepc_a]<=cur_pc_i-4;
-        REGS[satp_cp_a]<=REGS[satp_a];
+        REGS[satp_s_cp_a]<=REGS[satp_a];
         REGS[satp_a]<=32'h0;
     end
     else if(mret_flag_i) begin
         REGS[mstatus_a][mie]<=REGS[mstatus_a][mpie];
-        REGS[satp_a]<=REGS[satp_cp_a];
-        REGS[satp_cp_a]<=32'd0;
+        REGS[satp_a]<=REGS[satp_i_cp_a];
+        REGS[satp_i_cp_a]<=32'd0;
     end
     else if(sret_flag_i) begin
         // REGS[satp_a][31]<=1'b1;
-        REGS[satp_a]<=REGS[satp_cp_a];
-        REGS[satp_cp_a]<=32'd0;
+        REGS[satp_a]<=REGS[satp_s_cp_a];
+        REGS[satp_s_cp_a]<=32'd0;
     end
     //sret 不做其他操作
     else if(we_i) begin
         case(imm_i[14:12])
             CSRRW:begin
-                REGS[imm_i[31:20]]<=r1_i;
+                REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:r1_i;
             end
             CSRRS:begin
-                REGS[imm_i[31:20]]<=REGS[imm_i[31:20]]|r1_i;
+                REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:REGS[imm_i[31:20]]|r1_i;
             end
             CSRRC:begin
-                REGS[imm_i[31:20]]<=REGS[imm_i[31:20]]&(~r1_i);
+                REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:REGS[imm_i[31:20]]&(~r1_i);
             end
             CSRRWI:begin
                 REGS[imm_i[31:20]]<={27'd0,imm_i[19:15]};

@@ -12,11 +12,14 @@ int init_ps(){
 }
 
 int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]){
+    //暂时保存在0，后续考虑是否加入current pid
+    uint32_t ra=0;
     __asm__ volatile (
         "mv %0,ra"
-        :"=r"(global_pcb_list[0].pc_reg)
+        :"=r"(ra)
         :
     );
+    save_contxt(global_pcb_list[0].context_reg,global_pcb_list[0].context_csr,&(global_pcb_list[0].pc_reg),ra);
     // printk("kernel exec pc:%d",global_pcb_list[0].pc_reg);
     inode* ino;
     get_inode_by_id(inode_id,&ino);
@@ -69,30 +72,24 @@ int exit_i(){
     );
     p=(p<<4)>>4;//去除mmu以及dev标志位
     uint32_t pid=p>>23;
-    printk("pid:%d\n",pid);
+    // printk("pid:%d\n",pid);
     pro_ids[pid]=0;
     
     //跳转调度器
-    scheduler(pid);
+    scheduler();
 }
 
 
 //TODO; better scheduler
-int scheduler(int pid){
-    for(int i=MAX_PID_NUM-1;i>=1;i--){
+int scheduler(){
+    for(int i=MAX_PID_NUM-1;i>=0;i--){
         if(pro_ids[i]){
-            set_stdout(global_pcb_list[pid].stdout,global_pcb_list[pid].stdout_start);
-            __asm__ volatile(
-                "lui a0,0x80000\n"
-                "add a1,%0,a0\n"
-                "csrw satp,a1\n"
-                "jalr zero,%1\n"
-                :
-                :"r"(global_pcb_list[i].virtual_base_addr),"r"(global_pcb_list[i].pc_reg)
-            );
+            printk("run pid:%d\n",i);
+            set_stdout(global_pcb_list[i].stdout,global_pcb_list[i].stdout_start);
+            printk("recover context\n");
+            recover_contxt(global_pcb_list[i].context_reg,global_pcb_list[i].context_csr,global_pcb_list[i].pc_reg);
         }
     }
-    shutdown();
 }
 
 void regist_exit(int* gdt_addr_exit){

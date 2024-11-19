@@ -57,9 +57,9 @@ std::string net_card::receive_message() {
     std::string data;
     char buffer[1024];
     ssize_t bytes_received;
-    printf("ready get\n");
+    // printf("ready get\n");
     bytes_received = recv(sockfd, buffer, sizeof(buffer), 0);
-    printf("size:%ld",bytes_received);
+    // printf("size:%ld",bytes_received);
     if(bytes_received>0){
         data.append(buffer, bytes_received);
     }
@@ -86,7 +86,7 @@ void* net_card::thread_function(void* arg) {
                     for(int l=0;l<response.size();l++){
                         nic->putB(rData_addr+cur_ptr+l,response[l]);
                     }
-                    std::cout<<"get response!recv size:"<<response.size()<<std::endl;
+                    std::cout<<std::endl<<"get response!recv size:"<<response.size()<<std::endl;
                     nic->put4B(1<<22,cur_ptr+response.size());//put at last as a mark;
                 }else{
                     break;

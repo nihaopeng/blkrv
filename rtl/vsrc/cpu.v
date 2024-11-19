@@ -168,6 +168,7 @@ csrs csrs(
     .pc_change_flag_i(pc_change_flag),
     .we_i(sys),
     .r1_i(r1),
+    .r1_id(r1_id),
     .imm_i(imm),
     .mret_flag_i(mret_flag),
     .sret_flag_i(sret_flag),

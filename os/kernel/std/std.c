@@ -11,8 +11,10 @@ _syscall0(int,powoff);
 _syscall2(int,vprint,char*,str,uint32_t,length);
 _syscall4(int,read,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,count);
 _syscall4(int,write,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,length);
-_syscall4(int,create,const char*,file_path,char,type,uint32_t*,inode_id,int*,status);
-_syscall3(int,open,const char*,file_path,uint32_t*,inode_id,int*,status);
+_syscall4(int,create,char*,file_path,char,type,uint32_t*,inode_id,int*,status);
+_syscall3(int,open,char*,file_path,uint32_t*,inode_id,int*,status);
+_syscall3(int,send,socket*,sock,char*,buf,uint32_t,buf_length);
+_syscall4(int,recv,socket*,sock,char*,buf,uint32_t,buf_length,int*,status);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);
@@ -79,6 +81,7 @@ int input(const char* fmt,...){
             int va_addr=0;
             int num=0;
             while(1){
+                // print("getting ch\n");
                 char ch=0;vgetch(&ch);
                 if(ch==10||ch==32){
                     print("%c",ch);

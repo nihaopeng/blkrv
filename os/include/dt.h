@@ -12,6 +12,7 @@ typedef struct syscall_table
 void init_std();
 void init_fs();
 void init_proc();
+void init_net();
 // extern desc_table syscall_table,inter_table;
 #endif // !_DT_H_
 

@@ -32,3 +32,10 @@ void init_proc(){
     int* gdt_addr_exit=(int*)(&syscall_table[_NR_exit]);
     regist_exit(gdt_addr_exit);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
 }
+
+void init_net(){
+    int* gdt_addr_send=(int*)(&syscall_table[_NR_send]);
+    int* gdt_addr_recv=(int*)(&syscall_table[_NR_recv]);
+    regist_send(gdt_addr_send);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    regist_recv(gdt_addr_recv);
+}

@@ -30,7 +30,7 @@ int find_file_in_dir(uint32_t inode_id,const char* name){
     memset_s(files,0,1024);
     int i=0;
     inode* ino;
-    while(read_i(inode_id,files,i,1024)!=-1){
+    while(readk(inode_id,files,i,1024)!=-1){
         for(int j=0;j<1024;j+=4){
             get_inode_by_id(*(uint32_t*)(&files[j]),&ino);
             if(str_cmp(ino->file_name,name)){
@@ -72,7 +72,7 @@ int delete_inode(uint32_t inode_id){
     ino->size=0;
 }
 
-int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
+int readk(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
     inode* ino;
     get_inode_by_id(inode_id,&ino);
     if(start>=ino->size){
@@ -103,7 +103,47 @@ int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope 
     return 0;
 }
 
-int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
+int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
+    uint32_t p=0;
+    __asm__ volatile(
+        "csrr %0,0x181"
+        :"=r"(p)
+    );
+    p=(p<<1)>>1;//去除mmu标志位
+    // printk("%d\n",p);
+    buf=(char*)((void*)buf+p);
+
+    inode* ino;
+    get_inode_by_id(inode_id,&ino);
+    if(start>=ino->size){
+        return -1;
+    }
+    char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(ino->start_block,BLOCK_SIZE));
+    int tmp=1;
+    int cnt=0;
+    for(int i=0;i<ino->size;i++){
+        if(mod(tmp++,4093)==0){
+            uint32_t next=*((uint32_t*)addr);
+            addr=(char*)(((void*)FILE_DATA_ADDR)+mul(((next<<4)>>4),BLOCK_SIZE));//calc addr of next block;
+            i--;
+            continue;
+        }
+        else if(i>=start){
+            *buf=*addr;
+            buf+=1;
+            cnt+=1;
+        }
+        if(cnt>=count){
+            // printk("\n%d,%d",cnt,count);
+            break;
+        }
+        addr+=1;//get data;
+    }
+    *buf='\0';
+    return 0;
+}
+
+int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
     // print("buf:%s;",buf);
     inode* ino=NULL;
     get_inode_by_id(inode_id,&ino);
@@ -145,7 +185,67 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
     
 }
 
-int open_i(const char* file_path,uint32_t* inode_id,int* status){
+int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
+    uint32_t p=0;
+    __asm__ volatile(
+        "csrr %0,0x181"
+        :"=r"(p)
+    );
+    p=(p<<1)>>1;//去除mmu标志位
+    buf=(char*)((void*)buf+p);
+
+    // print("buf:%s;",buf);
+    inode* ino=NULL;
+    get_inode_by_id(inode_id,&ino);
+    //write data
+    char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(ino->start_block,BLOCK_SIZE));
+    ino->size=start+count;
+    int tmp=1;
+    int cnt=0;
+    int i=0;
+    //TODO:优化递归操作，每一次写入都会从头开始遍历
+    while(1){//递归遍历块
+        if(mod(tmp++,4093)==0){
+            uint32_t next=*((uint32_t*)addr);
+            if(((next<<4)>>4)==0){//没有下一block
+                (*(uint32_t*)addr)=next+alloc_block();//增加指向下一block
+            }
+            next=*((uint32_t*)addr);
+            // printk("alloc_inst:%d\n",next);
+            addr=(char*)(((void*)FILE_DATA_ADDR)+mul(((next<<4)>>4),BLOCK_SIZE));//calc addr of next block;
+            continue;
+        }
+        else if(i>=start){
+            *addr=*buf;buf+=1;
+            cnt+=1;
+        }
+        if(cnt>=count){
+            break;
+        }
+        addr+=1;//get data;
+        i+=1;
+    }
+    for(int j=i;j<i+BLOCK_SIZE;j++){//将剩余未写入块清除
+        if(mod(tmp++,4093)==0){
+            uint32_t next=*((uint32_t*)addr);
+            delete_block_link((next<<4)>>4);
+            break;
+        }
+    }
+    
+}
+
+int open_i(char* file_path,uint32_t* inode_id,int* status){
+    uint32_t p=0;
+    __asm__ volatile(
+        "csrr %0,0x181"
+        :"=r"(p)
+    );
+    p=(p<<1)>>1;//去除mmu标志位
+    file_path=(char*)((void*)file_path+p);
+    inode_id=(uint32_t*)((void*)inode_id+p);
+    status=(int*)((void*)status+p);
+
     //解析地址
     uint32_t file_path_len=str_len(file_path);
     char stack[128];
@@ -194,7 +294,17 @@ int open_i(const char* file_path,uint32_t* inode_id,int* status){
     return 0;
 }
 
-int create_i(const char* file_path,char type,uint32_t* inode_id,int* status){
+int create_i(char* file_path,char type,uint32_t* inode_id,int* status){
+    uint32_t p=0;
+    __asm__ volatile(
+        "csrr %0,0x181"
+        :"=r"(p)
+    );
+    p=(p<<1)>>1;//去除mmu标志位
+    file_path=(char*)((void*)file_path+p);
+    inode_id=(uint32_t*)((void*)inode_id+p);
+    status=(int*)((void*)status+p);
+
     //解析地址
     uint32_t file_path_len=str_len(file_path);
     char stack[128];
@@ -233,7 +343,7 @@ int create_i(const char* file_path,char type,uint32_t* inode_id,int* status){
                 *inode_id=(uint32_t)create_inode(stack,type);
                 char buf[4];
                 uint32_to_char(*inode_id,buf);
-                write_i(cur_inode_id,buf,ino->size,4);
+                writek(cur_inode_id,buf,ino->size,4);
             }else{
                 printk("parent is not a dir\n");
                 *status=-3;

@@ -59,21 +59,30 @@ int printk(const char* fmt,...){//only support 'c' now;
         }
     }
     out_cache_k[out_cache_n]='\0';
-    vprint_i(out_cache_k,out_cache_n);
+    // vprint_i(out_cache_k,out_cache_n);//不使用这个函数是因为里面有satp寄存器读取
+    for(uint32_t i=0;i<out_cache_n;i++){
+        char ch=*(out_cache_k+i);
+        char* addr=(char*)SCREEN_CACHE1_ADDR+i;
+        *addr=ch;
+    }
+    char* ctrl_addr=(char*)SCREEN_CTRL_ADDR+3;
+    *ctrl_addr=1;
     // out_cache_mutex=0;
     return 0;
 }
 
 int vprint_i(char* str,uint32_t length){
     // str=(char*)user_to_global((void*)str);
+    // printk("%d\n",str);
     if(stdout==-1){
         uint32_t p=0;
         __asm__ volatile(
-            "csrr %0,0x181"
+            "csrrw %0,0x181,zero"
             :"=r"(p)
         );
         p=(p<<1)>>1;//去除mmu标志位
         str=(char*)((void*)str+p);
+        // printk("%d\n",str);
         for(uint32_t i=0;i<length;i++){
             char ch=*(str+i);
             char* addr=(char*)SCREEN_CACHE1_ADDR+i;
