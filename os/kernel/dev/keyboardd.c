@@ -1,6 +1,8 @@
 #include "drivers.h"
 
-int in_cache_frontp=0,in_cache_backp=0;
+int un_use=0;
+int in_cache_frontp=0;
+int in_cache_backp=0;
 char in_cache[IO_CACHE];
 
 int vgetch_i(char* ch){//change to syscall
