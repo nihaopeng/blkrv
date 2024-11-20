@@ -10,6 +10,12 @@
 
 void set_stdout(int stdouts,int stdout_start);
 
+int init_input();
+
+int init_net();
+
+int init_out();
+
 int printk(const char* fmt,...);
 
 int vprintk(char* str,uint32_t length);

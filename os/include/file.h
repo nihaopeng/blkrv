@@ -19,6 +19,8 @@ typedef struct file
     //119 bit reserved
 }inode;
 
+int init_fs();
+
 int get_inode_by_id(uint32_t inode_id,inode** inode_get);
 
 int delete_block_link(uint32_t start_block);

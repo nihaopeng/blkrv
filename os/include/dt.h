@@ -9,10 +9,12 @@ typedef struct syscall_table
     uint32_t addr;
 }desc_table[256];
 
-void init_std();
-void init_fs();
-void init_proc();
-void init_net();
+void regist_sysmethod();
+void regist_std();
+void regist_fs();
+void regist_ps();
+void regist_net();
+
 // extern desc_table syscall_table,inter_table;
 #endif // !_DT_H_
 

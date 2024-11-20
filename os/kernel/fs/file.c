@@ -1,5 +1,14 @@
 #include "file.h"
 
+int init_fs(){
+    uint32_t inode_id;
+    int status;
+    create_i("/",'d',&inode_id,&status);
+    create_i("/include",'d',&inode_id,&status);
+    create_i("/tmp",'d',&inode_id,&status);
+    create_i("/tmp/test.bin",'f',&inode_id,&status);
+}
+
 //通过id获取结构体inode
 int get_inode_by_id(uint32_t inode_id,inode** inode_get){
     //获取对应inode的地址，hash索引

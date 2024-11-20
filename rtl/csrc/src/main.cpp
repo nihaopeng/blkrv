@@ -42,7 +42,7 @@ int main(int argc, char** argv, char** env) {
         // tfp->dump(main_time); //dump wave
         // main_time+=1;
 
-        // if(top->s1_req&&top->s1_addr==0x008007e4){
+        // if(top->s1_req&&top->s1_addr==0x00005204){
         //     // system("sync");
         //     printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_ram->get4B(top->s1_addr));
         // }

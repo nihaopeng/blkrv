@@ -2,6 +2,10 @@
 
 uint32_t rData_flag=0;
 
+int init_net(){
+    rData_flag=0;
+}
+
 int send_i(socket* sock,char* buf,uint32_t buf_length){
     uint32_t p=0;
     __asm__ volatile(

@@ -1,9 +1,15 @@
 #include "drivers.h"
 
-int un_use=0;
+// int un_use=0;
 int in_cache_frontp=0;
 int in_cache_backp=0;
 char in_cache[IO_CACHE];
+
+int init_input(){
+    in_cache_frontp=0;
+    in_cache_backp=0;
+    // memset_s(in_cache,0,IO_CACHE);
+}
 
 int vgetch_i(char* ch){//change to syscall
     uint32_t p=0;
@@ -13,6 +19,7 @@ int vgetch_i(char* ch){//change to syscall
     );
     p=(p<<1)>>1;//去除mmu标志位
     ch=(char*)((void*)ch+p);
+    // printk("%d,%d\n",in_cache_frontp,in_cache_backp);
     if(in_cache_frontp!=in_cache_backp){
         *ch=in_cache[in_cache_frontp++];
         in_cache_frontp=mod(in_cache_frontp,IO_CACHE);

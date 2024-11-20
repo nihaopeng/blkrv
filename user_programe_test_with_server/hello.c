@@ -32,6 +32,7 @@ int main(){
     print("##write pass\n");
     char read_buf[20];
     read(inode_id,read_buf,0,20);
+    print("%s\n",read_buf);
     print("##read pass\n");
 
     socket sock={0,"127.0.0.1",8080};

@@ -6,7 +6,7 @@
 
 extern uint8_t blocks[MAX_BLOCK];
 
-void load_blocks();
+void init_mm();
 
 /*get a block number that is 0, 0 represents free
 fail return -1*/

@@ -4,15 +4,14 @@
 #include "proc.h"
 
 int main(int argc,char* argv[]){
-    set_stdout(-1,0);
-    init_std();
-    init_fs();
-    init_proc();
+    regist_sysmethod();
+    init_input();
+    init_out();
     init_net();
-    load_blocks();
-    init_console();
+    init_mm();
     init_ps();
-    root();
+    init_fs();
+    init_console();
 
     int status=0;
     uint32_t inode_id=0;

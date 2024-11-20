@@ -2,7 +2,7 @@
 
 uint8_t blocks[MAX_BLOCK]={0};
 
-void load_blocks(){
+void init_mm(){
     int* inst_4byte_addr=((int*)FILE_DATA_ADDR)+1023;
     for(int i=0;i<MAX_BLOCK;i++){
         if(((uint32_t)*inst_4byte_addr)>>28==BLOCK_USED)

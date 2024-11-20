@@ -4,6 +4,12 @@ int stdout=-1;
 int stdout_start=0;
 char out_cache_k[1024];
 
+int init_out(){
+    stdout=-1;
+    stdout_start=0;
+    memset_s(out_cache_k,0,1024);
+}
+
 void set_stdout(int stdouts,int stdout_starts){
     //when you redirect to file, the stdout_start is start of file ptr
     stdout=stdouts;
