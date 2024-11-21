@@ -7,9 +7,10 @@ int main(int argc,char* argv[]){
     }
 
     char res[20]="";
-    print("\n----hello----\nthis is user program,are you ok?(yes/no)");
-    input("%s",res);
-    print("ans:%s\n",res);
+    int t=0;
+    print("\n----hello----\nthis is user program,are you ok?(yes/no)(1/2)");
+    input("%s,%d",res,&t);
+    print("ans:%s,%d\n",res,t);
     if(str_cmp("yes",res)){
         print("fine\n");
     }else if(str_cmp("no",res)){

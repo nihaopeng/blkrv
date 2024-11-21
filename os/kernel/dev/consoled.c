@@ -97,7 +97,7 @@ int vprint_i(char* str,uint32_t length){
         char* ctrl_addr=(char*)SCREEN_CTRL_ADDR+3;
         *ctrl_addr=1;
     }else{
-        write_i(stdout,str,stdout_start,length);
+        writek(stdout,str,stdout_start,length);
     }
     return 0;
 }

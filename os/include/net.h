@@ -1,5 +1,7 @@
 #ifndef _NET_H_
 #define _NET_H_
+#include "ini.h"
+#include "drivers.h"
 
 typedef struct socket
 {
