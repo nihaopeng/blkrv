@@ -39,7 +39,11 @@ int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
+int createk(char* file_path,char type,uint32_t* inode_id,int* status);
+
 int create_i(char* file_path,char type,uint32_t* inode_id,int* status);
+
+int openk(char* file_path,uint32_t* inode_id,int* status);
 
 int open_i(char* file_path,uint32_t* inode_id,int* status);
 

@@ -1,13 +1,21 @@
 #include "std.h"
 
-int main(){
-    char res[20];
-    print("\n----hello----\nthis is user program,are you ok?(y/n)");
+int main(int argc,char* argv[]){
+    print("argc:%d,argv_addr:%d\n",argc,argv);
+    for(int i=0;i<argc;i++){
+        print("arg%d:%s\n",i,argv[i]);
+    }
+
+    char res[20]="";
+    print("\n----hello----\nthis is user program,are you ok?(yes/no)");
     input("%s",res);
-    if(str_cmp("y",res)){
+    print("ans:%s\n",res);
+    if(str_cmp("yes",res)){
         print("fine\n");
-    }else{
+    }else if(str_cmp("no",res)){
         print("i'm sorry to hear that\n");
+    }else{
+        print("what the fuck?\n");
     }
     print("##vgetch pass\ninput 'q' to test:");
     int ifkbhit=0;

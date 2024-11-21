@@ -11,7 +11,7 @@ int init_ps(){
     global_pcb_list[0].stdout_start=0;
 }
 
-int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char* para[]){
+int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char** para,uint32_t para_num){
     //暂时保存在0，后续考虑是否加入current pid
     uint32_t ra=0;
     __asm__ volatile (
@@ -27,8 +27,8 @@ int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int
     for(i=1;i<MAX_PID_NUM;i++){
         if(!pro_ids[i]){
             global_pcb_list[i].pid=i;
-            global_pcb_list[i].virtual_base_addr=0x10000000+(i<<23);
-            global_pcb_list[i].heap_addr=0x10000000+(i<<23)+4*1024*1024;
+            global_pcb_list[i].virtual_base_addr=0x10000000+PROC_MEM;
+            global_pcb_list[i].heap_addr=0x10000000+PROC_MEM+PROC_MEM>>1;
             pro_ids[i]=1;
             goto flag;
         }
@@ -45,7 +45,7 @@ flag:
     int j=0;
     printk("load prog...\n");
     char* st=(char*)global_pcb_list[i].virtual_base_addr;
-    while(read_i(inode_id,buf,j,1024)!=-1){
+    while(readk(inode_id,buf,j,1024)!=-1){
         for(int k=0;k<1024;k++){
             *st=buf[k];
             // printk("%d,",*st);
@@ -54,10 +54,27 @@ flag:
         printk("%d\r",j);
         j+=1024;
     }
-    printk("start pcb(std_out=%d)\n",global_pcb_list[i].stdout);
+    // printk("start pcb(std_out=%d)\n",global_pcb_list[i].stdout);
     set_stdout(global_pcb_list[i].stdout,global_pcb_list[i].stdout_start);
-    printk("enter_prog,va=%d\n",global_pcb_list[i].virtual_base_addr);
-    enter_prog(global_pcb_list[i].virtual_base_addr);
+    // printk("enter_prog,va=%d\n",global_pcb_list[i].virtual_base_addr);
+
+    //load para
+    void* virtual_base_addr=(void*)global_pcb_list[i].virtual_base_addr;
+    void* stack_addr=(void*)((void*)global_pcb_list[i].virtual_base_addr+PROC_MEM)-4;
+    char* para_addr=stack_addr-(para_num<<2);
+    for(uint32_t i=0;i<para_num;i++){
+        // printk("para_addr:%d,vir:%d\n",para_addr,virtual_base_addr);
+        *(uint32_t*)stack_addr=(uint32_t)(para_addr-(char*)virtual_base_addr);//将参数指针存储到用户栈
+        printk("para_addr:%d,arg_addr:%d\n",para_addr,*(uint32_t*)stack_addr);
+        stack_addr-=4;
+        for(uint32_t j=0;j<str_len(para[i]);j++){
+            *(para_addr--)=para[i][j];//将参数数据存到用户栈
+        }
+    }
+    para=(char**)(stack_addr+4-virtual_base_addr);
+    printk("para:%d\n",para);
+    enter_prog(global_pcb_list[i].virtual_base_addr,para,para_num,\
+    ((((uint32_t)para_addr+4)>>2)<<2)-(uint32_t)virtual_base_addr);//((para_addr+4)>>2)<<2用来对齐字节
     *status=0;
 }
 

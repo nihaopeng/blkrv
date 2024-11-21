@@ -16,30 +16,31 @@ int main(int argc,char* argv[]){
     int status=0;
     uint32_t inode_id=0;
 
-    //below is a simple wget
+    // below is a simple wget
     socket sock={0,"127.0.0.1",8080};
     char message[]="testfile";
     char buf[1024];
     memset_s(buf,0,1024);
-    send_i(&sock,message,str_len(message));
-    open_i("/tmp/test.bin",&inode_id,&status);
+    sendk(&sock,message,str_len(message));
+    openk("/tmp/test.bin",&inode_id,&status);
     inode* ino;
     get_inode_by_id(inode_id,&ino);
     printk("\n");
-    while(1){
-        recv_i(&sock,buf,1024,&status);
+    for(int i=0;;i++){
+        recvk(&sock,buf,1024,&status);
         if(status==-1){
             break;
         }
-        printk("%d\r",ino->size);
-        write_i(inode_id,buf,ino->size,1024);
+        writek(inode_id,buf,mul(i,1024),1024);
+        printk("size:%d\n",ino->size);
     }
 
     //exec your program
     uint32_t pid;
-    open_i("/tmp/test.bin",&inode_id,&status);
-    printk("fid:%d\nexec file...\n",inode_id);
-    exec(inode_id,0,-1,0,&pid,&status,NULL);
+    openk("/tmp/test.bin",&inode_id,&status);
+    printk("fid:%d\nexec file...\b\n",inode_id);
+    char* para[]={"para1","para2","para3"};
+    exec(inode_id,0,-1,0,&pid,&status,para,3);
 
     shutdown();
 }

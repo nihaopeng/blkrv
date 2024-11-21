@@ -11,7 +11,11 @@ typedef struct socket
 
 int send(socket* sock,char* buf,uint32_t buf_length);
 
+int sendk(socket* sock,char* buf,uint32_t buf_length);
+
 int send_i(socket* sock,char* buf,uint32_t buf_length);
+
+int recvk(socket* sock,char* buf,uint32_t buf_length,int* status);
 
 int recv(socket* sock,char* buf,uint32_t buf_length,int* status);
 
