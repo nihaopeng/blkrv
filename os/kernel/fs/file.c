@@ -20,8 +20,7 @@ int get_inode_by_id(uint32_t inode_id,inode** inode_get){
 int delete_block_link(uint32_t start_block){
     // printk("delete start block:%d\n",start_block);
     int* inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul(start_block,BLOCK_SIZE))+1023;
-    uint32_t cur_block=(((uint32_t)*inst_4byte_addr)<<4)>>4;
-    *inst_4byte_addr=0x10000000;
+    uint32_t cur_block=start_block;
     while(1){
         if(cur_block==0)
             break;
@@ -104,7 +103,7 @@ int readk(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope y
     for(int i=0;i<count&&global_cnt<ino->size;i++,global_cnt++){
         if(global_offset==4092){
             int next=(*(int*)addr)&0x0fffffff;//去除前四位
-            // printk("next:%d\n",next);
+            // printk("next:%d\n",(*(int*)addr));
             addr=(char*)(((void*)FILE_DATA_ADDR)+mul(next,BLOCK_SIZE));
             global_offset=0;
             i-=1;
@@ -185,25 +184,24 @@ int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the star
     global_offset+=start;
     for(int i=0;i<count;i++){
         if(global_offset==4092){
-            int next=(*(int*)addr)&0x0fffffff;//去除前四位
+            uint32_t next=(*(uint32_t*)addr)&0x0fffffff;//去除前四位
             if(next==0){
-                (*(int*)addr)=(*(int*)addr)+alloc_block();
+                (*(uint32_t*)addr)=(*(uint32_t*)addr)+alloc_block();
             }
-            next=(*(int*)addr)&0x0fffffff;//去除前四位
-            // printk("next:%d\n",next);
+            next=(*(uint32_t*)addr)&0x0fffffff;//去除前四位
             addr=(char*)(((void*)FILE_DATA_ADDR)+mul(next,BLOCK_SIZE));
             global_offset=0;
             i-=1;
         }else{
-            global_offset+=1;
             *addr=buf[i];
+            global_offset+=1;
             addr+=1;
         }
     }
     addr=addr+4092-global_offset;
-    (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
     int next=(*(int*)addr)&0x0fffffff;
     delete_block_link(next);//TODO:未测试
+    (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
 }
 
 int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
@@ -248,9 +246,9 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
         }
     }
     addr=addr+4092-global_offset;
-    (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
     int next=(*(int*)addr)&0x0fffffff;
     delete_block_link(next);//TODO:未测试
+    (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
 }
 
 int openk(char* file_path,uint32_t* inode_id,int* status){

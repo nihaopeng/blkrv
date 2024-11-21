@@ -61,20 +61,22 @@ flag:
     //load para
     void* virtual_base_addr=(void*)global_pcb_list[i].virtual_base_addr;
     void* stack_addr=(void*)((void*)global_pcb_list[i].virtual_base_addr+PROC_MEM)-4;
-    char* para_addr=stack_addr-(para_num<<2);
-    for(uint32_t i=0;i<para_num;i++){
+    char* para_addr=stack_addr-(para_num<<2)-1;//参数数据存放的末地址
+    for(int i=para_num-1;i>=0;i--,stack_addr-=4){
         // printk("para_addr:%d,vir:%d\n",para_addr,virtual_base_addr);
-        *(uint32_t*)stack_addr=(uint32_t)(para_addr-(char*)virtual_base_addr);//将参数指针存储到用户栈
-        printk("para_addr:%d,arg_addr:%d\n",para_addr,*(uint32_t*)stack_addr);
-        stack_addr-=4;
-        for(uint32_t j=0;j<str_len(para[i]);j++){
+        printk("para:i:%d,len:%d,data:%s\n",i,str_len(para[i]),para[i]);
+        int para_len=str_len(para[i]);
+        for(int j=para_len-1;j>=0;j--){
             *(para_addr--)=para[i][j];//将参数数据存到用户栈
         }
+        *(uint32_t*)stack_addr=(uint32_t)(para_addr+1-(char*)virtual_base_addr);//将参数指针存储到用户栈
+        printk("para_addr:%d,arg_addr:%d\n",para_addr,*(uint32_t*)stack_addr);
+        *(para_addr--)='\0';//分隔字符串
     }
     para=(char**)(stack_addr+4-virtual_base_addr);
     printk("para:%d\n",para);
     enter_prog(global_pcb_list[i].virtual_base_addr,para,para_num,\
-    ((((uint32_t)para_addr+4)>>2)<<2)-(uint32_t)virtual_base_addr);//((para_addr+4)>>2)<<2用来对齐字节
+    ((((uint32_t)para_addr-1-4)>>2)<<2)-(uint32_t)virtual_base_addr);//((para_addr+4)>>2)<<2用来对齐字节
     *status=0;
 }
 

@@ -42,9 +42,14 @@ int main(int argc, char** argv, char** env) {
         // tfp->dump(main_time); //dump wave
         // main_time+=1;
 
-        // if(top->s1_req&&top->s1_addr==0x00005204){
+
+        // if(top->s1_req&&top->s1_addr==0x00014f48){
         //     // system("sync");
-        //     printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_ram->get4B(top->s1_addr));
+        //     printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_flash->get4B(top->s1_addr));
+        // }
+        // if(top->s1_req&&top->s1_addr==0x00015234){
+        //     // system("sync");
+        //     printf("w:%x cnt:%d val:%d\n",top->s1_write_data,i,mydevices.my_flash->get4B(top->s1_addr));
         // }
         // if(i>=43858737){
         //     printf("inst:%x,%x\n",top->s1_addr,top->s2_addr);
@@ -66,6 +71,7 @@ int main(int argc, char** argv, char** env) {
         // }
         // tfp->dump(main_time); //dump wave
         // main_time+=1;
+
         // tfp->dump(contextp->time()); //dump wave
         // contextp->timeInc(1);
     }

@@ -39,8 +39,15 @@ int main(int argc,char* argv[]){
     uint32_t pid;
     openk("/tmp/test.bin",&inode_id,&status);
     printk("fid:%d\nexec file...\b\n",inode_id);
-    char* para[]={"para1","para2","para3"};
-    exec(inode_id,0,-1,0,&pid,&status,para,3);
+    char para1[]="./user_program.bin";
+    char para2[]="1234";
+    char para3[]="578";
+    char para4[]="wuhu";
+    char para5[]="enheng";
+    char para6[]="he";
+    char* para[]={para1,para2,para3,para4,para5,para6};
+    printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
+    exec(inode_id,0,-1,0,&pid,&status,para,7);
 
     shutdown();
 }
