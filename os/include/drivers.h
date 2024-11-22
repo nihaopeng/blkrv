@@ -7,6 +7,7 @@
 #include "syscall.h"
 #include "net.h"
 #include "proc.h"
+#include "graphic.h"
 
 void set_stdout(int stdouts,int stdout_start);
 
