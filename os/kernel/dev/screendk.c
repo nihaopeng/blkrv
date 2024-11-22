@@ -3,8 +3,7 @@
 int cur_cache=1;
 
 void draw_trianglek(point* p1,point* p2,point* p3,color* c){
-    uint32_t addr=(cur_cache==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
-    cur_cache=(cur_cache==1)?2:1;
+    uint32_t addr=(*((uint32_t*)GPU_ADDR_FREE)==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
 
     while(*(uint32_t*)addr!=0);
 
@@ -24,8 +23,7 @@ void draw_trianglek(point* p1,point* p2,point* p3,color* c){
 }
 
 void flushk(){
-    uint32_t addr=(cur_cache==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
-    cur_cache=(cur_cache==1)?2:1;
+    uint32_t addr=(*((uint32_t*)GPU_ADDR_FREE)==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
 
     while(*(uint32_t*)addr!=0);
 
@@ -33,8 +31,7 @@ void flushk(){
 }
 
 void draw_labelk(point* p,char* str,color* c,int font){
-    uint32_t addr=(cur_cache==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
-    cur_cache=(cur_cache==1)?2:1;
+    uint32_t addr=(*((uint32_t*)GPU_ADDR_FREE)==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
 
     while(*(uint32_t*)addr!=0);
 

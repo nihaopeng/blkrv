@@ -1,6 +1,6 @@
 #include "gpu.h"
 
-gpu::gpu(uint32_t size):vmem(size),cur_cache(1){
+gpu::gpu(uint32_t size):vmem(size){
     this->if_start_up=0;
 }
 
@@ -9,8 +9,8 @@ gpu::~gpu(){pthread_join(thread, nullptr);}
 void gpu::draw(void* arg){
     gpu* gput=static_cast<gpu*>(arg);
     //get event
-    uint32_t addr=(gput->cur_cache==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
-    gput->cur_cache=(gput->cur_cache==1)?2:1;
+    uint32_t addr=(gput->get4B(GPU_ADDR_FREE)==2)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
+    gput->put4B(GPU_ADDR_FREE,(gput->get4B(GPU_ADDR_FREE)==2)?1:2);
     uint32_t event=gput->get4B(addr);
     char* t=new char[1024];
     switch (event)
