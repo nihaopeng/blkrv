@@ -1,8 +1,6 @@
 #include "graphic.h"
 
-int cur_cache=1;
-
-void draw_trianglek(point* p1,point* p2,point* p3,color* c){
+int draw_trianglek(point* p1,point* p2,point* p3,color* c){
     // uint32_t addr=(*((uint32_t*)GPU_ADDR_FREE)==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
     uint32_t addr=GPU_ADDR_CACHE;
 
@@ -20,10 +18,10 @@ void draw_trianglek(point* p1,point* p2,point* p3,color* c){
     *((uint32_t*)(addr+36))=(uint32_t)c->blue;
     
     *((uint32_t*)addr)=2;//2 represents draw a triangle
-    return;
+    return 0;
 }
 
-void flushk(){
+int flushk(){
     // uint32_t addr=(*((uint32_t*)GPU_ADDR_FREE)==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
     uint32_t addr=GPU_ADDR_CACHE;
 
@@ -32,7 +30,7 @@ void flushk(){
     *((uint32_t*)addr)=3;//2 represents flush operation
 }
 
-void draw_labelk(point* p,char* str,color* c,int font){
+int draw_labelk(point* p,char* str,color* c,int font){
     // uint32_t addr=(*((uint32_t*)GPU_ADDR_FREE)==1)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
     uint32_t addr=GPU_ADDR_CACHE;
 

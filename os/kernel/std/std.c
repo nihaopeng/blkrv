@@ -15,6 +15,9 @@ _syscall4(int,create,char*,file_path,char,type,uint32_t*,inode_id,int*,status);
 _syscall3(int,open,char*,file_path,uint32_t*,inode_id,int*,status);
 _syscall3(int,send,socket*,sock,char*,buf,uint32_t,buf_length);
 _syscall4(int,recv,socket*,sock,char*,buf,uint32_t,buf_length,int*,status);
+_syscall4(int,draw_label,point*,p1,char*,str,color*,c,int,font);
+_syscall4(int,draw_triangle,point*,p1,point*,p2,point*,p3,color*,c);
+_syscall0(int,flush);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);

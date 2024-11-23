@@ -7,6 +7,7 @@ int vgetch_i(char* ch){//change to syscall
         :"=r"(p)
     );
     p=(p<<1)>>1;//去除mmu标志位
+    ch=(char*)((void*)ch+p);
     vgetchk(ch);
 }
 

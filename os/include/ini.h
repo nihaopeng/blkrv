@@ -47,6 +47,9 @@
 #define _NR_exit 9
 #define _NR_send 10
 #define _NR_recv 11
+#define _NR_draw_label 12
+#define _NR_draw_triangle 13
+#define _NR_flush 14
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

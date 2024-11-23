@@ -57,5 +57,21 @@ int main(int argc,char* argv[]){
         print("\n%s\n",buf1);
     }
     print("##send and recv pass\n");
+    
+    point p1={380,280};
+    color c={0,255,0};
+    draw_label(&p1,"hello, this is user, input 'q' to quit:",&c,180);
+    flush();
+    while(1){
+        kbhit(&ifkbhit);
+        if(ifkbhit){
+            vgetch(&ch);
+            if(ch=='q')
+                break;  
+        }
+    }
+
+    print("graphic tests pass\n");
+
     print("##all tests pass!\n");
 }

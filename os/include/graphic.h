@@ -1,4 +1,5 @@
 #include "ini.h"
+#include "set_gate.h"
 
 typedef struct point
 {
@@ -15,14 +16,26 @@ typedef struct color
     /* data */
 }color;
 
-void draw_triangle_i(point* p1,point* p2,point* p3,color* col);
+int draw_triangle_i(point* p1,point* p2,point* p3,color* col);
 
-void draw_trianglek(point* p1,point* p2,point* p3,color* col);
+int draw_trianglek(point* p1,point* p2,point* p3,color* col);
 
-void flush_i();
+int draw_triangle(point* p1,point* p2,point* p3,color* col);
 
-void flushk();
+int flush_i();
 
-void draw_label_i(point* p,char* str,color* c,int font);
+int flushk();
 
-void draw_labelk(point* p,char* str,color* c,int font);
+int flush();
+
+int draw_label_i(point* p,char* str,color* c,int font);
+
+int draw_labelk(point* p,char* str,color* c,int font);
+
+int draw_label(point* p,char* str,color* c,int font);
+
+int regist_draw_triangle(int* dt_addr);
+
+int regist_draw_label(int* dt_addr);
+
+int regist_flush(int* dt_addr);

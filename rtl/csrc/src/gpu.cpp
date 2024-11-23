@@ -13,7 +13,7 @@ void gpu::draw(void* arg){
     uint32_t addr=GPU_ADDR_CACHE;
     uint32_t event=gput->get4B(addr);
     // char* t=new char[1024];
-    char* t;
+    char* t;int x0,y0,x1,y1,x2,y2,font,r,g,b;
     gput->buffered_widget->img_surf->set_current();  // 切换到缓冲区上下文
     if(gput->if_clear==0){
         gput->buffered_widget->clear_screen();
@@ -22,39 +22,28 @@ void gpu::draw(void* arg){
     switch (event)
     {
     case 1:
-        // for(int i=0;;i++){
-        //     char ch=(char)gput->getB(addr+28+i);
-        //     gput->putB(addr+28+i,0);
-        //     if(ch==0)break;
-        //     t[i]=ch;
-        // }
+        x0=gput->get4B(addr+4);y0=gput->get4B(addr+8);
+        r=gput->get4B(addr+12);g=gput->get4B(addr+16);b=gput->get4B(addr+20);
+        font=gput->get4B(addr+24);
         t=(char*)(gput->mem_space+28);
-        // printf("test0:%s,r:%d,g:%d,b:%d,font:%d,x0:%d,y0:%d\n",
-            // t,gput->get4B(12),gput->get4B(16),gput->get4B(20),gput->get4B(24),gput->get4B(4),gput->get4B(8));
-        gput->buffered_widget->text(
-            gput->get4B(addr+4),gput->get4B(addr+8),
-            gput->get4B(addr+12),gput->get4B(addr+16),gput->get4B(addr+20),
-            gput->get4B(addr+24),
-            t
-        );
-        // gput->win->text->redraw();
+        gput->put4B(addr,0);
+        gput->buffered_widget->text(x0,y0,r,g,b,font,t);
         break;
     case 2:
-        gput->buffered_widget->triangle(
-            gput->get4B(addr+4),gput->get4B(addr+8),
-            gput->get4B(addr+12),gput->get4B(addr+16),
-            gput->get4B(addr+20),gput->get4B(addr+24),
-            gput->get4B(addr+28),gput->get4B(addr+32),gput->get4B(addr+36)
-        );
-        // gput->win->triangle->redraw();
+        x0=gput->get4B(addr+4);y0=gput->get4B(addr+8);
+        x1=gput->get4B(addr+12);y1=gput->get4B(addr+16);
+        x2=gput->get4B(addr+20);y2=gput->get4B(addr+24);
+        r=gput->get4B(addr+28);g=gput->get4B(addr+32);b=gput->get4B(addr+36);
+        gput->put4B(addr,0);
+        gput->buffered_widget->triangle(x0,y0,x1,y1,x2,y2,r,g,b);
         break;
     case 3:
         gput->if_clear=0;
+        gput->put4B(addr,0);
         gput->buffered_widget->flush();
     default:
         break;
     }
-    gput->put4B(addr,0);
     Fl::repeat_timeout(1/500,gpu::draw,arg);
 }
 
