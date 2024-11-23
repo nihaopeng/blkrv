@@ -2,6 +2,7 @@
 
 gpu::gpu(uint32_t size):vmem(size){
     this->if_start_up=0;
+    this->if_clear=0;
 }
 
 gpu::~gpu(){pthread_join(thread, nullptr);}
@@ -9,52 +10,61 @@ gpu::~gpu(){pthread_join(thread, nullptr);}
 void gpu::draw(void* arg){
     gpu* gput=static_cast<gpu*>(arg);
     //get event
-    uint32_t addr=(gput->get4B(GPU_ADDR_FREE)==2)?GPU_ADDR_CACHE1:GPU_ADDR_CACHE2;
-    gput->put4B(GPU_ADDR_FREE,(gput->get4B(GPU_ADDR_FREE)==2)?1:2);
+    uint32_t addr=GPU_ADDR_CACHE;
     uint32_t event=gput->get4B(addr);
-    char* t=new char[1024];
+    // char* t=new char[1024];
+    char* t;
+    gput->buffered_widget->img_surf->set_current();  // 切换到缓冲区上下文
+    if(gput->if_clear==0){
+        gput->buffered_widget->clear_screen();
+        gput->if_clear=1;
+    }
     switch (event)
     {
     case 1:
-        // printf("draw text\n");
-        for(int i=0;;i++){
-            char ch=(char)gput->getB(addr+28+i);
-            gput->putB(addr+28+i,0);
-            if(ch==0)break;
-            t[i]=ch;
-        }
+        // for(int i=0;;i++){
+        //     char ch=(char)gput->getB(addr+28+i);
+        //     gput->putB(addr+28+i,0);
+        //     if(ch==0)break;
+        //     t[i]=ch;
+        // }
+        t=(char*)(gput->mem_space+28);
         // printf("test0:%s,r:%d,g:%d,b:%d,font:%d,x0:%d,y0:%d\n",
             // t,gput->get4B(12),gput->get4B(16),gput->get4B(20),gput->get4B(24),gput->get4B(4),gput->get4B(8));
-        gput->win->text->add(
+        gput->buffered_widget->text(
             gput->get4B(addr+4),gput->get4B(addr+8),
             gput->get4B(addr+12),gput->get4B(addr+16),gput->get4B(addr+20),
             gput->get4B(addr+24),
             t
         );
+        // gput->win->text->redraw();
         break;
     case 2:
-        gput->win->triangle->add(
+        gput->buffered_widget->triangle(
             gput->get4B(addr+4),gput->get4B(addr+8),
             gput->get4B(addr+12),gput->get4B(addr+16),
             gput->get4B(addr+20),gput->get4B(addr+24),
             gput->get4B(addr+28),gput->get4B(addr+32),gput->get4B(addr+36)
         );
+        // gput->win->triangle->redraw();
         break;
     case 3:
-        // printf("flush\n");
-        gput->win->clearw->flush();
+        gput->if_clear=0;
+        gput->buffered_widget->flush();
     default:
         break;
     }
     gput->put4B(addr,0);
-    Fl::repeat_timeout(1/60,draw,arg);
+    Fl::repeat_timeout(1/500,gpu::draw,arg);
 }
 
 void* gpu::thread_function(void* arg) {
     printf("gpu start up!\n");
     gpu* gput = static_cast<gpu*>(arg);
-    gput->win=new my_window(800,600,"my window");
-    Fl::add_timeout(1/60,draw,arg);
+    gput->win = new Fl_Window(800, 600, "Rotating Triangle Example");
+    gput->buffered_widget = new BufferedWidget(0, 0, 800, 600);
+    gput->win->end();
+    Fl::add_timeout(1/500,gpu::draw,arg);
     gput->win->show();
     Fl::run();
 }

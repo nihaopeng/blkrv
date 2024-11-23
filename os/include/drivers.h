@@ -25,9 +25,13 @@ int vprint_i(char* str,uint32_t length);
 
 int vprint(char* str,uint32_t length);
 
+int vgetchk(char* ch);
+
 int vgetch_i(char* ch);
 
 int vgetch(char* ch);
+
+int kbhitk(int* ifhit);
 
 int kbhit_i(int* ifhit);
 

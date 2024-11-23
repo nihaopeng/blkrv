@@ -18,16 +18,24 @@ int main(int argc,char* argv[]){
     point p1={100,100};
     point p2={200,200};
     point p3={100,200};
-    color c={120,120,0};
+    color c={255,0,0};
     draw_trianglek(&p1,&p2,&p3,&c);
+    char ch=0;int ifhit=0;
     while(1){
-        p1.x+=1;
-        p2.x+=1;
-        p3.x+=1;
+        p1.x+=5;
+        p2.x+=5;
+        p3.x+=5;
         // printk("test:r:%d,g:%d,b:%d,x0:%d,y0:%d\n",c.red,c.green,c.blue,p0.x,p0.y);
         draw_labelk(&p0,"hello!",&c,16);
         draw_trianglek(&p1,&p2,&p3,&c);
         flushk();
+        kbhitk(&ifhit);
+        if(ifhit){
+            vgetchk(&ch);
+            if(ch=='q')
+                break;
+        }
+        // for(int i=0;i<1000;i++);
     }
     // int status=0;
     // uint32_t inode_id=0;

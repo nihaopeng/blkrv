@@ -4,15 +4,15 @@
 #include "fltk2d.h"
 #include <atomic>
 
-#define GPU_ADDR_FREE 0x00000000
-#define GPU_ADDR_CACHE1 0x00000004
-#define GPU_ADDR_CACHE2 0x00100000
+#define GPU_ADDR_CACHE 0x00000000
 
 class gpu:public vmem
 {
 public:
     int if_start_up;
-    my_window* win;
+    int if_clear;
+    Fl_Window* win;
+    BufferedWidget* buffered_widget;
     pthread_t thread;
     gpu(uint32_t size);
     ~gpu();

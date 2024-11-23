@@ -1,41 +1,28 @@
 #include <FL/Fl.H>
-#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Box.H>
 #include <FL/fl_draw.H>
-#include <termios.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <iostream>
-#include <cmath>
-#include <vector>
-class triangle_c : public Fl_Widget{
-    public:
-        int x0,y0,x1,y1,x2,y2,r,g,b;
-        triangle_c(int w,int h);
-        void draw() override;
-        void add(int x0,int y0,int x1,int y1,int x2,int y2, int r, int g, int b);
-};
+#include <FL/Fl_Image_Surface.H>
+#include <FL/Fl_RGB_Image.H>
+#include <cmath>  // 用于 sin 和 cos 函数
 
-class text_c : public Fl_Widget{
-    public:
-        int x0,y0,r,g,b,font;
-        const char* str;
-        text_c(int w,int h);
-        void draw() override;
-        void add(int x0,int y0,int r,int g,int b,int font,const char* str);
-};
-
-class clear_widget_c : public Fl_Widget{
-    public:
-        clear_widget_c(int w,int h);
-        void draw() override;
-        void flush();
-};
-
-class my_window : public Fl_Double_Window {
+class BufferedWidget : public Fl_Box {
 public:
-    triangle_c* triangle;
-    clear_widget_c* clearw;
-    text_c* text;
-    my_window(int W, int H, const char* title);
-};
+    Fl_Image_Surface* img_surf;  // 离屏绘图缓冲区
+    Fl_RGB_Image* cached_image; // 缓存的图像数据
 
+    void clear_screen();
+
+    void triangle(int x0,int y0,int x1,int y1,int x2,int y2,int r,int b,int g);
+
+    void text(int x0,int y0,int r,int b,int g,int font,const char* str);
+    
+    BufferedWidget(int X, int Y, int W, int H, const char* L = nullptr);
+
+    ~BufferedWidget();
+
+    // 重新绘制缓冲区
+    void flush();
+
+    void draw() override;
+};
