@@ -30,10 +30,19 @@ https://gitee.com/c-nameless/blkrv-pre-design
 ## some details
 ### instructions
 ![](./img/instructions.png)
+csr instruction
++ csrrw rd,csrreg,rs
++ csrrc rd,csrreg,rs
++ csrrs rd,csrreg,rs
++ csrrwi rd,csrreg,imm
++ csrrci rd,csrreg,imm
++ csrrsi rd,csrreg,imm
 ### hardware architecture
 ![](./img/arch.png)
 ### test result
 ![](./img/res.png)
+### gui result
+![](./img/guiRes.png)
 
 ## os
 [syscall_func](./os/doc/syscall_func.md)
