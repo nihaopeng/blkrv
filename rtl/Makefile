@@ -5,7 +5,11 @@ export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
 endif
 
-cc := g++ 
+cc = g++
+ccflag = -lstdc++ -lm -pthread 
+ifeq ($(ENABLE_GPU), 1)
+    ccflag += -DENABLE_GPU -lfltk
+endif
 
 # the include and src of verilator
 SYSPATH :=/usr/local/share/verilator/include
@@ -34,7 +38,7 @@ CINCLUDE :=./csrc/include
 # final executable file
 EXECUTABLE_NAME := $(EXECUTABLE_PATH)/BLKRv
 
-all:info build_dir verilog2cc $(OBJS) mkexecutable mkutils
+all:info build_dir verilog2cc $(OBJS) mkutils makeos mkexecutable 
 
 # create necessary directory
 build_dir:
@@ -51,10 +55,16 @@ verilog2cc:
 
 # all cpp file will exeucte below action
 $(OBJ_PATH)/%.o: $(CSRC_PATH)/%.cpp
-	$(cc) -c $< -o $@ -I$(CINCLUDE) -I$(SYSPATH) -I$(SYSPATH1) -I$(SYSPATH2) -I$(VERILOG_PATH)
+	$(cc) -c $< -o $@ -I$(CINCLUDE) -I$(SYSPATH) -I$(SYSPATH1) -I$(SYSPATH2) -I$(VERILOG_PATH) $(ccflag)
+
+makeos:
+	make -C ../os/
 
 mkexecutable:
-	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) -lstdc++ -lm -pthread -lfltk
+	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) $(ccflag)
+
+mkexecutable-nox:
+	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) $(ccflag)
 
 info:
 	@echo $(VSRC)

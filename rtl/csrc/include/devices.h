@@ -19,7 +19,9 @@ public:
     flash* my_flash;
     screen* my_screen;
     net_card* my_net_card;
-    gpu* my_gpu;
+    #ifdef ENABLE_GPU
+        gpu* my_gpu;
+    #endif // ENABLE_GPU
     pmc* my_pmc;
     devices();
     ~devices();

@@ -1,3 +1,5 @@
+#ifdef ENABLE_GPU
+
 #include "fltk2d.h"
 
 void BufferedWidget::clear_screen()
@@ -19,6 +21,7 @@ void BufferedWidget::triangle(int x0, int y0, int x1, int y1, int x2, int y2, in
 void BufferedWidget::text(int x0,int y0,int r,int b,int g,int font,const char* str)
 {
     fl_color(r,g,b);
+    fl_font(FL_HELVETICA,font);
     fl_draw(str,x0,y0);
 }
 
@@ -55,3 +58,7 @@ void BufferedWidget::draw()
         cached_image->draw(x(), y(), w(), h());
     }
 }
+
+
+#endif // ENABLE_GPU
+

@@ -10,15 +10,15 @@ make
 
 [riscv-unknow-elf-gcc](https://blog.csdn.net/m0_59161987/article/details/136761879)(required march:rv32i, mabi:ilp32)
 
-## usage
-### compile os
-`cd os/`
+fltk
 
-`make`
-### compile verilog
+## usage
+### compile
 `cd rtl/`
 
-`make`
+`make` for command version
+
+`make ENABLE_GPU=1` for gui version
 
 ### it's time to run!
 `make run`

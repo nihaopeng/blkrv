@@ -14,8 +14,10 @@ devices::devices(){
     this->my_screen=new screen(1<<20);
     std::cout<<"$init net_card"<<std::endl;
     this->my_net_card=new net_card(1<<24);
-    std::cout<<"$init gpu"<<std::endl;
-    this->my_gpu=new gpu(1<<28);
+    #ifdef ENABLE_GPU
+        std::cout<<"$init gpu"<<std::endl;
+        this->my_gpu=new gpu(1<<28);
+    #endif // ENABLE_GPU
     std::cout<<"$init pmc"<<std::endl;
     this->my_pmc=new pmc(0);
     system("make loadmem");
@@ -33,5 +35,7 @@ void devices::process(Vtop* top){
     this->my_flash->process(top);
     this->my_screen->process(top);
     this->my_net_card->process(top);
-    this->my_gpu->process(top);
+    #ifdef ENABLE_GPU
+        this->my_gpu->process(top);
+    #endif // ENABLE_GPU
 }
