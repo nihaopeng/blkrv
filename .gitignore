@@ -1,5 +1,5 @@
 .vscode/
-wave.vcd
+*.vcd
 build/
 test/
 *.o

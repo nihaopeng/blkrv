@@ -85,13 +85,13 @@ int input(const char* fmt,...){
             int num=0;
             while(1){
                 // print("getting ch\n");
-                char ch=0;vgetch(&ch);
+                char ch=0;vgetchk(&ch);
                 if(ch==10||ch==32){
-                    print("%c",ch);
+                    printk("%c",ch);
                    if(p==0)continue;
                    else break;
                 }else if(ch>=32&&ch<=126){
-                    print("%c",ch);
+                    printk("%c",ch);
                     fmts[p++]=ch;
                 }else{
                     continue;
@@ -129,7 +129,25 @@ int input(const char* fmt,...){
     return 0;
 }
 
+int getline(char* str){
+    uint32_t p=0;
+    while(1){
+        // print("getting ch\n");
+        char ch=0;vgetchk(&ch);
+        if(ch==10){
+            printk("%c",ch);
+            break;
+        }else if(ch>=32&&ch<=126){
+            printk("%c",ch);
+            str[p++]=ch;
+        }else{
+            continue;
+        }
+    }
+    return 0;
+}
+
 int shutdown(){
-    print("\n---!powoff now!---\n");
+    printk("\n---!powoff now!---\n");
     powoff();
 }

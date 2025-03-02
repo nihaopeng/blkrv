@@ -20,6 +20,8 @@ int print(const char* fmt,...);
 
 int input(const char* fmt,...);
 
+int getline(char* str);
+
 int shutdown();
 
 #endif // !_STD_H_

@@ -14,11 +14,11 @@ int main(int argc,char* argv[]){
     init_console();
 
     //test gpu
-    point p1={300,280};
-    color c={255,0,0};
-    draw_labelk(&p1,"BLKRv",&c,80);
-    flushk();
-    while(1);
+    // point p1={300,280};
+    // color c={255,0,0};
+    // draw_labelk(&p1,"BLKRv",&c,80);
+    // flushk();
+    // while(1);
 
     // int status=0;
     // uint32_t inode_id=0;
@@ -55,6 +55,11 @@ int main(int argc,char* argv[]){
     // char* para[]={para1,para2,para3,para4,para5,para6};
     // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
     // exec(inode_id,0,-1,0,&pid,&status,para,7);
+
+    char s[20];
+    printk("getline:");
+    getline(s);
+    printk("%s",s);
 
     shutdown();
 }
