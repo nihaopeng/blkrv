@@ -87,14 +87,17 @@ int input(const char* fmt,...){
                 // print("getting ch\n");
                 char ch=0;vgetchk(&ch);
                 if(ch==10||ch==32){
-                    printk("%c",ch);
+                    // printk("%c",ch);
                    if(p==0)continue;
                    else break;
-                }else if(ch>=32&&ch<=126){
-                    printk("%c",ch);
-                    fmts[p++]=ch;
-                }else{
-                    continue;
+                }else if(ch!=0){
+                    // printk("%c",ch);
+                    if(ch==127){
+                        p-=1;
+                        fmts[p]=0;
+                    }else{
+                        fmts[p++]=ch;
+                    }
                 }
             }
             switch (fmt[i+1])
@@ -135,13 +138,16 @@ int getline(char* str){
         // print("getting ch\n");
         char ch=0;vgetchk(&ch);
         if(ch==10){
-            printk("%c",ch);
+            // printk("enter]%c",ch);
             break;
-        }else if(ch>=32&&ch<=126){
-            printk("%c",ch);
-            str[p++]=ch;
-        }else{
-            continue;
+        }else if(ch!=0){
+            // printk("%d,%c ",ch,ch);
+            if(ch==127){
+                p-=1;
+                str[p]=0;
+            }else{
+               str[p++]=ch;
+            }
         }
     }
     return 0;

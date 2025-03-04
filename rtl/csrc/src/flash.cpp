@@ -8,7 +8,7 @@ flash::~flash(){
 
 }
 
-void flash::process(Vtop* top){
+void flash::process(Vtop* top,uint32_t tick){
     if(top->s6_req){
         // if(top->s6_addr==0x303ffc){
         //         printf("w:%d,t:%d,r:%d,cnt:%lu\n",top->s6_write_data,top->s6_mem_op_type,this->get4B(top->s6_addr),main_time);

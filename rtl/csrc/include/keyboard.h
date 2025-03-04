@@ -3,13 +3,15 @@
 
 #include "vmem.h"
 #include "utils.h"
+#include<queue>
 
 class keyboard:public vmem
 {
 public:
     keyboard(uint32_t size);
     ~keyboard();
-    void process(Vtop* top) override;
+    std::queue<char> cache;
+    void process(Vtop* top,uint32_t tick=0) override;
 };
 
 #endif // !_KEYBOARD_H_

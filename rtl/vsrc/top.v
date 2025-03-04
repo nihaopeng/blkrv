@@ -14,6 +14,7 @@ module top(
     output int_response4,
     output int_response5,
     output int_response6,
+    output interrupt_enable,
 
     output[31:0] s0_addr,
     output[31:0] s0_write_data,
@@ -95,6 +96,7 @@ wire[3:0] interrupt_port;
 wire m0_read_req;
 wire m0_we,mie;
 wire devices_valid,interrupt_flag,interrupt_response;
+assign interrupt_enable=mie;
 cpu cpu(
     .clk_i(clk),
     .addr_o(load_addr_v),

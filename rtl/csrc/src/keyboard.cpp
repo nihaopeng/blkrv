@@ -1,18 +1,33 @@
 #include "keyboard.h"
 
 keyboard::keyboard(uint32_t size):vmem(size){
+    this->putB(0,0);
 }
 keyboard::~keyboard(){
 }
-void keyboard::process(Vtop* top){
+void keyboard::process(Vtop* top,uint32_t tick){
     top->int_port2=0;
     top->s2_read_valid=0;
     if(utils::kbhit()){
+        this->cache.push(getchar());
+        // printf("size:%d,cache:%d",this->cache.size(),this->getB(0));
+        // top->int_port2=1;
+        // char ch=getchar();
+        // // std::cout<<"kbhit"<<std::endl;
+        // std::cout<<"kb:,"<<ch<<std::endl;
+        // this->putB(0,ch);
+        // top->s2_read_valid=1;
+    }
+    // if(this->getB(0)){
+    //     printf("size:%d,cache:%d",this->cache.size(),this->getB(0));
+    // }
+    if(!this->cache.empty()&&this->getB(0)==0&&top->interrupt_enable){
+        // printf("inter:%d",top->interrupt_enable);
         top->int_port2=1;
-        char ch=getchar();
-        // std::cout<<"kb:"<<ch<<std::endl;
-        this->putB(0,ch);
-        top->s2_read_valid=1;
+        this->putB(0,this->cache.front());
+        this->cache.pop();
+        // printf("tick:%d,size:%d,cache:%d\n",tick,this->cache.size(),this->getB(0));
+        // top->s2_read_valid=1;
     }
     if(top->s2_req){
         if(top->s2_we){

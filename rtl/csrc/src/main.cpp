@@ -25,12 +25,11 @@ int main(int argc, char** argv, char** env) {
     top->clk=0;
     int i=0;
     for(;;i++){
-
         top->clk=0;
         top->eval();
         // tfp->dump(main_time); //dump wave
         // main_time+=1;
-        mydevices.process(top);
+        mydevices.process(top,i);
         if(mydevices.my_pmc->powm(top)){
             break;
         }

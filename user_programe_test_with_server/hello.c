@@ -26,7 +26,7 @@ int main(int argc,char* argv[]){
         if(ifkbhit){
             vgetch(&ch);
             if(ch=='q')
-                break;  
+                break;
         }
     }
     print("##kbhit pass\n");

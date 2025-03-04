@@ -14,7 +14,7 @@ public:
     void putB(uint32_t pointer,uint8_t data);
     void put2B(uint32_t pointer,uint16_t data);
     void put4B(uint32_t pointer,uint32_t data);
-    void process(Vtop* top) override;
+    void process(Vtop* top,uint32_t tick=0) override;
 };
 
 #endif // !_MEM_R_H_

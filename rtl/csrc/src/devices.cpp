@@ -28,9 +28,9 @@ devices::devices(){
 devices::~devices(){
 }
 
-void devices::process(Vtop* top){
+void devices::process(Vtop* top,uint32_t tick){
     this->my_bios->process(top);
-    this->my_keyboard->process(top);
+    this->my_keyboard->process(top,tick);
     this->my_ram->process(top);
     this->my_flash->process(top);
     this->my_screen->process(top);

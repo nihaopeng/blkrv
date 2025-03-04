@@ -98,7 +98,7 @@ void* net_card::thread_function(void* arg) {
     return nullptr;
 }
 
-void net_card::process(Vtop* top){
+void net_card::process(Vtop* top,uint32_t tick){
     if(!this->if_start_up){
         pthread_create(&thread,NULL,thread_function,this);
         this->if_start_up=1;

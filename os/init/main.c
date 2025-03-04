@@ -60,6 +60,17 @@ int main(int argc,char* argv[]){
     printk("getline:");
     getline(s);
     printk("%s",s);
+    int ifkbhit=0;
+    char ch;
+    while(1){
+        kbhit(&ifkbhit);
+        if(ifkbhit){
+            vgetch(&ch);
+            if(ch=='q')
+                break;
+            // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
+        }
+    }
 
     shutdown();
 }

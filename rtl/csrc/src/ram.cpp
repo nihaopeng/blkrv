@@ -7,7 +7,7 @@ ram::ram(uint32_t size):vmem(size){
 ram::~ram(){
 }
 
-void ram::process(Vtop* top){
+void ram::process(Vtop* top,uint32_t tick){
     if(top->s1_req){
         if(top->s1_we){
             switch(top->s1_mem_op_type){

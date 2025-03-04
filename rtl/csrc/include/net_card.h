@@ -34,7 +34,7 @@ public:
     void send_message(const char* message,const uint32_t data_len);
     std::string receive_message();
     static void* thread_function(void* arg);
-    void process(Vtop* top);
+    void process(Vtop* top,uint32_t tick=0) override;
 };
 
 #endif // !_NET_CARD_H_

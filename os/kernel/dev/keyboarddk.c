@@ -31,19 +31,24 @@ int kbhitk(int* ifhit){//change to syscall//kbhit ret 1
 
 
 void keydown_interrupt(){
-    char ch;
-    __asm__ volatile(
-        "li a0,%1\n"
-        "lbu %0,0(a0)\n"
-        :"=r"(ch)
-        :"i"(KEYBOARD_CACHE_ADDR)
-    );
-    // printk("%d",ch);
+    char ch=*(char*)KEYBOARD_CACHE_ADDR;
+    // __asm__ volatile(
+    //     "li a0,%1\n"
+    //     "lbu %0,0(a0)\n"
+    //     :"=r"(ch)
+    //     :"i"(KEYBOARD_CACHE_ADDR)
+    // );
+    // printk("input:%d",ch);
+    if(ch==127){
+        printk("\b \b");
+    }else if(ch==27){//ESC
+        printk("^");
+    }else{
+        printk("%c",ch);
+    }
     in_cache[in_cache_backp++]=ch;
-    // in_cache_backp++;
-    // printk("backp:%d\n",in_cache_backp);
     in_cache_backp=mod(in_cache_backp,IO_CACHE);
-    // printk("test1");
+    *(char*)KEYBOARD_CACHE_ADDR=0;
 }
 
 void regist_keydown_int(int* dt_addr){

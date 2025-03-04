@@ -30,7 +30,7 @@ mem::~mem(){
     // this->fp.close();
 }
 
-void mem::process(Vtop* top){}
+void mem::process(Vtop* top,uint32_t tick){}
 
 // void mem::put4B_from_file(uint32_t start_pointer,std::string file_path){
 //     std::ifstream file(file_path);
