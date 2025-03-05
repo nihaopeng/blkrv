@@ -1,3 +1,5 @@
+flash_addr=0x40200
+ram_addr=0x00100
 
 flash_kernel_start=0x200
 ram_kernel_start=0x200
@@ -10,9 +12,9 @@ rec_addr_start=0x18
 _start:
     addi x1,x0,0
     addi x2,x0,0
-    lui x1,0x60000#加载flash的首地址
+    lui x1,flash_addr#加载flash的首地址
     addi x1,x1,flash_kernel_start#定位到flash512字节
-    lui x2,0x10000#加载ram的首地址
+    lui x2,ram_addr#加载ram的首地址
     # addi x2,x2,ram_kernel_start#定位到ram512字节
     addi x3,x1,rec_addr_prog_head#记录程序头地址的地址
     lb x3,0(x3)#加载程序头地址
@@ -54,7 +56,7 @@ _start:
     # li x3,0xffff0000
     # add x1,x3,x1#计算物理起始地址
     add x1,x2,x1
-    li x2,0x10800000//设置栈指针
+    li x2,0x00900000//设置栈指针,ram起始地址偏移8MB
     jalr zero,0(x1)
 
 

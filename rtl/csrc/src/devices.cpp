@@ -3,17 +3,17 @@
 devices::devices(){
     // printf("1");
     std::cout<<"$init bios"<<std::endl;
-    this->my_bios=new bios("./devices/bios",1<<21);
+    this->my_bios=new bios("./devices/bios",1<<20);
     std::cout<<"$init keyboard"<<std::endl;
-    this->my_keyboard=new keyboard(4);
+    this->my_keyboard=new keyboard(1<<20);
     std::cout<<"$init ram"<<std::endl;
     this->my_ram=new ram(1<<28);
     std::cout<<"$init flash"<<std::endl;
-    this->my_flash=new flash("./devices/flash",1<<28);
+    this->my_flash=new flash("./devices/flash",1<<30);
     std::cout<<"$init screen"<<std::endl;
-    this->my_screen=new screen(1<<20);
+    this->my_screen=new screen(1<<28);
     std::cout<<"$init net_card"<<std::endl;
-    this->my_net_card=new net_card(1<<24);
+    this->my_net_card=new net_card(1<<28);
     #ifdef ENABLE_GPU
         std::cout<<"$init gpu"<<std::endl;
         this->my_gpu=new gpu(1<<28);

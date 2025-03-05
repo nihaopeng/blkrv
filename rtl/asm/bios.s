@@ -1,3 +1,6 @@
+flash_addr=0x40200
+ram_addr=0x00100
+
 _jump:
     jal x0,_start
 
@@ -6,8 +9,8 @@ interrupt_table:
 
 _start:
     addi x1,x0,0
-    lui x1,0x60000#加载flash的首地址
-    lui x2,0x10000#加载ram的首地址
+    lui x1,flash_addr#加载flash的首地址
+    lui x2,ram_addr#加载ram的首地址
     addi x2,x2,0x0
     addi x3,x0,0x200
 loop:
@@ -17,7 +20,7 @@ loop:
     addi x2,x2,4
     addi x3,x3,-4#计数器
     bnez x3,loop#不相等跳转
-    lui x2,0x10000#加载ram的首地址
+    lui x2,ram_addr#加载ram的首地址
     addi x2,x2,0x0
     jalr x0,0(x2)
 

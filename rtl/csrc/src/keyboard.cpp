@@ -10,24 +10,13 @@ void keyboard::process(Vtop* top,uint32_t tick){
     top->s2_read_valid=0;
     if(utils::kbhit()){
         this->cache.push(getchar());
-        // printf("size:%d,cache:%d",this->cache.size(),this->getB(0));
-        // top->int_port2=1;
-        // char ch=getchar();
-        // // std::cout<<"kbhit"<<std::endl;
-        // std::cout<<"kb:,"<<ch<<std::endl;
-        // this->putB(0,ch);
-        // top->s2_read_valid=1;
     }
-    // if(this->getB(0)){
-    //     printf("size:%d,cache:%d",this->cache.size(),this->getB(0));
-    // }
+    // interrupt_enable=mie 中断使能
     if(!this->cache.empty()&&this->getB(0)==0&&top->interrupt_enable){
-        // printf("inter:%d",top->interrupt_enable);
         top->int_port2=1;
         this->putB(0,this->cache.front());
         this->cache.pop();
-        // printf("tick:%d,size:%d,cache:%d\n",tick,this->cache.size(),this->getB(0));
-        // top->s2_read_valid=1;
+        top->s2_read_valid=1;
     }
     if(top->s2_req){
         if(top->s2_we){

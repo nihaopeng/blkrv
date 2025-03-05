@@ -114,16 +114,15 @@ module rib(
     output reg write_ready_o
 );
 
-parameter [3:0] slave0=4'h0;
-parameter [3:0] slave1=4'h1;
-parameter [3:0] slave2=4'h2;
-parameter [3:0] slave3=4'h3;
-parameter [3:0] slave4=4'h4;
-parameter [3:0] slave5=4'h5;
-parameter [3:0] slave6=4'h6;
-parameter [3:0] slave7=4'h7;
-parameter [3:0] slave8=4'h8;
-parameter [3:0] slave9=4'h9;
+parameter [31:0] slave0_start=32'h00000000;
+parameter [31:0] slave1_start=32'h00100000;
+parameter [31:0] slave2_start=32'h10100000;
+parameter [31:0] slave3_start=32'h10200000;
+parameter [31:0] slave4_start=32'h20200000;
+parameter [31:0] slave5_start=32'h30200000;
+parameter [31:0] slave6_start=32'h40200000;
+parameter [31:0] slave7_start=32'h60200000;
+parameter [31:0] slave8_start=32'h70200000;
 // parameter [3:0] slave10=4'h2;
 // parameter [3:0] slave3=4'h3;
 // parameter [3:0] slave0=4'h0;
@@ -175,147 +174,220 @@ always @(*) begin
     s7_mem_op_type_o=3'd0;
     s7_we_o=1'b0;
     s7_req_o=1'b0;
-    if(m1_req_i) begin
-        case(m1_addr_i[31:28])
-            slave0:begin
-                s0_addr_o={4'd0,m1_addr_i[27:0]};
-                s0_write_data_o=m1_write_data_i;
-                s0_we_o=m1_we_i;
-                s0_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s0_read_data_i;
-                s0_req_o=1'b1;
-            end
-            slave1:begin
-                s1_addr_o={4'd0,m1_addr_i[27:0]};
-                s1_write_data_o=m1_write_data_i;
-                s1_we_o=m1_we_i;
-                s1_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s1_read_data_i;
-                s1_req_o=1'b1;
-            end
-            slave2:begin
-                s2_addr_o={4'd0,m1_addr_i[27:0]};
-                s2_write_data_o=m1_write_data_i;
-                s2_we_o=m1_we_i;
-                s2_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s2_read_data_i;
-                s2_req_o=1'b1;
-            end
-            slave3:begin
-                s3_addr_o={4'd0,m1_addr_i[27:0]};
-                s3_write_data_o=m1_write_data_i;
-                s3_we_o=m1_we_i;
-                s3_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s3_read_data_i;
-                s3_req_o=1'b1;
-            end
-            slave4:begin
-                s4_addr_o={4'd0,m1_addr_i[27:0]};
-                s4_write_data_o=m1_write_data_i;
-                s4_we_o=m1_we_i;
-                s4_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s4_read_data_i;
-                s4_req_o=1'b1;
-            end
-            slave5:begin
-                s5_addr_o={4'd0,m1_addr_i[27:0]};
-                s5_write_data_o=m1_write_data_i;
-                s5_we_o=m1_we_i;
-                s5_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s5_read_data_i;
-                s5_req_o=1'b1;
-            end
-            slave6:begin
-                s6_addr_o={4'd0,m1_addr_i[27:0]};
-                s6_write_data_o=m1_write_data_i;
-                s6_we_o=m1_we_i;
-                s6_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s6_read_data_i;
-                s6_req_o=1'b1;
-            end
-            slave7:begin
-                s7_addr_o={4'd0,m1_addr_i[27:0]};
-                s7_write_data_o=m1_write_data_i;
-                s7_we_o=m1_we_i;
-                s7_mem_op_type_o=m1_mem_op_type_i;
-                m1_read_data_o=s7_read_data_i;
-                s7_req_o=1'b1;
-            end
-			default:begin
-			end
-        endcase
+
+    //bios,s0,1MB
+    if($signed(m0_addr_i)>=$signed(slave0_start)&&$signed(m0_addr_i)<$signed(slave1_start)) begin
+        s0_addr_o=m0_addr_i-slave0_start;
+        s0_write_data_o=m0_write_data_i;
+        s0_we_o=m0_we_i;
+        s0_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s0_read_data_i;
+        s0_req_o=1'b1;
     end
-    //m0
-    else if(m0_req_i) begin
-        case(m0_addr_i[31:28])
-            slave0:begin
-                s0_addr_o={4'd0,m0_addr_i[27:0]};
-                s0_write_data_o=m0_write_data_i;
-                s0_we_o=m0_we_i;
-                s0_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s0_read_data_i;
-                s0_req_o=1'b1;
-            end
-            slave1:begin
-                s1_addr_o={4'd0,m0_addr_i[27:0]};
-                s1_write_data_o=m0_write_data_i;
-                s1_we_o=m0_we_i;
-                s1_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s1_read_data_i;
-                s1_req_o=1'b1;
-            end
-            slave2:begin
-                s2_addr_o={4'd0,m0_addr_i[27:0]};
-                s2_write_data_o=m0_write_data_i;
-                s2_we_o=m0_we_i;
-                s2_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s2_read_data_i;
-                s2_req_o=1'b1;
-            end
-            slave3:begin
-                s3_addr_o={4'd0,m0_addr_i[27:0]};
-                s3_write_data_o=m0_write_data_i;
-                s3_we_o=m0_we_i;
-                s3_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s3_read_data_i;
-                s3_req_o=1'b1;
-            end
-            slave4:begin
-                s4_addr_o={4'd0,m0_addr_i[27:0]};
-                s4_write_data_o=m0_write_data_i;
-                s4_we_o=m0_we_i;
-                s4_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s4_read_data_i;
-                s4_req_o=1'b1;
-            end
-            slave5:begin
-                s5_addr_o={4'd0,m0_addr_i[27:0]};
-                s5_write_data_o=m0_write_data_i;
-                s5_we_o=m0_we_i;
-                s5_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s5_read_data_i;
-                s5_req_o=1'b1;
-            end
-            slave6:begin
-                s6_addr_o={4'd0,m0_addr_i[27:0]};
-                s6_write_data_o=m0_write_data_i;
-                s6_we_o=m0_we_i;
-                s6_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s6_read_data_i;
-                s6_req_o=1'b1;
-            end
-            slave7:begin
-                s7_addr_o={4'd0,m0_addr_i[27:0]};
-                s7_write_data_o=m0_write_data_i;
-                s7_we_o=m0_we_i;
-                s7_mem_op_type_o=m0_mem_op_type_i;
-                m0_read_data_o=s7_read_data_i;
-                s7_req_o=1'b1;
-            end
-			default:begin
-			end
-        endcase
+    //ram,s1,256MB
+    else if($signed(m0_addr_i)>=$signed(slave1_start)&&$signed(m0_addr_i)<$signed(slave2_start)) begin
+        s1_addr_o=m0_addr_i-slave1_start;
+        s1_write_data_o=m0_write_data_i;
+        s1_we_o=m0_we_i;
+        s1_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s1_read_data_i;
+        s1_req_o=1'b1;
     end
+    //keyboard,s2,1MB
+    else if($signed(m0_addr_i)>=$signed(slave2_start)&&$signed(m0_addr_i)<$signed(slave3_start)) begin
+        s2_addr_o=m0_addr_i-slave2_start;
+        s2_write_data_o=m0_write_data_i;
+        s2_we_o=m0_we_i;
+        s2_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s2_read_data_i;
+        s2_req_o=1'b1;
+    end
+    //screen,s3,256MB
+    else if($signed(m0_addr_i)>=$signed(slave3_start)&&$signed(m0_addr_i)<$signed(slave4_start)) begin
+        s3_addr_o=m0_addr_i-slave3_start;
+        s3_write_data_o=m0_write_data_i;
+        s3_we_o=m0_we_i;
+        s3_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s3_read_data_i;
+        s3_req_o=1'b1;
+    end
+    //gpu,s4,256MB
+    else if($signed(m0_addr_i)>=$signed(slave4_start)&&$signed(m0_addr_i)<$signed(slave5_start)) begin
+        s4_addr_o=m0_addr_i-slave4_start;
+        s4_write_data_o=m0_write_data_i;
+        s4_we_o=m0_we_i;
+        s4_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s4_read_data_i;
+        s4_req_o=1'b1;
+    end
+    //net_card,s5,256MB
+    else if($signed(m0_addr_i)>=$signed(slave5_start)&&$signed(m0_addr_i)<$signed(slave6_start)) begin
+        s5_addr_o=m0_addr_i-slave5_start;
+        s5_write_data_o=m0_write_data_i;
+        s5_we_o=m0_we_i;
+        s5_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s5_read_data_i;
+        s5_req_o=1'b1;
+    end
+    //flash,s6,512MB
+    else if($signed(m0_addr_i)>=$signed(slave6_start)&&$signed(m0_addr_i)<$signed(slave7_start)) begin
+        s6_addr_o=m0_addr_i-slave6_start;
+        s6_write_data_o=m0_write_data_i;
+        s6_we_o=m0_we_i;
+        s6_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s6_read_data_i;
+        s6_req_o=1'b1;
+    end
+    //pmc,s7,256MB
+    else if($signed(m0_addr_i)>=$signed(slave7_start)&&$signed(m0_addr_i)<$signed(slave8_start)) begin
+        s7_addr_o=m0_addr_i-slave7_start;
+        s7_write_data_o=m0_write_data_i;
+        s7_we_o=m0_we_i;
+        s7_mem_op_type_o=m0_mem_op_type_i;
+        m0_read_data_o=s7_read_data_i;
+        s7_req_o=1'b1;
+    end
+    // if(m1_req_i) begin
+    //     case(m1_addr_i[31:28])
+    //         slave0:begin
+    //             s0_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s0_write_data_o=m1_write_data_i;
+    //             s0_we_o=m1_we_i;
+    //             s0_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s0_read_data_i;
+    //             s0_req_o=1'b1;
+    //         end
+    //         slave1:begin
+    //             s1_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s1_write_data_o=m1_write_data_i;
+    //             s1_we_o=m1_we_i;
+    //             s1_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s1_read_data_i;
+    //             s1_req_o=1'b1;
+    //         end
+    //         slave2:begin
+    //             s2_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s2_write_data_o=m1_write_data_i;
+    //             s2_we_o=m1_we_i;
+    //             s2_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s2_read_data_i;
+    //             s2_req_o=1'b1;
+    //         end
+    //         slave3:begin
+    //             s3_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s3_write_data_o=m1_write_data_i;
+    //             s3_we_o=m1_we_i;
+    //             s3_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s3_read_data_i;
+    //             s3_req_o=1'b1;
+    //         end
+    //         slave4:begin
+    //             s4_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s4_write_data_o=m1_write_data_i;
+    //             s4_we_o=m1_we_i;
+    //             s4_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s4_read_data_i;
+    //             s4_req_o=1'b1;
+    //         end
+    //         slave5:begin
+    //             s5_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s5_write_data_o=m1_write_data_i;
+    //             s5_we_o=m1_we_i;
+    //             s5_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s5_read_data_i;
+    //             s5_req_o=1'b1;
+    //         end
+    //         slave6:begin
+    //             s6_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s6_write_data_o=m1_write_data_i;
+    //             s6_we_o=m1_we_i;
+    //             s6_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s6_read_data_i;
+    //             s6_req_o=1'b1;
+    //         end
+    //         slave7:begin
+    //             s7_addr_o={4'd0,m1_addr_i[27:0]};
+    //             s7_write_data_o=m1_write_data_i;
+    //             s7_we_o=m1_we_i;
+    //             s7_mem_op_type_o=m1_mem_op_type_i;
+    //             m1_read_data_o=s7_read_data_i;
+    //             s7_req_o=1'b1;
+    //         end
+	// 		default:begin
+	// 		end
+    //     endcase
+    // end
+    // //m0
+    // else if(m0_req_i) begin
+    //     case(m0_addr_i[31:28])
+    //         slave0:begin
+    //             s0_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s0_write_data_o=m0_write_data_i;
+    //             s0_we_o=m0_we_i;
+    //             s0_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s0_read_data_i;
+    //             s0_req_o=1'b1;
+    //         end
+    //         slave1:begin
+    //             s1_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s1_write_data_o=m0_write_data_i;
+    //             s1_we_o=m0_we_i;
+    //             s1_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s1_read_data_i;
+    //             s1_req_o=1'b1;
+    //         end
+    //         slave2:begin
+    //             s2_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s2_write_data_o=m0_write_data_i;
+    //             s2_we_o=m0_we_i;
+    //             s2_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s2_read_data_i;
+    //             s2_req_o=1'b1;
+    //         end
+    //         slave3:begin
+    //             s3_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s3_write_data_o=m0_write_data_i;
+    //             s3_we_o=m0_we_i;
+    //             s3_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s3_read_data_i;
+    //             s3_req_o=1'b1;
+    //         end
+    //         slave4:begin
+    //             s4_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s4_write_data_o=m0_write_data_i;
+    //             s4_we_o=m0_we_i;
+    //             s4_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s4_read_data_i;
+    //             s4_req_o=1'b1;
+    //         end
+    //         slave5:begin
+    //             s5_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s5_write_data_o=m0_write_data_i;
+    //             s5_we_o=m0_we_i;
+    //             s5_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s5_read_data_i;
+    //             s5_req_o=1'b1;
+    //         end
+    //         slave6:begin
+    //             s6_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s6_write_data_o=m0_write_data_i;
+    //             s6_we_o=m0_we_i;
+    //             s6_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s6_read_data_i;
+    //             s6_req_o=1'b1;
+    //         end
+    //         slave7:begin
+    //             s7_addr_o={4'd0,m0_addr_i[27:0]};
+    //             s7_write_data_o=m0_write_data_i;
+    //             s7_we_o=m0_we_i;
+    //             s7_mem_op_type_o=m0_mem_op_type_i;
+    //             m0_read_data_o=s7_read_data_i;
+    //             s7_req_o=1'b1;
+    //         end
+	// 		default:begin
+	// 		end
+    //     endcase
+    // end
 end
 
 endmodule

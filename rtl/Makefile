@@ -81,7 +81,7 @@ loadmem:mkutils mkbios
 	@$(EXECUTABLE_PATH)/manage_mem -src $(BUILD_ROOT)/bios/bios.o -tar ./devices/bios -src_start 52 -src_end 1139 -tar_start 0 -tar_end 1087
 #	加载bootsect,定制
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 563 -tar_start 0 -tar_end 511
-#	加载sys
+#	加载sys,max 1MB
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 1048576 -tar_start 512 -tar_end 1049088
 
 run:
