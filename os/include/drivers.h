@@ -8,6 +8,7 @@
 #include "net.h"
 #include "proc.h"
 #include "graphic.h"
+#include "monitor.h"
 
 void set_stdout(int stdouts,int stdout_start);
 

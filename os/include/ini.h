@@ -35,7 +35,9 @@
 #define FILE_TABLE_ADDR 0x40400000//2MB40400000
 #define FILE_DATA_ADDR 0x40500000//3MB
 
-#define PMC_ADDR 0x60200000//3MB
+#define PMC_ADDR 0x60200000
+
+#define MONITOR_ADDR 0x60300000//3MB
 
 #define _NR_open 0
 #define _NR_delete 1
@@ -52,6 +54,8 @@
 #define _NR_draw_label 12
 #define _NR_draw_triangle 13
 #define _NR_flush 14
+#define _NR_open_monitor 15
+#define _NR_close_monitor 16
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

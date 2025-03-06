@@ -8,3 +8,5 @@ run:
 clean:
 	make clean -C ./os
 	make clean -C ./rtl
+
+.PHONY:run clean

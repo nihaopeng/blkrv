@@ -9,6 +9,7 @@ void regist_sysmethod(){
     regist_fs();
     regist_net();
     regist_graphic();
+    regist_monitor();
 }
 
 void regist_std(){
@@ -55,4 +56,11 @@ void regist_graphic(){
     regist_draw_label(gdt_addr_draw_label);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_draw_triangle(gdt_addr_draw_triangle);
     regist_flush(gdt_addr_flush);
+}
+
+void regist_monitor(){
+    int* gdt_addr_open_monitor=(int*)(&syscall_table[_NR_open_monitor]);
+    int* gdt_addr_close_monitor=(int*)(&syscall_table[_NR_close_monitor]);
+    regist_open_monitor(gdt_addr_open_monitor);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    regist_close_monitor(gdt_addr_close_monitor);
 }

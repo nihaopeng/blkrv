@@ -53,3 +53,5 @@ build_dir:
 clean:
 	@rm -rf ./build
 	@rm -rf $(OBJ_FILES)
+
+.PHONY:run clean

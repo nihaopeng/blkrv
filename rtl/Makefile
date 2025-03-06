@@ -89,3 +89,5 @@ run:
 
 clean:
 	@rm -rf $(BUILD_ROOT)
+
+.PHONY:run clean loadmem mkutils

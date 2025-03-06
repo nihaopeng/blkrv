@@ -56,21 +56,23 @@ int main(int argc,char* argv[]){
     // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
     // exec(inode_id,0,-1,0,&pid,&status,para,7);
 
-    char s[20];
-    printk("getline:");
-    getline(s);
-    printk("%s",s);
-    int ifkbhit=0;
-    char ch;
-    while(1){
-        kbhit(&ifkbhit);
-        if(ifkbhit){
-            vgetch(&ch);
-            if(ch=='q')
-                break;
-            // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
-        }
-    }
+    // char s[20];
+    // printk("getline:");
+    // getline(s);
+    // printk("%s",s);
+    // int ifkbhit=0;
+    // char ch;
+    // while(1){
+    //     kbhit(&ifkbhit);
+    //     if(ifkbhit){
+    //         vgetch(&ch);
+    //         if(ch=='q')
+    //             break;
+    //         // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
+    //     }
+    // }
+    open_monitor();
+    close_monitor();
 
     shutdown();
 }

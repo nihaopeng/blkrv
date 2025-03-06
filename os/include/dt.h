@@ -15,6 +15,7 @@ void regist_fs();
 void regist_ps();
 void regist_net();
 void regist_graphic();
+void regist_monitor();
 
 // extern desc_table syscall_table,inter_table;
 #endif // !_DT_H_

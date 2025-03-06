@@ -18,6 +18,8 @@ _syscall4(int,recv,socket*,sock,char*,buf,uint32_t,buf_length,int*,status);
 _syscall4(int,draw_label,point*,p1,char*,str,color*,c,int,font);
 _syscall4(int,draw_triangle,point*,p1,point*,p2,point*,p3,color*,c);
 _syscall0(int,flush);
+_syscall0(int,open_monitor);
+_syscall0(int,close_monitor);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);
