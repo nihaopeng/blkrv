@@ -2,6 +2,9 @@
 
 monitor::monitor(uint32_t size,std::string data_path):vmem(size){
     this->fp.open(data_path,std::ios::out);
+    this->fp<<
+    "lui,auipc,jal,jalr,bj,load,store,calc,calci,sys,bios,ram,keyboard,screen,nic,flash"
+    <<std::endl;
 }
 
 monitor::~monitor(){
@@ -30,10 +33,24 @@ void monitor::process(Vtop* top,uint32_t tick){
     if(this->get4B(0)==1)
     {
         // printf("monitor opened\n");
-        if(top->s1_req){
-            this->fp<<"s1_req"<<std::endl;
-        }else if(top->s2_req){
-            this->fp<<"s2_req"<<std::endl;
-        }
+        uint32_t inst_type=top->inst_type_o;
+        this->fp<<((inst_type&(0x000003ff))>>9)<<","
+                <<((inst_type&(0x000001ff))>>8)<<","
+                <<((inst_type&(0x000000ff))>>7)<<","
+                <<((inst_type&(0x0000007f))>>6)<<","
+                <<((inst_type&(0x0000003f))>>5)<<","
+                <<((inst_type&(0x0000001f))>>4)<<","
+                <<((inst_type&(0x0000000f))>>3)<<","
+                <<((inst_type&(0x00000007))>>2)<<","
+                <<((inst_type&(0x00000003))>>1)<<","
+                <<((inst_type&(0x00000001))>>0)<<","
+                <<(uint32_t)top->s0_req<<","
+                <<(uint32_t)top->s1_req<<","
+                <<(uint32_t)top->s2_req<<","
+                <<(uint32_t)top->s3_req<<","
+                <<(uint32_t)top->s4_req<<","
+                <<(uint32_t)top->s5_req<<","
+                <<(uint32_t)top->s6_req<<
+                std::endl;
     }
 }

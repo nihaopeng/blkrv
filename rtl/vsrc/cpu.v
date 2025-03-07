@@ -13,12 +13,15 @@ module cpu(
     input interrupt_flag_i,
     output interrupt_response_o,
     output mie_o,
-    output[31:0] satp_o
+    output[31:0] satp_o,
+    output[31:0] inst_type
+    //assign inst_type={22'd0,lui,auipc,jal,jalr,bj,load,store,calc,calci,sys};
 );
 wire[31:0] pc_ifu,pc_id,pc_exu;
 wire[31:0] cur_inst;
 assign read_req_o=1'b1;
 wire lui,auipc,jal,jalr,bj,load,store,calc,calci,sys;
+assign inst_type={22'd0,lui,auipc,jal,jalr,bj,load,store,calc,calci,sys};
 wire[4:0] r1_id,r2_id,rd_id;
 wire[2:0] op_type;
 wire[6:0] op_type2;

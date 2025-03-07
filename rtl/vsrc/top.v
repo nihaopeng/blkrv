@@ -95,7 +95,9 @@ module top(
     output s8_we,
     input s8_read_valid,
     input s8_write_ready,
-    output s8_req
+    output s8_req,
+    
+    output[31:0] inst_type_o
 );
 wire[31:0] load_addr_v,load_addr_t;
 wire[31:0] m0_read_data;
@@ -120,7 +122,8 @@ cpu cpu(
     .interrupt_port_i(interrupt_port),
     .interrupt_response_o(interrupt_response),
     .mie_o(mie),
-    .satp_o(satp)
+    .satp_o(satp),
+    .inst_type(inst_type_o)
 );
 mmu mmu(
     .addr_i(load_addr_v),

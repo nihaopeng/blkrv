@@ -21,7 +21,7 @@ devices::devices(){
     std::cout<<"$init pmc"<<std::endl;
     this->my_pmc=new pmc(0);
     std::cout<<"$init monitor"<<std::endl;
-    this->my_monitor=new monitor(1<<28,"../data.blk");
+    this->my_monitor=new monitor(1<<28,"../data.csv");
     system("make loadmem");
     this->my_bios->sync();
     this->my_flash->sync();

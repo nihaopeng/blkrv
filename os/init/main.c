@@ -71,21 +71,23 @@ int main(int argc,char* argv[]){
     //         // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
     //     }
     // }
+    open_monitor();
     char s[1024];
     for(int i=0;i<1024;i++){
         s[i]=0;
     }
-    print("input:");
-    while(1){
-        int p=getline(s);
-        for(int i=0;i<p;i++){
-            print("%d ",s[i]);
-            s[i]=0;
-        }
-        print("\n");
-    }
+    print("test here");
+    // while(1){
+    //     int p=getline(s);
+    //     for(int i=0;i<p;i++){
+    //         print("%d ",s[i]);
+    //         s[i]=0;
+    //     }
+    //     print("\n");
+    // }
     // open_monitor();
     // close_monitor();
+    close_monitor();
 
     shutdown();
 }
