@@ -11,6 +11,9 @@ void ram::process(Vtop* top,uint32_t tick){
     if(top->s1_req){
         if(top->s1_we){
             switch(top->s1_mem_op_type){
+                // if(top->s1_addr==0x007ffbdc){
+                //     printf("tick:%d",tick);
+                // }
                 case 0:this->putB(top->s1_addr,uint8_t(top->s1_write_data));break;
                 case 1:this->put2B(top->s1_addr,uint16_t(top->s1_write_data));break;
                 case 2:this->put4B(top->s1_addr,uint32_t(top->s1_write_data));

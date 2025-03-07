@@ -8,14 +8,11 @@ keyboard::~keyboard(){
 void keyboard::process(Vtop* top,uint32_t tick){
     top->int_port2=0;
     top->s2_read_valid=0;
-    if(utils::kbhit()){
-        this->cache.push(getchar());
-    }
-    // interrupt_enable=mie 中断使能
-    if(!this->cache.empty()&&this->getB(0)==0&&top->interrupt_enable){
+    uint32_t ch_int=utils::kbhit();
+    if(ch_int){
         top->int_port2=1;
-        this->putB(0,this->cache.front());
-        this->cache.pop();
+        // std::cout<<"kb:"<<ch<<std::endl;
+        this->put4B(0,ch_int);
         top->s2_read_valid=1;
     }
     if(top->s2_req){

@@ -31,24 +31,26 @@ int kbhitk(int* ifhit){//change to syscall//kbhit ret 1
 
 
 void keydown_interrupt(){
-    char ch=*(char*)KEYBOARD_CACHE_ADDR;
-    // __asm__ volatile(
-    //     "li a0,%1\n"
-    //     "lbu %0,0(a0)\n"
-    //     :"=r"(ch)
-    //     :"i"(KEYBOARD_CACHE_ADDR)
-    // );
-    // printk("input:%d",ch);
-    if(ch==127){
-        printk("\b \b");
-    }else if(ch==27){//ESC
-        printk("^");
+    uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
+    if(ch_int>>16!=0){
+        in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);
+        in_cache_backp=mod(in_cache_backp,IO_CACHE);
+        in_cache[in_cache_backp++]=(char)(ch_int&0x0000ff00);
+        in_cache_backp=mod(in_cache_backp,IO_CACHE);
+        in_cache[in_cache_backp++]=(char)(ch_int&0x00ff0000);
+        in_cache_backp=mod(in_cache_backp,IO_CACHE);
     }else{
-        printk("%c",ch);
+        in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);
+        in_cache_backp=mod(in_cache_backp,IO_CACHE);
     }
-    in_cache[in_cache_backp++]=ch;
-    in_cache_backp=mod(in_cache_backp,IO_CACHE);
-    *(char*)KEYBOARD_CACHE_ADDR=0;
+    // if(ch==127){
+    //     printk("\b \b");
+    // }else if(ch==27){//ESC
+    //     printk("^");
+    // }else{
+    //     printk("%c",ch);
+    // }
+    // *(char*)KEYBOARD_CACHE_ADDR=0;
 }
 
 void regist_keydown_int(int* dt_addr){

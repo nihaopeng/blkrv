@@ -18,8 +18,8 @@ _gdt_search:
     add a7,a7,t0
     lw a7,0(a7)
     li t0,0
-    lui sp,0x10400
-    lui s0,0x10400
+    lui sp,0x00500
+    lui s0,0x00500
     jalr ra,a7
     sret
 
@@ -30,7 +30,7 @@ _idt_search:
     add a7,a7,t0
     lw a7,0(a7)
     li t0,0
-    lui sp,0x10600
-    lui s0,0x10600
+    lui sp,0x00700
+    lui s0,0x00700
     jalr ra,a7
     mret

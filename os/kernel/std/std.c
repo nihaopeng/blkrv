@@ -152,7 +152,7 @@ int getline(char* str){
             }
         }
     }
-    return 0;
+    return p;
 }
 
 int shutdown(){

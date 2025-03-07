@@ -60,7 +60,7 @@
 //interrupt num should same with hardware port
 #define _NI_kbdown 2
 
-#define IO_CACHE 1024*1024
+#define IO_CACHE 1024
 #define FMT_STRING_SIZE 64
 
 #define INT_MAX  2147483647

@@ -56,7 +56,7 @@ _start:
     # li x3,0xffff0000
     # add x1,x3,x1#计算物理起始地址
     add x1,x2,x1
-    li x2,0x00900000//设置栈指针,ram起始地址偏移8MB
+    li x2,0x01100000//设置栈指针,ram起始地址偏移8MB
     jalr zero,0(x1)
 
 
