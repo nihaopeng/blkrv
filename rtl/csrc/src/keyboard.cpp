@@ -10,8 +10,8 @@ void keyboard::process(Vtop* top,uint32_t tick){
     top->s2_read_valid=0;
     uint32_t ch_int=utils::kbhit();
     if(ch_int){
+        // printf("%x\n",ch_int);
         top->int_port2=1;
-        // std::cout<<"kb:"<<ch<<std::endl;
         this->put4B(0,ch_int);
         top->s2_read_valid=1;
     }

@@ -143,7 +143,7 @@ int getline(char* str){
             // printk("enter]%c",ch);
             break;
         }else if(ch!=0){
-            // printk("%d,%c ",ch,ch);
+            // printk("%d ",ch);
             if(ch==127){
                 p-=1;
                 str[p]=0;

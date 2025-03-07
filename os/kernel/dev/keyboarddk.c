@@ -12,9 +12,10 @@ int init_input(){
 }
 
 int vgetchk(char* ch){//change to syscall
-    // printk("%d,%d\n",in_cache_frontp,in_cache_backp);
     if(in_cache_frontp!=in_cache_backp){
+        // printk("%d,%d\n",in_cache_frontp,in_cache_backp);
         *ch=in_cache[in_cache_frontp++];
+        // printk("%d ",*ch);
         in_cache_frontp=mod(in_cache_frontp,IO_CACHE);
     }else{
         *ch=0;
@@ -32,12 +33,13 @@ int kbhitk(int* ifhit){//change to syscall//kbhit ret 1
 
 void keydown_interrupt(){
     uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
-    if(ch_int>>16!=0){
+    // printk("%d,%c",ch_int&0x0000ff00,(char)(ch_int&0x0000ff00));
+    if((ch_int>>16)!=0){
         in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
-        in_cache[in_cache_backp++]=(char)(ch_int&0x0000ff00);
+        in_cache[in_cache_backp++]=(char)((ch_int&0x0000ff00)>>8);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
-        in_cache[in_cache_backp++]=(char)(ch_int&0x00ff0000);
+        in_cache[in_cache_backp++]=(char)((ch_int&0x00ff0000)>>16);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
     }else{
         in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);

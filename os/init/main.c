@@ -78,7 +78,7 @@ int main(int argc,char* argv[]){
     print("input:");
     while(1){
         int p=getline(s);
-        for(int i=0;s[i]!=0;i++){
+        for(int i=0;i<p;i++){
             print("%d ",s[i]);
             s[i]=0;
         }
