@@ -45,10 +45,10 @@ void keydown_interrupt(){
         in_cache[in_cache_backp++]=(char)((ch_int&0x00ff0000)>>16);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
     }
-    if((ch_int&0xff000000)!=0){
-        in_cache[in_cache_backp++]=(char)((ch_int&0xff000000)>>24);
-        in_cache_backp=mod(in_cache_backp,IO_CACHE);
-    }
+    // if((ch_int&0xff000000)!=0){
+    //     in_cache[in_cache_backp++]=(char)((ch_int&0xff000000)>>24);
+    //     in_cache_backp=mod(in_cache_backp,IO_CACHE);
+    // }
 }
 
 void regist_keydown_int(int* dt_addr){

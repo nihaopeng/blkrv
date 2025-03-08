@@ -41,7 +41,7 @@ void init_console(){
         if (c == 0){
             continue;
         }
-        // print("value of c: %d\n", c);
+        // print("%d ", c);
         // printk("%c", c);
         // continue;
 
