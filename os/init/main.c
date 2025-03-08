@@ -71,12 +71,12 @@ int main(int argc,char* argv[]){
     //         // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
     //     }
     // }
-    open_monitor();
-    char s[1024];
-    for(int i=0;i<1024;i++){
-        s[i]=0;
-    }
-    print("test here");
+    // open_monitor();
+    // char s[1024];
+    // for(int i=0;i<1024;i++){
+    //     s[i]=0;
+    // }
+    // print("test here");
     // while(1){
     //     int p=getline(s);
     //     for(int i=0;i<p;i++){
@@ -87,7 +87,7 @@ int main(int argc,char* argv[]){
     // }
     // open_monitor();
     // close_monitor();
-    close_monitor();
+    // close_monitor();
 
     shutdown();
 }
