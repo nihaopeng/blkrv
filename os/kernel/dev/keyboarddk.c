@@ -33,7 +33,6 @@ int kbhitk(int* ifhit){//change to syscall//kbhit ret 1
 
 void keydown_interrupt(){
     uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
-    // printk("%d,%c",ch_int&0x0000ff00,(char)(ch_int&0x0000ff00));
     if((ch_int&0x000000ff)!=0){
         in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
@@ -46,14 +45,10 @@ void keydown_interrupt(){
         in_cache[in_cache_backp++]=(char)((ch_int&0x00ff0000)>>16);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
     }
-    // if(ch==127){
-    //     printk("\b \b");
-    // }else if(ch==27){//ESC
-    //     printk("^");
-    // }else{
-    //     printk("%c",ch);
-    // }
-    // *(char*)KEYBOARD_CACHE_ADDR=0;
+    if((ch_int&0xff000000)!=0){
+        in_cache[in_cache_backp++]=(char)((ch_int&0xff000000)>>24);
+        in_cache_backp=mod(in_cache_backp,IO_CACHE);
+    }
 }
 
 void regist_keydown_int(int* dt_addr){

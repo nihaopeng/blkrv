@@ -3,7 +3,7 @@
 uint32_t utils::kbhit(void)
 {
     struct termios oldt, newt;
-    uint32_t ch,ch1,ch2;
+    uint32_t ch,ch1,ch2,ch3;
     int result=0;
     int oldf;
     tcgetattr(STDIN_FILENO, &oldt);
@@ -21,6 +21,10 @@ uint32_t utils::kbhit(void)
             ch2 = getchar();
             if(ch2 != EOF){
                 result=result|(ch2<<16);
+                ch3 = getchar();
+                if(ch3 != EOF){
+                    result=result|(ch3<<24);
+                }
             }
         }
     }
