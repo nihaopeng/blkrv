@@ -41,8 +41,9 @@ void init_console(){
         if (c == 0){
             continue;
         }
-        print("value of c: %d\n", c);
-        continue;
+        // print("value of c: %d\n", c);
+        // printk("%c", c);
+        // continue;
 
         if (c == 27){
             read_esc = 1;
@@ -118,7 +119,7 @@ void init_console(){
         }
 
         if (c == 10){
-            print("\n%s%s\n%s", promopt, buffer, promopt);
+            print("\n%s\n%s", buffer, promopt);
             for(int i = 0; i < buffer_current_len; i++){
                 buffer[i] = 0;
             }

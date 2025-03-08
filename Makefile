@@ -1,9 +1,9 @@
-all:
+run:compile
+	make run -C ./rtl
+
+compile:
 	make -C ./os
 	make -C ./rtl
-
-run:
-	make run -C ./rtl
 
 clean:
 	make clean -C ./os
