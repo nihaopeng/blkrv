@@ -99,7 +99,7 @@ int exit_i(){
 }
 
 
-//TODO; better scheduler
+//TODO:better scheduler
 int scheduler(){
     for(int i=MAX_PID_NUM-1;i>=0;i--){
         if(pro_ids[i]){

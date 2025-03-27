@@ -77,6 +77,6 @@ void nvmem::sync(){
     this->fp.open(this->mem_file_path,std::ios::binary|std::ios::out|std::ios::in);
 }
 
-void nvmem::process(rib* top,uint32_t tick){
-    
+int nvmem::process(rib* rib,uint32_t tick){
+    return 0;
 }

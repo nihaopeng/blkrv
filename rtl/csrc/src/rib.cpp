@@ -1,5 +1,7 @@
 #include "rib.h"
 
+rib my_rib;
+
 rib::rib(){
 
 }
@@ -33,11 +35,6 @@ void rib::set_flag(Vtop* top){
     SET_READ_DATA(6);
     SET_READ_DATA(7);
     SET_READ_DATA(8);
-
-    // if(this->s0_read_data){
-    //     printf("data:%x\n",this->s0_read_data);
-    // }
-    
 }
 
 void rib::fresh_port(Vtop* top){

@@ -27,7 +27,7 @@ public:
     pmc* my_pmc;
     devices();
     ~devices();
-    void process(rib* top,uint32_t tick=0);
+    int process(rib* rib,uint32_t tick=0);
 };
 
 #endif // !_DEVICES_H_

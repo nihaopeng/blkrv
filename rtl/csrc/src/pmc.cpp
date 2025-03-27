@@ -8,8 +8,8 @@ pmc::~pmc(){
     
 }
 
-int pmc::powm(rib* top){
-    if(top->s7_req){
+int pmc::process(rib* rib,uint32_t tick){
+    if(rib->s7_req){
         return -1;
     }
     return 0;

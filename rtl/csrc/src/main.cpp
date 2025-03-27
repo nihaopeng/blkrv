@@ -5,6 +5,9 @@
 #include "mmu.h"
 
 extern vluint64_t main_time;
+extern devices my_devices;
+extern rib my_rib;
+extern mmu my_mmu;
 
 int main(int argc, char** argv, char** env) {
     std::cout<<"\033[3;1;31mstarting sim...\033[0m"<<std::endl;
@@ -18,9 +21,6 @@ int main(int argc, char** argv, char** env) {
     tfp->open("wave.vcd"); //设置输出的文件wave.vcd
     
     std::cout<<"start initializing devices..."<<std::endl;
-    devices my_devices;
-    mmu my_mmu;
-    rib my_rib;
 
     clock_t start,end;
     start=clock();
@@ -29,12 +29,13 @@ int main(int argc, char** argv, char** env) {
     for(;;i++){
         top->clk=0;
         top->eval();
-        tfp->dump(main_time); //dump wave
-        main_time+=1;
-        my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
-        my_devices.process(&my_rib,i);
+        // tfp->dump(main_time); //dump wave
+        // main_time+=1;
 
-        if(my_devices.my_pmc->powm(&my_rib)){
+        //经过mmu转换虚址后，将数据请求发给各设备
+        my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
+        
+        if(my_devices.process(&my_rib,i)){
             break;
         }
 
@@ -42,8 +43,8 @@ int main(int argc, char** argv, char** env) {
 
         top->clk=1;
         top->eval();
-        tfp->dump(main_time); //dump wave
-        main_time+=1;
+        // tfp->dump(main_time); //dump wave
+        // main_time+=1;
     }
     end=clock();
     printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);

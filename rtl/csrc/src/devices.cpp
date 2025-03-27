@@ -1,5 +1,7 @@
 #include "devices.h"
 
+devices my_devices;
+
 devices::devices(){
     // printf("1");
     std::cout<<"$init bios"<<std::endl;
@@ -30,7 +32,7 @@ devices::devices(){
 devices::~devices(){
 }
 
-void devices::process(rib* top,uint32_t tick){
+int devices::process(rib* top,uint32_t tick){
     this->my_bios->process(top);
     this->my_keyboard->process(top,tick);
     this->my_ram->process(top);
@@ -41,4 +43,6 @@ void devices::process(rib* top,uint32_t tick){
     #ifdef ENABLE_GPU
         this->my_gpu->process(top);
     #endif // ENABLE_GPU
+
+    return this->my_pmc->process(top);
 }

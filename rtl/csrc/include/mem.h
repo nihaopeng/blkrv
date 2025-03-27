@@ -13,7 +13,7 @@ class mem{
         uint32_t size;
         mem();
         ~mem();
-        virtual void process(rib* top,uint32_t tick=0);
+        virtual int process(rib* rib,uint32_t tick=0);
 };
 #endif // !_MEM_H_
 

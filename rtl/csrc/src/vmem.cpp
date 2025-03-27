@@ -51,6 +51,6 @@ void vmem::put4B(uint32_t pointer,uint32_t data){
     }
     *((uint32_t*)(this->mem_space+pointer))=data;
 }
-void vmem::process(rib* top,uint32_t tick){
-    
+int vmem::process(rib* rib,uint32_t tick){
+    return 0;
 }

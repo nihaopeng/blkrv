@@ -18,7 +18,7 @@
         pthread_t thread;
         gpu(uint32_t size);
         ~gpu();
-        void process(rib* top,uint32_t tick=0);
+        int process(rib* rib,uint32_t tick=0);
         static void draw(void* arg);
         static void* thread_function(void* arg);
     };

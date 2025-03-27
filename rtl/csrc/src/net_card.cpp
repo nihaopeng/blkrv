@@ -98,28 +98,29 @@ void* net_card::thread_function(void* arg) {
     return nullptr;
 }
 
-void net_card::process(rib* top,uint32_t tick){
+int net_card::process(rib* rib,uint32_t tick){
     if(!this->if_start_up){
         pthread_create(&thread,NULL,thread_function,this);
         this->if_start_up=1;
     }
-    if(top->s5_req){
-        if(top->s5_we){
-            switch(top->s5_mem_op_type){
-                case 0:this->putB(top->s5_addr,uint8_t(top->s5_write_data));break;
-                case 1:this->put2B(top->s5_addr,uint16_t(top->s5_write_data));break;
-                case 2:this->put4B(top->s5_addr,uint32_t(top->s5_write_data));
-                        // printf("%d:%d:%d\n",top->s1_addr,top->s1_write_data,this->get4B(top->s1_addr));
+    if(rib->s5_req){
+        if(rib->s5_we){
+            switch(rib->s5_mem_op_type){
+                case 0:this->putB(rib->s5_addr,uint8_t(rib->s5_write_data));break;
+                case 1:this->put2B(rib->s5_addr,uint16_t(rib->s5_write_data));break;
+                case 2:this->put4B(rib->s5_addr,uint32_t(rib->s5_write_data));
+                        // printf("%d:%d:%d\n",rib->s1_addr,rib->s1_write_data,this->get4B(rib->s1_addr));
                         break;
                 default:break;
             }
         }else{
-            switch(top->s5_mem_op_type){
-                case 0:top->s5_read_data=uint8_t(this->getB(top->s5_addr));break;
-                case 1:top->s5_read_data=uint16_t(this->get2B(top->s5_addr));break;
-                case 2:top->s5_read_data=uint32_t(this->get4B(top->s5_addr));break;
+            switch(rib->s5_mem_op_type){
+                case 0:rib->s5_read_data=uint8_t(this->getB(rib->s5_addr));break;
+                case 1:rib->s5_read_data=uint16_t(this->get2B(rib->s5_addr));break;
+                case 2:rib->s5_read_data=uint32_t(this->get4B(rib->s5_addr));break;
                 default:break;
             }
         }
     }
+    return 0;
 }

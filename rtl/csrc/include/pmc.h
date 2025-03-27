@@ -8,7 +8,7 @@ class pmc:public vmem
 public:
     pmc(uint32_t size);
     ~pmc();
-    int powm(rib* top);
+    int process(rib* rib,uint32_t tick=0) override;
 };
 
 #endif // !_PMC_H_
