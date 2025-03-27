@@ -8,7 +8,6 @@ module pipeline_ctrl (
     output sret_flag_o,
     input read_valid_i,
     input interrupt_flag_i,
-    output reg interrupt_response_o,
     output reg syscall_flag_o
 );
     reg hold_flag,jump_inst_flag,mret_flag,sret_flag;
@@ -16,19 +15,14 @@ module pipeline_ctrl (
     assign hold_flag_o=hold_flag;
     assign mret_flag_o=mret_flag;
     assign sret_flag_o=sret_flag;
-    // assign jump_inst_flag_o=jump_inst_flag;
-    // reg tmp;
-    // reg tmp1;
-    // reg[1:0] tmp1;
+
     always @(posedge clk_i) begin
         if(jump_flag_i==1'b0) begin//由于此模块与译码模块处于同一流水段，因此需要避免产生jump信号时又产生hold信号导致流水线混乱
             if((inst_i[6:0]==7'b0000011||inst_i[6:0]==7'b0100011)&&hold_flag==1'b0&&mret_flag==1'b0&&interrupt_flag_i==1'b0) begin
                 hold_flag<=1'b1;
-                // tmp<=1'b1;
             end
             else if(hold_flag&&read_valid_i) begin
                 hold_flag<=1'b0;
-                // tmp<=1'b0;
             end
             else begin
                 hold_flag<=1'b0;
@@ -42,7 +36,6 @@ module pipeline_ctrl (
             end
             else if(mret_flag) begin
                 mret_flag<=1'b0;
-                // tmp<=1'b0;
             end
             else if(sret_flag) begin
                 sret_flag<=1'b0;
@@ -61,48 +54,6 @@ module pipeline_ctrl (
             else begin
                 syscall_flag_o<=1'b0;
             end
-        end 
-        
-    end
-
-    always @(*) begin
-        if(interrupt_flag_i) begin
-            interrupt_response_o=1'b1;
-        end
-        else begin
-            interrupt_response_o=1'b0;
         end
     end
-    // parameter[6:0] JAL  =7'b1101111;
-    // parameter[6:0] JALR =7'b1100111;
-    // parameter[6:0] BJ   =7'b1100011;
-    // always @(posedge clk_i) begin
-    //     if(hold_flag==1'b0) begin
-    //         // if((inst_i[6:0]==JAL||inst_i[6:0]==JALR||inst_i[6:0]==BJ)&&tmp1==2'b00)begin
-    //         //     jump_inst_flag<=1'b1;
-    //         //     tmp1<=2'd2;
-    //         // end
-    //         // else if(tmp1==2'b01) begin//stop two hop
-    //         //     jump_inst_flag<=1'b0;
-    //         //     tmp1<=2'b00;
-    //         // end
-    //         // else if(tmp1!=2'b00) begin
-    //         //     jump_inst_flag<=1'b1;
-    //         //     tmp1<=tmp1-1;
-    //         // end
-    //         if((inst_i[6:0]==JAL||inst_i[6:0]==JALR||inst_i[6:0]==BJ)&&tmp1==1'b0)begin
-    //             jump_inst_flag<=1'b1;
-    //             tmp1<=1'd1;
-    //         end
-    //         else if(tmp1==1'b1) begin//stop two hop
-    //             jump_inst_flag<=1'b0;
-    //             tmp1<=1'b0;
-    //         end
-    //     end
-    //     // else begin
-    //     //     jump_inst_flag<=1'b0;
-    //     //     tmp1<=2'b00;
-    //     // end
-        
-    // end
 endmodule //pipeline_ctrl

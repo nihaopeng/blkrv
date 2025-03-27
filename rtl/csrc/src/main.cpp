@@ -2,6 +2,7 @@
 #include<verilated_vcd_c.h> //可选，如果要导出vcd则需要加上
 #include "Vtop.h"  // create `top.v`,so use `Vtop.h`
 #include "devices.h"
+#include "mmu.h"
 
 extern vluint64_t main_time;
 
@@ -17,8 +18,9 @@ int main(int argc, char** argv, char** env) {
     tfp->open("wave.vcd"); //设置输出的文件wave.vcd
     
     std::cout<<"start initializing devices..."<<std::endl;
-    devices mydevices;
-    std::cout<<mydevices.my_bios->get4B(0)<<std::endl;
+    devices my_devices;
+    mmu my_mmu;
+    rib my_rib;
 
     clock_t start,end;
     start=clock();
@@ -27,16 +29,21 @@ int main(int argc, char** argv, char** env) {
     for(;;i++){
         top->clk=0;
         top->eval();
-        // tfp->dump(main_time); //dump wave
-        // main_time+=1;
-        mydevices.process(top,i);
-        if(mydevices.my_pmc->powm(top)){
+        tfp->dump(main_time); //dump wave
+        main_time+=1;
+        my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
+        my_devices.process(&my_rib,i);
+
+        if(my_devices.my_pmc->powm(&my_rib)){
             break;
         }
+
+        my_rib.set_flag(top);
+
         top->clk=1;
         top->eval();
-        // tfp->dump(main_time); //dump wave
-        // main_time+=1;
+        tfp->dump(main_time); //dump wave
+        main_time+=1;
     }
     end=clock();
     printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);

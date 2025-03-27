@@ -12,7 +12,7 @@ public:
     std::fstream fp;
     monitor(uint32_t size,std::string data_path);
     ~monitor();
-    void process(Vtop* top,uint32_t tick=0) override;
+    void process(rib* top,uint32_t tick=0) override;
 };
 
 #endif // !_MONITOR_H_

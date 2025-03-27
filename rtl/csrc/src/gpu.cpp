@@ -59,7 +59,7 @@
         Fl::run();
     }
 
-    void gpu::process(Vtop* top,uint32_t tick){
+    void gpu::process(rib* top,uint32_t tick){
         if(!this->if_start_up){
             pthread_create(&thread,NULL,thread_function,this);
             this->if_start_up=1;

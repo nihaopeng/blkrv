@@ -8,7 +8,7 @@ bios::~bios(){
     
 }
 
-void bios::process(Vtop* top,uint32_t tick){
+void bios::process(rib* top,uint32_t tick){
     if(top->s0_req){
         switch(top->s0_mem_op_type){
             case 0:top->s0_read_data=uint8_t(this->getB(top->s0_addr));break;

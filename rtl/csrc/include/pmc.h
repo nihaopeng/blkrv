@@ -8,7 +8,7 @@ class pmc:public vmem
 public:
     pmc(uint32_t size);
     ~pmc();
-    int powm(Vtop* top);
+    int powm(rib* top);
 };
 
 #endif // !_PMC_H_

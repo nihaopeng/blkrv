@@ -2,10 +2,14 @@
 #define _MMU_H_
 
 #include<fstream>
-#include "ram.h"
+#include "Vtop.h"
+#include "devices.h"
+
+class page{
+
+};
 
 class tlb{
-    std::vector<>
     public:
         tlb();
         ~tlb();
@@ -13,11 +17,11 @@ class tlb{
 };
 
 class mmu{
-    tlb my_tlb;
     public:
+        tlb my_tlb;
         mmu();
         ~mmu();
-        uint32_t fetch(uint32_t virtual_addr);
+        uint32_t convert(Vtop* top,devices* devices);
 };
 
 #endif // !_MMU_H_

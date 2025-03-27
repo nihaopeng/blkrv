@@ -5,7 +5,7 @@ keyboard::keyboard(uint32_t size):vmem(size){
 }
 keyboard::~keyboard(){
 }
-void keyboard::process(Vtop* top,uint32_t tick){
+void keyboard::process(rib* top,uint32_t tick){
     top->int_port2=0;
     top->s2_read_valid=0;
     uint32_t ch_int=utils::kbhit();

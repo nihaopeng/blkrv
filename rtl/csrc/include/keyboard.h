@@ -11,7 +11,7 @@ public:
     keyboard(uint32_t size);
     ~keyboard();
     std::queue<char> cache;
-    void process(Vtop* top,uint32_t tick=0) override;
+    void process(rib* top,uint32_t tick=0) override;
 };
 
 #endif // !_KEYBOARD_H_

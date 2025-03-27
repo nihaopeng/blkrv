@@ -30,7 +30,7 @@ devices::devices(){
 devices::~devices(){
 }
 
-void devices::process(Vtop* top,uint32_t tick){
+void devices::process(rib* top,uint32_t tick){
     this->my_bios->process(top);
     this->my_keyboard->process(top,tick);
     this->my_ram->process(top);

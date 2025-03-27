@@ -125,13 +125,6 @@ parameter [31:0] slave7_start=32'h60200000;//pmc
 parameter [31:0] slave8_start=32'h60300000;//monitor
 parameter [31:0] slave9_start=32'h60400000;
 
-// parameter [3:0] slave10=4'h2;
-// parameter [3:0] slave3=4'h3;
-// parameter [3:0] slave0=4'h0;
-// parameter [3:0] slave1=4'h1;
-// parameter [3:0] slave2=4'h2;
-// parameter [3:0] slave3=4'h3;
-
 always @(*) begin
     read_valid_o=s8_read_valid_i|s7_read_valid_i|s6_read_valid_i|s5_read_valid_i|s4_read_valid_i|s3_read_valid_i|s2_read_valid_i|s1_read_valid_i|s0_read_valid_i;
     m0_read_data_o=32'd0;

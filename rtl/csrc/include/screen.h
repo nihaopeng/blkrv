@@ -8,7 +8,7 @@ class screen:public vmem
 public:
     screen(uint32_t size);
     ~screen();
-    void process(Vtop* top,uint32_t tick=0) override;
+    void process(rib* top,uint32_t tick=0) override;
 };
 
 #endif // !_SCREEN_H_

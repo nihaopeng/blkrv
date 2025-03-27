@@ -8,7 +8,7 @@ pmc::~pmc(){
     
 }
 
-int pmc::powm(Vtop* top){
+int pmc::powm(rib* top){
     if(top->s7_req){
         return -1;
     }

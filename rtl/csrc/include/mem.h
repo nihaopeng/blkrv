@@ -6,14 +6,14 @@
 #include<iostream>
 #include<cstdlib>
 #include<sstream>
-#include "Vtop.h"
+#include "rib.h"
 
 class mem{
     public:
         uint32_t size;
         mem();
         ~mem();
-        virtual void process(Vtop* top,uint32_t tick=0);
+        virtual void process(rib* top,uint32_t tick=0);
 };
 #endif // !_MEM_H_
 

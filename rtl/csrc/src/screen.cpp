@@ -7,7 +7,7 @@ screen::screen(uint32_t size):vmem(size){
 screen::~screen(){   
 }
 
-void screen::process(Vtop* top,uint32_t tick){
+void screen::process(rib* top,uint32_t tick){
     if(top->s3_req){
         if(top->s3_we){
             switch(top->s3_mem_op_type){

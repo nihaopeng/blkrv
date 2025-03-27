@@ -11,7 +11,7 @@ monitor::~monitor(){
     this->fp.close();
 }
 
-void monitor::process(Vtop* top,uint32_t tick){
+void monitor::process(rib* top,uint32_t tick){
     if(top->s8_req){
         if(top->s8_we){
             switch(top->s8_mem_op_type){

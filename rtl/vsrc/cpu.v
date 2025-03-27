@@ -11,7 +11,6 @@ module cpu(
     output write_ready_o,
     input[3:0] interrupt_port_i,//中断端口
     input interrupt_flag_i,
-    output interrupt_response_o,
     output mie_o,
     output[31:0] satp_o,
     output[31:0] inst_type
@@ -101,7 +100,6 @@ pipeline_ctrl ctrl(
     .sret_flag_o(sret_flag),
     .read_valid_i(read_valid_i),
     .interrupt_flag_i(interrupt_flag_i),
-    .interrupt_response_o(interrupt_response_o),
     .syscall_flag_o(syscall_flag)
 );
 exu exu(
