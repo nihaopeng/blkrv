@@ -62,23 +62,23 @@ always @(posedge clk_i) begin
         REGS[mcause_a]<=mcause_i;
         REGS[mstatus_a][mie]<=1'b0;
         REGS[mstatus_a][mpie]<=1'b1;
-        REGS[satp_i_cp_a]<=REGS[satp_a];
-        REGS[satp_a]<=32'h0;
+        // REGS[satp_i_cp_a]<=REGS[satp_a];
+        // REGS[satp_a]<=32'h0;
     end
     else if(syscall_flag_i) begin
         REGS[sepc_a]<=cur_pc_i-4;
-        REGS[satp_s_cp_a]<=REGS[satp_a];
-        REGS[satp_a]<=32'h0;
+        // REGS[satp_s_cp_a]<=REGS[satp_a];
+        // REGS[satp_a]<=32'h0;
     end
     else if(mret_flag_i) begin
         REGS[mstatus_a][mie]<=REGS[mstatus_a][mpie];
-        REGS[satp_a]<=REGS[satp_i_cp_a];
-        REGS[satp_i_cp_a]<=32'd0;
+        // REGS[satp_a]<=REGS[satp_i_cp_a];
+        // REGS[satp_i_cp_a]<=32'd0;
     end
     else if(sret_flag_i) begin
         // REGS[satp_a][31]<=1'b1;
-        REGS[satp_a]<=REGS[satp_s_cp_a];
-        REGS[satp_s_cp_a]<=32'd0;
+        // REGS[satp_a]<=REGS[satp_s_cp_a];
+        // REGS[satp_s_cp_a]<=32'd0;
     end
     //sret 不做其他操作
     else if(we_i) begin

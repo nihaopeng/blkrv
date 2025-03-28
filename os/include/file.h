@@ -2,7 +2,7 @@
 #define _FILE_H_
 
 #include "ini.h"
-#include "mm.h"
+#include "nvmm.h"
 #include "str.h"
 #include "math.h"
 #include "set_gate.h"

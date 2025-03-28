@@ -7,7 +7,7 @@ tlb::tlb(){
 }
 
 tlb::~tlb(){
-
+    
 }
 
 int tlb::is_hit(uint32_t virtual_addr,uint32_t* physic_addr){

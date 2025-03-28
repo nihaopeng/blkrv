@@ -1,7 +1,7 @@
 #ifndef _DRIVERS_H_
 #define _DRIVERS_H_
 
-#include "mm.h"
+#include "nvmm.h"
 #include "math.h"
 #include "set_gate.h"
 #include "syscall.h"

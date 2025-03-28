@@ -17,17 +17,17 @@ typedef struct pcb{
 
 int init_ps();
 
-void save_contxt(uint32_t* context_reg,uint32_t* context_csr,uint32_t* pc_reg,uint32_t cur_ra);
+void save_contxt();
 
-void recover_contxt(uint32_t* context_reg,uint32_t* context_csr,uint32_t pc_reg);
+void recover_contxt();
 
-void enter_prog(uint32_t ram_start_addr,char** para,uint32_t para_num,uint32_t sp);
+void enter_prog();
 
 int exit_i();
 
 int exit();
 
-int exec(uint32_t inode_id,int priority,int stdout,int stdout_start,int* pid,int* status,char** para,uint32_t para_num);
+int exec();
 
 int scheduler();
 
