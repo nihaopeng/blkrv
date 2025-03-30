@@ -14,6 +14,7 @@ module top(
     
     output[31:0] load_addr_v,
     output[31:0] satp,
+    // output[31:0] asid_csr,
 
     output[31:0] write_data,
     input[31:0] read_data,
@@ -39,6 +40,7 @@ cpu cpu(
     .interrupt_port_i(interrupt_port),
     .mie_o(mie),
     .satp_o(satp),
+    // .asid_csr_o(asid_csr),
     .inst_type(inst_type_o)
 );
 

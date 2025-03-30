@@ -7,7 +7,7 @@
 #include "flash.h"
 #include "net_card.h"
 #include "pmc.h"
-#include "gpu.h"
+#include "graphics.h"
 #include "monitor.h"
 
 class devices

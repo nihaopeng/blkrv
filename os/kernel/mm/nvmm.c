@@ -1,8 +1,8 @@
-#include "nvmm.h"
+#include "mm.h"
 
 uint8_t blocks[MAX_BLOCK]={0};
 
-void init_mm(){
+void init_nvmm(){
     int* inst_4byte_addr=((int*)FILE_DATA_ADDR)+1023;
     for(int i=0;i<MAX_BLOCK;i++){
         if(((uint32_t)*inst_4byte_addr)>>28==BLOCK_USED)
@@ -38,13 +38,5 @@ int free_block(uint16_t block_num){
     }
     else
         return -1;
-    return 0;
-}
-
-int memset_s(char* addr,char ch,uint32_t count){
-    for(int i=0;i<count;i++){
-        *(addr) = ch;
-        addr+=1;
-    }
     return 0;
 }

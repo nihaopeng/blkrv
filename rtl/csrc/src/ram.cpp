@@ -19,6 +19,9 @@ int ram::process(rib* rib,uint32_t tick){
                 default:break;
             }
         }else{
+            if(rib->s1_addr==0x00700000){
+                printf("data:%d\n",uint32_t(this->get4B(rib->s1_addr)));
+            }
             switch(rib->s1_mem_op_type){
                 case 0:rib->s1_read_data=uint8_t(this->getB(rib->s1_addr));break;
                 case 1:rib->s1_read_data=uint16_t(this->get2B(rib->s1_addr));break;

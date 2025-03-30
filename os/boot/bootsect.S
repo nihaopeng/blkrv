@@ -53,10 +53,9 @@ _start:
     addi x10,zero,0
     addi x1,x1,rec_addr_start#记录程序entry地址的地址
     lw x1,0(x1)#加载entry地址
-    # li x3,0xffff0000
-    # add x1,x3,x1#计算物理起始地址
     add x1,x2,x1
-    li x2,0x01100000//设置栈指针,ram起始地址偏移8MB
+    li sp,0x00400000//设置栈指针,ram起始地址偏移3MB,前2MB放内核程序
+    li s0,0x00400000
     jalr zero,0(x1)
 
 

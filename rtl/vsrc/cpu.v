@@ -13,6 +13,7 @@ module cpu(
     input interrupt_flag_i,
     output mie_o,
     output[31:0] satp_o,
+    // output[31:0] asid_csr_o,
     output[31:0] inst_type
     //assign inst_type={22'd0,lui,auipc,jal,jalr,bj,load,store,calc,calci,sys};
 );
@@ -182,5 +183,6 @@ csrs csrs(
     .stvec_o(stvec),
     .sepc_o(sepc),
     .satp_o(satp_o)
+    // .asid_csr_o(asid_csr_o)
 );
 endmodule

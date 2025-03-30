@@ -1,5 +1,5 @@
 #ifdef ENABLE_GPU
-
+//TODO:增加通用并行计算能力
     #ifndef _GPU_H_
     #define _GPU_H_
     #include "vmem.h"

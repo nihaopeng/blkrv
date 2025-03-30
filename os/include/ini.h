@@ -5,16 +5,21 @@
 #define uint16_t unsigned short
 #define uint8_t unsigned char 
 
-
+//fs
 #define MAX_BLOCK 64512//mem size div block size
 #define FILE_NUM 4096
 #define BLOCK_SIZE 4*1024//byte,last 4 byte used as ptr to next block
 #define MAX_NAME 128
-#define NULL 0
 #define BLOCK_USED 1
 #define INODE_SIZE 256
-#define MAX_PID_NUM 64
-#define PROC_MEM 0x00800000//8MB
+
+//ram
+#define PAGE_SIZE 4096
+#define RAM_SIZE 1<<28
+#define USER_START 8<<20//8MB
+#define MAX_PAGE 65536
+#define RAM_START 0x00100000
+
 //size is 1
 #define KEYBOARD_CACHE_ADDR 0x10100000
 
@@ -32,7 +37,7 @@
 #define NIC_RDATA_LEN_ADDR 0x30600000
 #define NIC_RDATA_ADDR 0x30600004
 
-#define FILE_TABLE_ADDR 0x40400000//2MB40400000
+#define FILE_TABLE_ADDR 0x40400000//2MB前2MB为kernel程序存放位置
 #define FILE_DATA_ADDR 0x40500000//3MB
 
 #define PMC_ADDR 0x60200000
@@ -65,6 +70,8 @@
 
 #define INT_MAX  2147483647
 #define INT_MIN -2147483648
+
+#define NULL 0
 
 #endif // !_INI_H_
 

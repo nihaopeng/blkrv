@@ -1,5 +1,6 @@
 #include "ini.h"
 #include "set_gate.h"
+#include "syscall.h"
 
 typedef struct point
 {
@@ -34,8 +35,8 @@ int draw_labelk(point* p,char* str,color* c,int font);
 
 int draw_label(point* p,char* str,color* c,int font);
 
-int regist_draw_triangle(int* dt_addr);
+void regist_draw_triangle(int* dt_addr);
 
-int regist_draw_label(int* dt_addr);
+void regist_draw_label(int* dt_addr);
 
-int regist_flush(int* dt_addr);
+void regist_flush(int* dt_addr);

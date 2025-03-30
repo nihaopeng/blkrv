@@ -9,12 +9,6 @@ __asm__ volatile( \
     : \
     :"r"(dt_addr),"r"(program_addr) \
 );
-// #define _set_int_gate(int_table_n_addr,program_addr) \
-// _set_gate(int_table_n_addr,program_addr)
-
-// #define _set_syscall_gate(syscall_table_n_addr,program_addr) \
-// _set_gate(syscall_table_n_addr,program_addr)
-
 
 #endif // !_SET_GATE_H_
 

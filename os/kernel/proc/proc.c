@@ -1,8 +1,5 @@
 #include "proc.h"
 
-uint8_t pro_ids[MAX_PID_NUM]={0};
-pcb global_pcb_list[64];
-
 int init_ps(){
     
 }
@@ -15,8 +12,4 @@ int exit_i(){
     
 }
 
-
-void regist_exit(int* gdt_addr_exit){
-    int* func_addr_exit=(int*)(&exit_i);
-    _set_gate(gdt_addr_exit,func_addr_exit);
-}
+_regist_syscall(void,exit);

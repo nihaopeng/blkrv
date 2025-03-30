@@ -8,9 +8,12 @@ int main(int argc,char* argv[]){
     init_input();
     init_out();
     init_net();
-    init_mm();
     init_ps();
+    init_nvmm();
     init_fs();
+    init_vmm();
+    //此时已启用内核页表
+    print("finish init_vmm\n");
     init_console();
 
     //test gpu
@@ -71,6 +74,7 @@ int main(int argc,char* argv[]){
     //         // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
     //     }
     // }
+    
     // open_monitor();
     // char s[1024];
     // for(int i=0;i<1024;i++){

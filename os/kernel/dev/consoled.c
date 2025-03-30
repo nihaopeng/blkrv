@@ -16,7 +16,7 @@ void set_stdout(int stdouts,int stdout_starts){
     stdout_start=stdout_starts;
 }
 
-int printk(const char* fmt,...){//only support 'c' now;
+int printk(const char* fmt,...){//放在这里为了访问out_cache
     int fmt_len=str_len(fmt);
     // char out_cache[512];
     int va_n=1;
@@ -81,13 +81,7 @@ int vprint_i(char* str,uint32_t length){
     // str=(char*)user_to_global((void*)str);
     // printk("%d\n",str);
     if(stdout==-1){
-        uint32_t p=0;
-        __asm__ volatile(
-            "csrrw %0,0x181,zero"
-            :"=r"(p)
-        );
-        p=(p<<1)>>1;//去除mmu标志位
-        str=(char*)((void*)str+p);
+        _vir2phy(char*,str);
         // printk("%d\n",str);
         for(uint32_t i=0;i<length;i++){
             char ch=*(str+i);
@@ -102,9 +96,4 @@ int vprint_i(char* str,uint32_t length){
     return 0;
 }
 
-void regist_vprint(int* gdt_addr_vprint){//放在这里是为了避免vprint_i被编译在GOT表中
-    // 
-    int* func_addr_vprint=(int*)(&vprint_i);
-    _set_gate(gdt_addr_vprint,func_addr_vprint);
-    // _set_syscall_gate(_NR_vprint,func_addr_vprint);
-}
+_regist_syscall(void,vprint);//放在这里是为了避免vprint_i被编译在GOT表中

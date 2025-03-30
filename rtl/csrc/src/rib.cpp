@@ -82,5 +82,6 @@ uint32_t rib::dispatch(Vtop* top,uint32_t addr){
     else{
 
     }
+    return 0;
 }
 

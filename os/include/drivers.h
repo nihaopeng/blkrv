@@ -1,7 +1,7 @@
 #ifndef _DRIVERS_H_
 #define _DRIVERS_H_
 
-#include "nvmm.h"
+#include "mm.h"
 #include "math.h"
 #include "set_gate.h"
 #include "syscall.h"
@@ -44,9 +44,11 @@ int powoff();
 
 int inputk(const char* fmt,...);
 
+void keydown_interrupt_i();
+
 void regist_vprint(int* dt_addr);
 
-void regist_keydown_int(int* dt_addr);
+void regist_keydown_interrupt(int* dt_addr);
 
 void regist_poweroff(int* dt_addr);
 

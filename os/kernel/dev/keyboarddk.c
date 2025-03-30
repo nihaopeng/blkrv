@@ -31,7 +31,7 @@ int kbhitk(int* ifhit){//change to syscall//kbhit ret 1
 }
 
 
-void keydown_interrupt(){
+void keydown_interrupt_i(){
     uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
     if((ch_int&0x000000ff)!=0){
         in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);
@@ -45,16 +45,9 @@ void keydown_interrupt(){
         in_cache[in_cache_backp++]=(char)((ch_int&0x00ff0000)>>16);
         in_cache_backp=mod(in_cache_backp,IO_CACHE);
     }
-    // if((ch_int&0xff000000)!=0){
-    //     in_cache[in_cache_backp++]=(char)((ch_int&0xff000000)>>24);
-    //     in_cache_backp=mod(in_cache_backp,IO_CACHE);
-    // }
 }
 
-void regist_keydown_int(int* dt_addr){
-    int* func_addr_keydown_interrupt=(int*)(&keydown_interrupt);
-    _set_gate(dt_addr,func_addr_keydown_interrupt);
-}
+_regist_syscall(void,keydown_interrupt);
 
 int inputk(const char* fmt,...){
     int fmt_len=str_len(fmt);
