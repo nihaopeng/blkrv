@@ -16,6 +16,10 @@ void split(const char* str,char separator,uint32_t* node);
 
 void itoa(int num, char *str);
 
+void xtoa(int num, char *str);
+
+// void ftoa(float num, char *str, int precision);
+
 int atoi(const char* str);
 
 void uint32_to_char(uint32_t value, char *buf);

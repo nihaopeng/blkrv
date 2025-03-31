@@ -1,5 +1,5 @@
 #include "drivers.h"
-
+#include<stdarg.h>
 // int un_use=0;
 int in_cache_frontp=0;
 int in_cache_backp=0;
@@ -51,50 +51,46 @@ _regist_syscall(void,keydown_interrupt);
 
 int inputk(const char* fmt,...){
     int fmt_len=str_len(fmt);
-    int va_n=1;
-    uint32_t va=0;
+    va_list args;
+    va_start(args,fmt);
     for(int i=0;i<fmt_len;i++){
         if(fmt[i]=='%'){
             char fmts[FMT_STRING_SIZE];
             int p=0;
-            int va_addr=0;
             int num=0;
             while(1){
                 // print("getting ch\n");
-                char ch=0;vgetch_i(&ch);
+                char ch=0;vgetchk(&ch);
                 if(ch==10||ch==32){
-                    printk("%c",ch);
+                    // printk("%c",ch);
                    if(p==0)continue;
                    else break;
-                }else if(ch>=32&&ch<=126){
-                    printk("%c",ch);
-                    fmts[p++]=ch;
-                }else{
-                    continue;
+                }else if(ch!=0){
+                    // printk("%c",ch);
+                    if(ch==127){
+                        p-=1;
+                        fmts[p]=0;
+                    }else{
+                        fmts[p++]=ch;
+                    }
                 }
             }
             switch (fmt[i+1])
             {
                 case 'c':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    *((char*)va)=fmts[0];
+                    char* ch=va_arg(args,char*);
+                    *ch=fmts[0];
                     break;
                 case 's':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    str_cpy_s(fmts,(char*)va,0,--p);
+                    char* str=va_arg(args,char*);
+                    str_cpy_s(fmts,str,0,--p);
                     break;
                 case 'd':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
+                    int* va=va_arg(args,int*);
                     char tmp[12];
                     str_cpy_s(fmts,tmp,0,--p);
                     num=atoi(tmp);
-                    *((int*)va)=num;
+                    *va=num;
                     break;
                 default:
                     break;

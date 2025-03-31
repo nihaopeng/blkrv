@@ -1,6 +1,8 @@
 #ifndef _MATH_H_
 #define _MATH_H_
 
+float pow(float base, int n);
+
 int abs(int a);
 
 int mod(int a,int b);

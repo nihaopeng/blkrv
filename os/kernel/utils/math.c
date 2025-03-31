@@ -1,5 +1,12 @@
 #include "math.h"
 
+float pow(float base, int n){
+    for(int i=0;i<n;i++){
+        base*=base;
+    }
+    return base;
+}
+
 int abs(int a){
     if(a==0x7fffffff)return a;
     return a>0?a:-a;

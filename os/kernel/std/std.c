@@ -1,4 +1,5 @@
 #include "std.h"
+#include<stdarg.h>
 
 int out_cache_mutex=0;
 int in_cache_mutex=0;
@@ -24,8 +25,8 @@ _syscall0(int,close_monitor);
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);
     // char out_cache[512];
-    int va_n=1;
-    uint32_t va=0;
+    va_list args;
+    va_start(args,fmt);
     uint32_t out_cache_n=0;
     // while(out_cache_mutex);//给标准输出上锁
     // out_cache_mutex=1;
@@ -37,30 +38,38 @@ int print(const char* fmt,...){//only support 'c' now;
             switch (fmt[i+1])
             {
                 case 'c':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    out_cache[out_cache_n++]=(char)va;
+                    char ch= va_arg(args,char);
+                    out_cache[out_cache_n++]=ch;
                     break;
                 case 's':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    string_length=str_len((char*)va);
+                    char* str=va_arg(args,char*);
+                    string_length=str_len(str);
                     for(int s=0;s<string_length;s++){
-                        out_cache[out_cache_n++]=*((char*)va+s);
+                        out_cache[out_cache_n++]=*((char*)str+s);
                     }
                     break;
                 case 'd':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    itoa((int)va,s_t);
+                    itoa(va_arg(args,int),s_t);
                     string_length=str_len(s_t);
                     for(int s=0;s<string_length;s++){
                         out_cache[out_cache_n++]=s_t[s];
                     }
                     break;
+                case 'x':
+                    xtoa(va_arg(args,int),s_t);
+                    string_length=str_len(s_t);
+                    for(int s=0;s<string_length;s++){
+                        out_cache[out_cache_n++]=s_t[s];
+                    }
+                    break;
+                // case 'f':
+                //     int int_f=va_arg(args,int);
+                //     float *fp = (float*)&int_f;
+                //     float f = *fp;
+                //     ftoa(f,s_t,6);
+                //     string_length=str_len(s_t);
+                //     for(int s=0;s<string_length;s++){out_cache_k[out_cache_n++]=s_t[s];}
+                //     break;
                 default:
                     break;
             }
@@ -69,6 +78,7 @@ int print(const char* fmt,...){//only support 'c' now;
             out_cache[out_cache_n++]=fmt[i];
         }
     }
+    va_end(args);
     out_cache[out_cache_n]='\0';
     vprint(out_cache,out_cache_n);
     // out_cache_mutex=0;
@@ -77,13 +87,12 @@ int print(const char* fmt,...){//only support 'c' now;
 
 int input(const char* fmt,...){
     int fmt_len=str_len(fmt);
-    int va_n=1;
-    uint32_t va=0;
+    va_list args;
+    va_start(args,fmt);
     for(int i=0;i<fmt_len;i++){
         if(fmt[i]=='%'){
             char fmts[FMT_STRING_SIZE];
             int p=0;
-            int va_addr=0;
             int num=0;
             while(1){
                 // print("getting ch\n");
@@ -105,25 +114,19 @@ int input(const char* fmt,...){
             switch (fmt[i+1])
             {
                 case 'c':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    *((char*)va)=fmts[0];
+                    char* ch=va_arg(args,char*);
+                    *ch=fmts[0];
                     break;
                 case 's':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
-                    str_cpy_s(fmts,(char*)va,0,--p);
+                    char* str=va_arg(args,char*);
+                    str_cpy_s(fmts,str,0,--p);
                     break;
                 case 'd':
-                    va_addr=va_n*4;
-                    get_va(va_addr,va);
-                    va_n++;
+                    int* va=va_arg(args,int*);
                     char tmp[12];
                     str_cpy_s(fmts,tmp,0,--p);
                     num=atoi(tmp);
-                    *((int*)va)=num;
+                    *va=num;
                     break;
                 default:
                     break;
