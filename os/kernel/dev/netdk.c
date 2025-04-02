@@ -6,7 +6,7 @@ int init_net(){
     rData_flag=0;
 }
 
-int recvk(socket* sock,char* buf,uint32_t buf_length,int* status){
+int recvk(socket* sock,char* buf,uint32_t buf_length){
     int rData_ptr=0;
     for(int i=0;i<100000;i++){
         rData_ptr=*(int*)NIC_RDATA_LEN_ADDR;
@@ -15,13 +15,12 @@ int recvk(socket* sock,char* buf,uint32_t buf_length,int* status){
             for(int i=0;rData_flag<rData_ptr&&i<buf_length;i++,rData_flag++){
                 buf[i]=*((char*)NIC_RDATA_ADDR+rData_flag);
             }
-            *status=0;
             return 0;
         }
     }
-    *status=-1;
     *(int*)NIC_RDATA_LEN_ADDR=0;//清空网卡缓存
     printk("time out\n");
+    return -1;
 }
 
 int sendk(socket* sock,char* buf,uint32_t buf_length){

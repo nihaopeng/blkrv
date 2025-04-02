@@ -6,16 +6,17 @@ int in_cache_mutex=0;
 char out_cache[IO_CACHE];
 
 _syscall0(int,exit);
-_syscall1(int,vgetch,char*,ch);
-_syscall1(int,kbhit,int*,ifhit);
+_syscall4(int,exec,uint32_t,inode_id,int,stdout,char**,para,uint32_t,para_num);
+_syscall0(char,vgetch);
+_syscall0(int,kbhit);
 _syscall0(int,powoff);
 _syscall2(int,vprint,char*,str,uint32_t,length);
 _syscall4(int,read,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,count);
 _syscall4(int,write,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,length);
-_syscall4(int,create,char*,file_path,char,type,uint32_t*,inode_id,int*,status);
-_syscall3(int,open,char*,file_path,uint32_t*,inode_id,int*,status);
+_syscall3(int,create,char*,file_path,char,type,uint32_t*,inode_id);
+_syscall2(int,open,char*,file_path,uint32_t*,inode_id);
 _syscall3(int,send,socket*,sock,char*,buf,uint32_t,buf_length);
-_syscall4(int,recv,socket*,sock,char*,buf,uint32_t,buf_length,int*,status);
+_syscall3(int,recv,socket*,sock,char*,buf,uint32_t,buf_length);
 _syscall4(int,draw_label,point*,p1,char*,str,color*,c,int,font);
 _syscall4(int,draw_triangle,point*,p1,point*,p2,point*,p3,color*,c);
 _syscall0(int,flush);
@@ -38,7 +39,7 @@ int print(const char* fmt,...){//only support 'c' now;
             switch (fmt[i+1])
             {
                 case 'c':
-                    char ch= va_arg(args,char);
+                    char ch=(char)va_arg(args,int);
                     out_cache[out_cache_n++]=ch;
                     break;
                 case 's':
@@ -62,14 +63,14 @@ int print(const char* fmt,...){//only support 'c' now;
                         out_cache[out_cache_n++]=s_t[s];
                     }
                     break;
-                // case 'f':
-                //     int int_f=va_arg(args,int);
-                //     float *fp = (float*)&int_f;
-                //     float f = *fp;
-                //     ftoa(f,s_t,6);
-                //     string_length=str_len(s_t);
-                //     for(int s=0;s<string_length;s++){out_cache_k[out_cache_n++]=s_t[s];}
-                //     break;
+                case 'f':
+                    int int_f=va_arg(args,int);
+                    float *fp = (float*)&int_f;
+                    float f = *fp;
+                    ftoa(f,s_t,6);
+                    string_length=str_len(s_t);
+                    for(int s=0;s<string_length;s++){out_cache[out_cache_n++]=s_t[s];}
+                    break;
                 default:
                     break;
             }
@@ -159,6 +160,6 @@ int getline(char* str){
 }
 
 int shutdown(){
-    printk("\n---!powoff now!---\n");
+    print("\n---!powoff now!---\n");
     powoff();
 }

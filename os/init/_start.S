@@ -13,13 +13,14 @@ _start:
     j main
 
 .macro save_ctx
+    sw x2,-16(s0)
     sw x3,-20(s0)//保存上下文
     sw x4,-24(s0)
     sw x5,-28(s0)
     sw x6,-32(s0)
     sw x7,-36(s0)
     sw x9,-44(s0)
-    sw x10,-48(s0)
+    # sw x10,-48(s0)//a0返回值
     sw x11,-52(s0)
     sw x12,-56(s0)
     sw x13,-60(s0)
@@ -44,13 +45,14 @@ _start:
 .endm
 
 .macro recover_ctx
-    lw x3,-20(s0)//恢复上下文
+    lw x2,-16(s0)//恢复上下文
+    lw x3,-20(s0)
     lw x4,-24(s0)
     lw x5,-28(s0)
     lw x6,-32(s0)
     lw x7,-36(s0)
     lw x9,-44(s0)
-    lw x10,-48(s0)
+    # lw x10,-48(s0)//a0
     lw x11,-52(s0)
     lw x12,-56(s0)
     lw x13,-60(s0)
@@ -79,17 +81,15 @@ _gdt_search:
     sw ra,128(sp)
     sw s0,124(sp)
     addi s0,sp,132
-    save_ctx//保存上下文
+    save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。
     slli a7,a7,2
     la a4,syscall_table//调用表基址
     add a7,a7,a4
     lw a7,0(a7)
-    # lui sp,0x00500//设置栈指针
-    # lui s0,0x00500
-    jalr a7
+    jalr ra,a7
     recover_ctx
-    lw ra,128(sp)
     lw s0,124(sp)
+    lw ra,128(sp)
     addi sp,sp,132
     sret
 
@@ -104,11 +104,9 @@ _idt_search:
     la a4,inter_table//中断表基址
     add a7,a7,a4
     lw a7,0(a7)
-    # lui sp,0x00700//设置栈指针
-    # lui s0,0x00700
-    jalr a7
+    jalr ra,a7
     recover_ctx
-    lw ra,128(sp)
     lw s0,124(sp)
+    lw ra,128(sp)
     addi sp,sp,132
     mret

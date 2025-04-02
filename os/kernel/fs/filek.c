@@ -2,11 +2,10 @@
 
 int init_fs(){
     uint32_t inode_id;
-    int status;
-    createk("/",'d',&inode_id,&status);
-    createk("/include",'d',&inode_id,&status);
-    createk("/tmp",'d',&inode_id,&status);
-    createk("/tmp/test.bin",'f',&inode_id,&status);
+    createk("/",'d',&inode_id);
+    createk("/include",'d',&inode_id);
+    createk("/tmp",'d',&inode_id);
+    createk("/tmp/test.bin",'f',&inode_id);
 }
 
 //通过id获取结构体inode
@@ -161,7 +160,7 @@ int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the star
     (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
 }
 
-int openk(char* file_path,uint32_t* inode_id,int* status){
+int openk(char* file_path,uint32_t* inode_id){
     //解析地址
     uint32_t file_path_len=str_len(file_path);
     char stack[128];
@@ -175,8 +174,7 @@ int openk(char* file_path,uint32_t* inode_id,int* status){
                 cur_inode_id=in;
             else{
                 printk("path is not exist\n");
-                *status=-1;//can not find file;
-                return 0;
+                return -1;//can not find file;
             }
             stack_ptr=0;
         }else{
@@ -189,28 +187,28 @@ int openk(char* file_path,uint32_t* inode_id,int* status){
         int in=find_file_in_dir(cur_inode_id,stack);
         if(in!=-1){
             *inode_id=in;
-            *status=0;
+            return 0;
         }
         else{
             printk("file is not exist\n");
-            *status=-1;
-            return 0;
+            return -1;
         }
     }else if(file_path_len==1){//只有根目录
         get_inode_by_id(0,&ino);
         if(ino->type==0){
             printk("root hasn't been created\n");
-            *status=-1;
-            return 0;
+            // *status=-1;
+            return -1;
         }else{
             *inode_id=0;
-            *status=0;
+            // *status=0;
+            return 0;
         }
     }
     return 0;
 }
 
-int createk(char* file_path,char type,uint32_t* inode_id,int* status){
+int createk(char* file_path,char type,uint32_t* inode_id){
     //解析地址
     uint32_t file_path_len=str_len(file_path);
     char stack[128];
@@ -224,8 +222,8 @@ int createk(char* file_path,char type,uint32_t* inode_id,int* status){
                 cur_inode_id=in;
             else{
                 printk("path is not exist\n");
-                *status=-1;//can not find file;
-                return 0;
+                // *status=-1;
+                return -1;//can not find file;
             }
             stack_ptr=0;
         }else{
@@ -239,33 +237,34 @@ int createk(char* file_path,char type,uint32_t* inode_id,int* status){
         int in=find_file_in_dir(cur_inode_id,stack);
         if(in!=-1){
             printk("file has been exist\n");
-            *status=-2;//重名文件
-            return 0;
+            // *status=-2;
+            return -2;//重名文件
         }
         else{
             get_inode_by_id(cur_inode_id,&ino);
             if(ino->type=='d'){
-                *status=0;
                 *inode_id=(uint32_t)create_inode(stack,type);
                 char buf[4];
                 uint32_to_char(*inode_id,buf);
                 // printk("inode_id:%s\n",buf);
                 writek(cur_inode_id,buf,ino->size,4);
+                return 0;
             }else{
                 printk("parent is not a dir\n");
-                *status=-3;
-                return 0;
+                // *status=-3;
+                return -3;
             }
         }
     }else if(file_path_len==1){//只有根目录
         get_inode_by_id(0,&ino);
         if(ino->type==0){
             *inode_id=create_inode(file_path,type);
-            *status=0;
+            // *status=0;
+            return 0;
         }else{
             printk("root has been exist\n");
-            *status=-1;//已存在
-            return 0;
+            // *status=-1;
+            return -1;//已存在
         }
     }
     return 0;

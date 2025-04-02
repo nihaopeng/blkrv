@@ -107,43 +107,44 @@ void xtoa(int num, char *str) {
     while ((*str++ = *src++) != '\0');
 }
 
-// void ftoa(float num, char *buffer, int precision) {
-//     // 处理符号
-//     int is_negative = 0;
-//     if (num < 0) {
-//         is_negative = 1;
-//         num = -num;
-//     }
+void ftoa(float num, char *buffer, int precision) {
+    // 处理符号
+    int is_negative = 0;
+    if (num < 0) {
+        is_negative = 1;
+        num = -num;
+    }
 
-//     // 分解整数和小数部分
-//     int integer_part = (int)num;
-//     float decimal_part = num - (float)integer_part;
+    // 分解整数和小数部分
+    int integer_part = (int)num;
+    float decimal_part = num - (float)integer_part;
 
-//     // 转换为整数部分的字符串
-//     char int_buffer[16];
-//     int i = 0;
-//     do {
-//         int_buffer[i++] = (integer_part % 10) + '0';
-//         integer_part /= 10;
-//     } while (integer_part > 0);
+    int tmp=*(int*)&decimal_part;
 
-//     // 处理负数并反转整数部分字符串
-//     int j = 0;
-//     if (is_negative) buffer[j++] = '-';
-//     while (i > 0) buffer[j++] = int_buffer[--i];
-//     buffer[j++] = '.'; // 添加小数点
+    // 转换为整数部分的字符串
+    char int_buffer[16];
+    int i = 0;
+    do {
+        int_buffer[i++] = (integer_part % 10) + '0';
+        integer_part /= 10;
+    } while (integer_part > 0);
 
-//     // 转换为小数部分的字符串
-//     for (int k = 0; k < precision; k++) {
-//         decimal_part *= 10;
-//         int digit = (int)decimal_part;
-//         printk("digit:%d,",digit);
-//         buffer[j++] = digit + '0';
-//         decimal_part -= digit;
-//     }
+    // 处理负数并反转整数部分字符串
+    int j = 0;
+    if (is_negative) buffer[j++] = '-';
+    while (i > 0) buffer[j++] = int_buffer[--i];
+    buffer[j++] = '.'; // 添加小数点
 
-//     buffer[j] = '\0'; // 终止字符串
-// }
+    // 转换为小数部分的字符串
+    for (int k = 0; k < precision; k++) {
+        decimal_part *= 10;
+        int digit = (int)decimal_part;
+        buffer[j++] = digit + '0';
+        decimal_part -= digit;
+    }
+
+    buffer[j] = '\0'; // 终止字符串
+}
 
 int atoi(const char* str){
     int res = 0;

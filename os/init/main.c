@@ -3,17 +3,26 @@
 #include "file.h"
 #include "proc.h"
 
-int main(int argc,char* argv[]){
+int main(){
     regist_sysmethod();
     init_input();
     init_out();
     init_net();
-    init_ps();
     init_nvmm();
     init_fs();
     init_vmm();
-    //此时已启用内核页表
-    print("finish init_vmm\n");
+    //init_vmm启用内核页表,启用内核页表后，所有的kernel系统调用将不被允许
+    //init_ps()应该放在init_vmm之后以便于取得satp的值从而初始化shell进程。
+    init_ps();
+    //init_console是shell进程，运行在线性内核空间，pid=1。
+    print("input q:");
+    while(1){
+        if(kbhit()){
+            char ch=vgetch();
+            print("%c",ch);
+            if(ch=='q') break;
+        }
+    }
     init_console();
 
     //test gpu
@@ -23,7 +32,6 @@ int main(int argc,char* argv[]){
     // flushk();
     // while(1);
 
-    // int status=0;
     // uint32_t inode_id=0;
 
     // // below is a simple wget

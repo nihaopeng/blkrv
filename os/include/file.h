@@ -39,13 +39,13 @@ int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-int createk(char* file_path,char type,uint32_t* inode_id,int* status);
+int createk(char* file_path,char type,uint32_t* inode_id);
 
-int create_i(char* file_path,char type,uint32_t* inode_id,int* status);
+int create_i(char* file_path,char type,uint32_t* inode_id);
 
-int openk(char* file_path,uint32_t* inode_id,int* status);
+int openk(char* file_path,uint32_t* inode_id);
 
-int open_i(char* file_path,uint32_t* inode_id,int* status);
+int open_i(char* file_path,uint32_t* inode_id);
 
 // _syscall2(int,read,uint32_t,inode_id,char*,buf);
 int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
@@ -54,10 +54,10 @@ int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 // _syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
-int create(char* file_path,char type,uint32_t* inode_id,int* status);
+int create(char* file_path,char type,uint32_t* inode_id);
 
 // _syscall1(uint32_t,open,const char*,file_path);
-int open(char* file_path,uint32_t* inode_id,int* status);
+int open(char* file_path,uint32_t* inode_id);
 
 void regist_read(int* dt_addr);
 

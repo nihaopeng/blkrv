@@ -23,15 +23,15 @@ int free_block(uint16_t block_num);
 //ram
 void init_vmm();
 
-int insert_pte(uint32_t* addr);
+uint32_t insert_pte(uint32_t satp_ppn,uint32_t new_pte);
 
 uint32_t alloc_page();
 
 uint32_t free_page(uint32_t page);
 
-int freek(void* pointer);
+int freek(uint32_t satp_ppn,void* pointer);
 
-void* mallock(uint32_t size);
+void* mallock(uint32_t size,uint32_t satp_ppn);
 
 int free_i(void* pointer);
 

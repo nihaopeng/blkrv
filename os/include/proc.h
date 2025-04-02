@@ -3,16 +3,14 @@
 #include "file.h"
 #include "drivers.h"
 
+// uint32_t front_pro_pid=1;
+
 typedef struct pcb{
-    uint32_t pid;
-    uint8_t status;
-    uint32_t pc_reg;
-    uint32_t context_reg[32];
-    uint32_t context_csr[32];
-    uint32_t virtual_base_addr;
-    uint32_t heap_addr;
-    int stdout;//0 for screen print, other is inode_id
-    int stdout_start;
+    uint8_t is_alive;
+    uint32_t pc;
+    uint32_t general_regs[32];
+    uint32_t satp;
+    int stdout;//-1 for screen print, other is inode_id
 }pcb;
 
 int init_ps();
@@ -27,9 +25,13 @@ int exit_i();
 
 int exit();
 
-int exec();
+int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
+
+int exec(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
 
 int scheduler();
+
+void regist_exec(int* gdt_addr_exec);
 
 void regist_exit(int* gdt_addr_exit);
 

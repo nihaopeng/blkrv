@@ -17,11 +17,11 @@ int sendk(socket* sock,char* buf,uint32_t buf_length);
 
 int send_i(socket* sock,char* buf,uint32_t buf_length);
 
-int recvk(socket* sock,char* buf,uint32_t buf_length,int* status);
+int recvk(socket* sock,char* buf,uint32_t buf_length);
 
-int recv(socket* sock,char* buf,uint32_t buf_length,int* status);
+int recv(socket* sock,char* buf,uint32_t buf_length);
 
-int recv_i(socket* sock,char* buf,uint32_t buf_length,int* status);
+int recv_i(socket* sock,char* buf,uint32_t buf_length);
 
 void regist_send(int* dt_addr);
 

@@ -5,6 +5,8 @@
 #define uint16_t unsigned short
 #define uint8_t unsigned char 
 
+#define MAX_PRO_NUM 32
+
 //fs
 #define MAX_BLOCK 64512//mem size div block size
 #define FILE_NUM 4096
@@ -54,16 +56,18 @@
 #define _NR_powoff 7
 #define _NR_kbhit 8
 #define _NR_exit 9
-#define _NR_send 10
-#define _NR_recv 11
-#define _NR_draw_label 12
-#define _NR_draw_triangle 13
-#define _NR_flush 14
-#define _NR_open_monitor 15
-#define _NR_close_monitor 16
+#define _NR_exec 10
+#define _NR_send 11
+#define _NR_recv 12
+#define _NR_draw_label 13
+#define _NR_draw_triangle 14
+#define _NR_flush 15
+#define _NR_open_monitor 16
+#define _NR_close_monitor 17
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2
+#define _NI_timer 9
 
 #define IO_CACHE 1024
 #define FMT_STRING_SIZE 64

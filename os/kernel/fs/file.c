@@ -12,20 +12,20 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
     writek(inode_id,buf,start,count);
 }
 
-int open_i(char* file_path,uint32_t* inode_id,int* status){
+int open_i(char* file_path,uint32_t* inode_id){
     _vir2phy(char*,file_path);
     _vir2phy(uint32_t*,inode_id);
-    _vir2phy(int*,status);
+    // _vir2phy(int*,status);
 
-    openk(file_path,inode_id,status);
+    openk(file_path,inode_id);
 }
 
-int create_i(char* file_path,char type,uint32_t* inode_id,int* status){
+int create_i(char* file_path,char type,uint32_t* inode_id){
     _vir2phy(char*,file_path);
     _vir2phy(uint32_t*,inode_id);
-    _vir2phy(int*,status);
+    // _vir2phy(int*,status);
 
-    createk(file_path,type,inode_id,status);
+    createk(file_path,type,inode_id);
 }
 
 _regist_syscall(void,read);

@@ -73,7 +73,7 @@ void init_console(){
     char c;
     while (1)
     {
-        vgetchk(&c);
+        c = vgetch();
         if (c == 0){
             continue;
         }

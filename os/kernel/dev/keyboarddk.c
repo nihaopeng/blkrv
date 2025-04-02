@@ -11,22 +11,23 @@ int init_input(){
     // memset_s(in_cache,0,IO_CACHE);
 }
 
-int vgetchk(char* ch){//change to syscall
+char vgetchk(){//change to syscall
     if(in_cache_frontp!=in_cache_backp){
         // printk("%d,%d\n",in_cache_frontp,in_cache_backp);
-        *ch=in_cache[in_cache_frontp++];
+        char ch=in_cache[in_cache_frontp++];
         // printk("%d ",*ch);
         in_cache_frontp=mod(in_cache_frontp,IO_CACHE);
+        return ch;
     }else{
-        *ch=0;
+        return 0;
     }
 }
 
-int kbhitk(int* ifhit){//change to syscall//kbhit ret 1
+int kbhitk(){//change to syscall//kbhit ret 1
     if(in_cache_frontp!=in_cache_backp){
-        *ifhit=1;
+        return 1;
     }else{
-        *ifhit=0;
+        return 0;
     }
 }
 

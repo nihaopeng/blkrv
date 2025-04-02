@@ -18,7 +18,7 @@ void itoa(int num, char *str);
 
 void xtoa(int num, char *str);
 
-// void ftoa(float num, char *str, int precision);
+void ftoa(float num, char *str, int precision);
 
 int atoi(const char* str);
 

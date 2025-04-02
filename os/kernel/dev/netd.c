@@ -6,12 +6,12 @@ int send_i(socket* sock,char* buf,uint32_t buf_length){
     sendk(sock,buf,buf_length);
 }
 
-int recv_i(socket* sock,char* buf,uint32_t buf_length,int* status){
+int recv_i(socket* sock,char* buf,uint32_t buf_length){
     _vir2phy(socket*,sock);
     _vir2phy(char*,buf);
-    _vir2phy(int*,status);
+    // _vir2phy(int*,status);
 
-    recvk(sock,buf,buf_length,status);
+    return recvk(sock,buf,buf_length);
 }
 
 _regist_syscall(void,send);
