@@ -97,7 +97,7 @@ int input(const char* fmt,...){
             int num=0;
             while(1){
                 // print("getting ch\n");
-                char ch=0;vgetchk(&ch);
+                char ch=vgetch();
                 if(ch==10||ch==32){
                     // printk("%c",ch);
                    if(p==0)continue;
@@ -142,7 +142,7 @@ int getline(char* str){
     uint32_t p=0;
     while(1){
         // print("getting ch\n");
-        char ch=0;vgetchk(&ch);
+        char ch=vgetch();
         if(ch==10){
             // printk("enter]%c",ch);
             break;

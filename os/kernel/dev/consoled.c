@@ -91,7 +91,7 @@ int vprint_i(char* str,uint32_t length){
     // str=(char*)user_to_global((void*)str);
     // printk("%d\n",str);
     if(stdout==-1){
-        _vir2phy(char*,str);
+        _vir2phyk(char*,str);
         // printk("%d\n",str);
         for(uint32_t i=0;i<length;i++){
             char ch=*(str+i);

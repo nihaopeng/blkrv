@@ -3,6 +3,9 @@
 build/
 test/
 *.o
-devices/
+rtl/devices/
 .VSCodeCounter
 *.csv
+user_programe_test_with_server/hello
+user_programe_test_with_server/hello.elf
+user_programe_test_with_server/hello.s

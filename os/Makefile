@@ -1,6 +1,7 @@
 cc := riscv32-unknown-elf-gcc
 as := riscv32-unknown-elf-as
 ld := riscv32-unknown-elf-ld
+objdump := riscv32-unknown-elf-objdump
 
 BUILD_DIR := ./build/
 
@@ -27,6 +28,8 @@ all:build_dir bootsect _start u_console sys $(OBJ_FILES) _pull_prog
 	$(OBJ_FILES) \
 	./build/init/console.o \
 	./build/init/main.o  -I$(INCLUDE) -nostdlib -lgcc -fPIE -Wl,--no-relax
+
+	$(objdump) -d ./build/init/sysimg > ./build/init/sysimg.s
 #-Wl,--no-relax避免使用gp指针压缩指令,因为我们没有c库,没法初始化该指针
 
 _start:$(_START)

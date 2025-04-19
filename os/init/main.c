@@ -15,15 +15,16 @@ int main(){
     //init_ps()应该放在init_vmm之后以便于取得satp的值从而初始化shell进程。
     init_ps();
     //init_console是shell进程，运行在线性内核空间，pid=1。
-    print("input q:");
-    while(1){
-        if(kbhit()){
-            char ch=vgetch();
-            print("%c",ch);
-            if(ch=='q') break;
-        }
+    uint8_t t=254;
+    print("t:%d\n",t==254);
+    if(t==254){
+        print("t=254");
     }
-    init_console();
+    else{
+        print("t!=254");
+    }
+
+    // init_console();
 
     //test gpu
     // point p1={300,280};

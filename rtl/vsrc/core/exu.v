@@ -82,11 +82,11 @@ assign data2regs_o=(calc_i)?alu_outdata:
                  (auipc_i)?(pc_o+imm_i):
                  (jal_i)?(pc_o+4):
                  (jalr_i)?(pc_o+4):
-                 (load_i)?((op_type_i==3'b000)?{24'd0,dataFRmem_i[7:0]}:
-                           (op_type_i==3'b001)?{16'd0,dataFRmem_i[15:0]}:
+                 (load_i)?((op_type_i==3'b100)?{24'd0,dataFRmem_i[7:0]}:
+                           (op_type_i==3'b101)?{16'd0,dataFRmem_i[15:0]}:
                            (op_type_i==3'b010)?dataFRmem_i:
-                           (op_type_i==3'b100)?{{24{dataFRmem_i[7]}},dataFRmem_i[7:0]}:
-                           (op_type_i==3'b101)?{{16{dataFRmem_i[15]}},dataFRmem_i[15:0]}:32'd0):
+                           (op_type_i==3'b000)?{{24{dataFRmem_i[7]}},dataFRmem_i[7:0]}:
+                           (op_type_i==3'b001)?{{16{dataFRmem_i[15]}},dataFRmem_i[15:0]}:32'd0):
                  (sys_i)?((op_type_i==3'b001||op_type_i==3'b010||op_type_i==3'b011||op_type_i==3'b101||op_type_i==3'b110||op_type_i==3'b111)?csr_i:32'd0):(32'd0);
 
 assign addr_v_o=(load_i|store_i)?(r1_i+imm_i):32'd0;
