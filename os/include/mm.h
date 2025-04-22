@@ -6,9 +6,15 @@
 #include "set_gate.h"
 #include "syscall.h"
 
-extern uint8_t blocks[MAX_BLOCK];
+// extern uint8_t blocks[MAX_BLOCK];
 
-extern uint8_t pages[MAX_PAGE];
+// extern uint8_t pages[MAX_PAGE];
+
+typedef struct free_vir_block{
+    uint32_t vir_addr;
+    uint32_t size;//4B对齐
+    struct free_vir_block* next;
+};
 
 void init_nvmm();
 
@@ -29,7 +35,7 @@ uint32_t alloc_page();
 
 uint32_t free_page(uint32_t page);
 
-int freek(uint32_t satp_ppn,void* pointer);
+int freek(void* pointer,uint32_t satp_ppn);
 
 void* mallock(uint32_t size,uint32_t satp_ppn);
 

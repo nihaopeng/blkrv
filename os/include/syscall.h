@@ -5,21 +5,19 @@
 
 //将传入的地址转换为对应虚拟地址下的物理地址
 //0x181是satp的副本，当前处于mmu不使能状态
-#define _vir2phyk(type,addr) do{\
-    uint32_t addr_t=(uint32_t)addr;\
-    uint32_t p=0;\
-    __asm__ volatile("csrrw %0,0x181,zero":"=r"(p));\
-    uint32_t pte1=*(uint32_t*)((p<<12)+((addr_t>>22)<<2));\
-    uint32_t pte2=*(uint32_t*)((pte1&0xfffff000)+(((addr_t&0x003ff000)>>12)<<2));\
-    addr=(type)(pte2&0xfffff000)+(addr_t&0x00000fff);\
+#define _vir2phy(type,addr,satp) do{\
+    uint32_t addrt=(uint32_t)addr;\
+    uint32_t pte1=*(uint32_t*)((satp&0xfffff000)+((addrt>>22)<<2));\
+    uint32_t pte2=*(uint32_t*)((pte1&0xfffff000)+(((addrt&0x003ff000)>>12)<<2));\
+    addr=(type)((pte2&0xfffff000)+(addrt&0x00000fff));\
 }while(0)
 
-#define _vir2phy(type,addr,satp) do{\
-    uint32_t addr_t=(uint32_t)addr;\
-    uint32_t pte1=*(uint32_t*)((satp<<12)+((addr_t>>22)<<2));\
-    uint32_t pte2=*(uint32_t*)((pte1&0xfffff000)+(((addr_t&0x003ff000)>>12)<<2));\
-    addr=(type)(pte2&0xfffff000)+(addr_t&0x00000fff);\
+#define _vir2phyk(type,addr) do{\
+    uint32_t p=0;\
+    __asm__ volatile("csrrw %0,0x181,zero":"=r"(p));\
+    _vir2phy(type,addr,p);\
 }while(0)
+
 
 #define _regist_syscall(type,name) \
 type regist_##name(int* dt_addr) \

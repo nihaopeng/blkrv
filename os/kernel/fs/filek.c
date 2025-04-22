@@ -123,7 +123,7 @@ int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the star
     get_inode_by_id(inode_id,&ino);
     if(start>ino->size){
         printk("start out of file size\n");
-        return 0;
+        return -1;
     }
     //write data
     char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(ino->start_block,BLOCK_SIZE));
@@ -158,6 +158,7 @@ int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the star
     int next=(*(int*)addr)&0x0fffffff;
     delete_block_link(next);//TODO:未测试
     (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
+    return 0;
 }
 
 int openk(char* file_path,uint32_t* inode_id){

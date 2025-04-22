@@ -9,15 +9,15 @@
 class tlb{
     uint32_t size_pages1=64;
     uint32_t size_pages2=1024;
-    std::map<uint32_t,uint32_t> pages1;//vir:ppn,对于第一个int，前12位为asid，后20位为vpn
+    std::map<uint32_t,uint32_t> pages1;//vir:ppn,对于第一个int，后12位为asid，前20位为vpn
     std::map<uint32_t,uint32_t> pages2;
     public:
         tlb();
         ~tlb();
-        uint32_t insert(uint32_t vir,uint32_t ppn);
-        uint32_t check_tlb1(uint32_t vir);
-        uint32_t check_tlb2(uint32_t vir);
-        uint32_t check(uint32_t vir);
+        int insert(uint32_t vir,uint32_t ppn);
+        int check_tlb1(uint32_t vir);
+        int check_tlb2(uint32_t vir);
+        int check(uint32_t vir);
 };
 
 class mmu{

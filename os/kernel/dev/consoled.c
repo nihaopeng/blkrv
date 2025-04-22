@@ -92,7 +92,7 @@ int vprint_i(char* str,uint32_t length){
     // printk("%d\n",str);
     if(stdout==-1){
         _vir2phyk(char*,str);
-        // printk("%d\n",str);
+        
         for(uint32_t i=0;i<length;i++){
             char ch=*(str+i);
             char* addr=(char*)SCREEN_CACHE1_ADDR+i;

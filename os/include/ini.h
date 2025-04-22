@@ -18,7 +18,7 @@
 //ram
 #define PAGE_SIZE 4096
 #define RAM_SIZE 1<<28
-#define USER_START 8<<20//8MB
+#define USER_START 4<<20
 #define MAX_PAGE 65536
 #define RAM_START 0x00100000
 

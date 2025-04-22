@@ -29,11 +29,14 @@ int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     }
     global_pcb_list[new_pid].is_alive = 1;
     global_pcb_list[new_pid].stdout=stdout;
-    global_pcb_list[new_pid].satp=((uint32_t)new_pid)<<20 | alloc_page();
+    global_pcb_list[new_pid].satp=(alloc_page()<<12 | (uint32_t)new_pid);
+    global_pcb_list[new_pid].free_vir_block_list.vir_addr=0;
+    global_pcb_list[new_pid].free_vir_block_list.size=0xffffffff;
+
+    printk("global_pcb_list[%d].satp:%x\n",new_pid,global_pcb_list[new_pid].satp);
 
     //以下初始化栈空间
-    uint32_t* stack_bottom=(uint32_t*)mallock(0x00100000,global_pcb_list[new_pid].satp&0x000fffff);//1MB栈空间
-    // _vir2phy(uint32_t*,stack_bottom,global_pcb_list[new_pid].satp);
+    uint32_t* stack_bottom=(uint32_t*)mallock(0x00100000,global_pcb_list[new_pid].satp&0xfffff000);//1MB栈空间
 
     //以下加载程序代码
     inode* ino;
@@ -42,6 +45,7 @@ int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     //根据程序头加载可执行文件。
     //读取文件头
     readk(inode_id,read_buf,0,52);
+    print("magic number:%c%c%c\n",read_buf[1],read_buf[2],read_buf[3]);
     //TODO:验证二进制魔数
 
     //程序头表存储地址的偏移量
@@ -69,7 +73,7 @@ int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
         uint32_t prog_head_align=*(prog_head_addr+7);
         if(prog_head_type==1){
             //加载可执行文件
-            uint8_t* program_start=(uint8_t*)mallock(prog_head_memsize,global_pcb_list[new_pid].satp&0x000fffff);//程序存放位置
+            uint8_t* program_start=(uint8_t*)mallock(prog_head_memsize,global_pcb_list[new_pid].satp&0xfffff000);//程序存放位置
             _vir2phy(uint8_t*,program_start,global_pcb_list[new_pid].satp);//转换为物理地址；根据新satp转换，
             while(prog_head_filesize){
                 if(prog_head_filesize>=512){
@@ -96,7 +100,7 @@ int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     //以下加载传入参数
     for(int i=0;i<para_num;i++){
         uint32_t para_size=str_len(para[i])+1;
-        uint8_t* para_addr=(uint8_t*)mallock(para_size,global_pcb_list[new_pid].satp&0x000fffff);
+        uint8_t* para_addr=(uint8_t*)mallock(para_size,global_pcb_list[new_pid].satp&0xfffff000);
         argv=(uint32_t)para_addr;
         _vir2phy(uint8_t*,para_addr,global_pcb_list[new_pid].satp);
         for(int j=0;j<para_size;j++){
@@ -108,18 +112,16 @@ int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
         "mv a1,%1\n"//argv
         "mv t0,%2\n"//栈底
         "mv sp,t0\n"//设置栈底
-        "mv t0,%3\n"//设置栈顶
+        "mv t0,%3\n"//加载程序页表基址
+        "mv t1,%4\n"
         "csrw satp,t0\n"
-        "mv t0,%4\n"//设置satp
-        "jalr ra,t0\n"
+        "jalr ra,t1\n"
         :
         :"r"(argc),"r"(argv),"r"(stack_bottom),"r"(global_pcb_list[new_pid].satp),"r"(prog_start_addr)//设置satp
     );
 
     //更新栈底
-
     //更改satp使能mmu。
-
     //跳转到程序_start
     
 }

@@ -10,6 +10,7 @@ typedef struct pcb{
     uint32_t pc;
     uint32_t general_regs[32];
     uint32_t satp;
+    free_vir_block free_vir_block_list;
     int stdout;//-1 for screen print, other is inode_id
 }pcb;
 

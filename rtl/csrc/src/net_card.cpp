@@ -38,6 +38,7 @@ void net_card::connect2server(char ip[16],uint32_t port) {
     server_addr.sin_port = htons(port);
     server_addr.sin_addr.s_addr = inet_addr(ip);
     // 连接到服务器
+    printf("Connecting to server: %s:%d\n", ip, port);
     if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         perror("connection to server failed");
         close(sockfd);

@@ -3,13 +3,13 @@
 int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
     _vir2phyk(char*,buf);
 
-    readk(inode_id,buf,start,count);
+    return readk(inode_id,buf,start,count);
 }
 
 int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
     _vir2phyk(char*,buf);
 
-    writek(inode_id,buf,start,count);
+    return writek(inode_id,buf,start,count);
 }
 
 int open_i(char* file_path,uint32_t* inode_id){
@@ -17,7 +17,7 @@ int open_i(char* file_path,uint32_t* inode_id){
     _vir2phyk(uint32_t*,inode_id);
     // _vir2phyk(int*,status);
 
-    openk(file_path,inode_id);
+    return openk(file_path,inode_id);
 }
 
 int create_i(char* file_path,char type,uint32_t* inode_id){
@@ -25,7 +25,7 @@ int create_i(char* file_path,char type,uint32_t* inode_id){
     _vir2phyk(uint32_t*,inode_id);
     // _vir2phyk(int*,status);
 
-    createk(file_path,type,inode_id);
+    return createk(file_path,type,inode_id);
 }
 
 _regist_syscall(void,read);

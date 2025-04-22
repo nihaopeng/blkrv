@@ -35,9 +35,6 @@ all:build_dir bootsect _start u_console sys $(OBJ_FILES) _pull_prog
 _start:$(_START)
 	$(cc) -c $(_START) -o ./build/init/_start.o -march=rv32i_zicsr
 
-_pull_prog:$(_PULL_PROG)
-	$(cc) -c $(_PULL_PROG) -o ./build/init/_pull_prog.o -march=rv32i_zicsr
-
 u_console:$(CONSOLE)
 	$(cc) -c $(CONSOLE) -o ./build/init/console.o -I$(INCLUDE) -fPIE
 
