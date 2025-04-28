@@ -14,6 +14,7 @@ void regist_std();
 void regist_fs();
 void regist_ps();
 void regist_net();
+void regist_mm();
 void regist_graphic();
 void regist_monitor();
 

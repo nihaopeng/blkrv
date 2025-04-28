@@ -10,7 +10,7 @@ typedef struct pcb{
     uint32_t pc;
     uint32_t general_regs[32];
     uint32_t satp;
-    free_vir_block free_vir_block_list;
+    // free_vir_block* free_vir_block_list;
     int stdout;//-1 for screen print, other is inode_id
 }pcb;
 
@@ -27,6 +27,8 @@ int exit_i();
 int exit();
 
 int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
+
+int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
 
 int exec(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
 

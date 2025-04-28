@@ -8,12 +8,12 @@
 #define MAX_PRO_NUM 32
 
 //fs
-#define MAX_BLOCK 64512//mem size div block size
-#define FILE_NUM 4096
-#define BLOCK_SIZE 4*1024//byte,last 4 byte used as ptr to next block
 #define MAX_NAME 128
-#define BLOCK_USED 1
-#define INODE_SIZE 256
+#define MAX_PATH_LEN 256
+#define MAX_DEPTH 16
+#define DIR_TYPE 'd'
+#define FILE_TYPE 'f'
+#define BLOCK_SIZE 1024
 
 //ram
 #define PAGE_SIZE 4096
@@ -39,8 +39,12 @@
 #define NIC_RDATA_LEN_ADDR 0x30600000
 #define NIC_RDATA_ADDR 0x30600004
 
-#define FILE_TABLE_ADDR 0x40400000//2MB前2MB为kernel程序存放位置
-#define FILE_DATA_ADDR 0x40500000//3MB
+// #define FILE_TABLE_ADDR 0x40400000//2MB前2MB为kernel程序存放位置
+// #define FILE_DATA_ADDR 0x40500000//3MB
+#define INODE_START 0x40400000//存放inode，2MB大小，最多14979个文件。
+#define FAT_START 0x40600000//2MB,flash起始为0x40200000,前2MB为kernel程序存放位置,从0x40400000开始的2MB存储fat表
+#define DATA_START 0x40800000//4MB
+#define DATA_END 0x60200000
 
 #define PMC_ADDR 0x60200000
 
@@ -64,6 +68,8 @@
 #define _NR_flush 15
 #define _NR_open_monitor 16
 #define _NR_close_monitor 17
+#define _NR_malloc 18
+#define _NR_free 19
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

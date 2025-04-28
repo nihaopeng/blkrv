@@ -1,272 +1,264 @@
 #include "file.h"
 
-int init_fs(){
-    uint32_t inode_id;
-    createk("/",'d',&inode_id);
-    createk("/include",'d',&inode_id);
-    createk("/tmp",'d',&inode_id);
-    createk("/tmp/test.bin",'f',&inode_id);
-}
+void* memcpy(void *dest, const void *src, uint32_t n) {
+    char *d = dest;
+    const char *s = src;
 
-//通过id获取结构体inode
-int get_inode_by_id(uint32_t inode_id,inode** inode_get){
-    //获取对应inode的地址，hash索引
-    void* inode_addr=(void*)FILE_TABLE_ADDR+mul(INODE_SIZE,inode_id);
-    *inode_get=(inode*)inode_addr;
-}
-
-//删除从startblock开始的block链表
-int delete_block_link(uint32_t start_block){
-    // printk("delete start block:%d\n",start_block);
-    int* inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul(start_block,BLOCK_SIZE))+1023;
-    uint32_t cur_block=start_block;
-    while(1){
-        if(cur_block==0)
-            break;
-        else{
-            inst_4byte_addr=(int*)(((void*)FILE_DATA_ADDR)+mul((int)(cur_block),BLOCK_SIZE))+1023;
-            free_block(cur_block);
-            uint32_t next=(((uint32_t)*inst_4byte_addr)<<4)>>4;
-            cur_block=next;
-        }
+    // 逐字节复制内存内容
+    for (uint32_t i = 0; i < n; i++) {
+        d[i] = s[i];
     }
+
+    return dest;
 }
 
-int find_file_in_dir(uint32_t inode_id,const char* name){
-    char files[1024];
-    memset_s(files,0,1024);
-    int i=0;
-    inode* ino;
-    while(readk(inode_id,files,i,1024)!=-1){
-        for(int j=0;j<1024;j+=4){
-            get_inode_by_id(*(uint32_t*)(&files[j]),&ino);
-            // printk("inode:%s;",ino->file_name);
-            if(str_cmp(ino->file_name,name)){
-                return *(int*)(&files[j]);
-            }
-        }
-        i+=1024;
+// 辅助函数：获取inode指针
+inode* get_inode_ptr(uint32_t inode_id) {
+    return (inode*)(INODE_START + inode_id * sizeof(inode));
+}
+
+// 获取FAT条目
+uint32_t get_fat_entry(uint32_t block_num) {
+    uint32_t* fat = (uint32_t*)FAT_START;
+    return fat[block_num];
+}
+
+void set_fat_entry(uint32_t block_num, uint32_t value) {
+    uint32_t* fat = (uint32_t*)FAT_START;
+    fat[block_num] = value;
+}
+
+// 查找文件最后一个块
+uint32_t find_last_block(inode* node) {
+    if (node->start_block == 0xFFFFFFFF) return 0xFFFFFFFF;
+    uint32_t current = node->start_block;
+    while (get_fat_entry(current) != 0xFFFFFFFF)
+        current = get_fat_entry(current);
+    return current;
+}
+
+// 查找空闲块
+int find_free_block() {
+    uint32_t total_blocks = (DATA_END - DATA_START) / BLOCK_SIZE;
+    for (uint32_t i = 0; i < total_blocks; i++)
+        if (get_fat_entry(i) == 0) return i;
+    return -1;
+}
+
+// 分配空闲inode
+int allocate_inode(uint32_t* inode_id) {
+    uint32_t max_inodes = (FAT_START - INODE_START) / sizeof(inode);
+    for (*inode_id = 0; *inode_id < max_inodes; (*inode_id)++) {
+        inode* node = get_inode_ptr(*inode_id);
+        if (node->type == 0) return 0;
     }
     return -1;
 }
 
-int create_inode(const char* file_name,char type){
-    inode* tmp=(inode*)FILE_TABLE_ADDR;
-    for(int i=0;i<FILE_NUM;i++){
-        if(tmp->type==0){
-            // print("filename:%s\n",file_name);
-            str_cpy(file_name,tmp->file_name);
-            // print("filename:%s\n",tmp->file_name);
-            tmp->size=0;
-            tmp->start_block=alloc_block();
-            // print("start_b:%d\n",tmp->start_block);
-            tmp->type=(uint8_t)type;
-            // print("type:%d\n",tmp->type);
-            return i;
-        }else{
-            tmp=(inode*)((void*)tmp+INODE_SIZE);
-            // print("tmpPtr:%d\n",tmp);
-        }
-    }
-    return -1;
-}
-
-int delete_inode(uint32_t inode_id){
-    inode* ino=(inode*)((void*)FILE_TABLE_ADDR+mul(inode_id,INODE_SIZE));
-    memset_s(ino->file_name,0,MAX_NAME);
-    ino->type=0;
-    delete_block_link(ino->start_block);
-    ino->start_block=0;
-    ino->size=0;
-}
-
-int readk(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
-    inode* ino=NULL;
-    get_inode_by_id(inode_id,&ino);
-    if(start>ino->size)
-        return -1;
-    //write data
-    char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(ino->start_block,BLOCK_SIZE));
-    uint32_t global_offset=0;
-    uint32_t global_cnt=0;
-    while(start>4092){
-        addr+=4092;
-        int next=(*(int*)addr)&0x0fffffff;//去除前四位
-        addr=(char*)(((void*)FILE_DATA_ADDR)+mul(next,BLOCK_SIZE));
-        start-=4092;
-        global_cnt+=4092;
-    }
-    addr+=start;
-    global_offset+=start;
-    // printk("size:%d,count:%d",ino->size,count);
-    for(int i=0;i<count&&global_cnt<ino->size;i++,global_cnt++){
-        if(global_offset==4092){
-            int next=(*(int*)addr)&0x0fffffff;//去除前四位
-            // printk("next:%d\n",(*(int*)addr));
-            addr=(char*)(((void*)FILE_DATA_ADDR)+mul(next,BLOCK_SIZE));
-            global_offset=0;
-            i-=1;
-            global_cnt-=1;
-        }else{
-            global_offset+=1;
-            buf[i]=*addr;
-            addr+=1;
-        }
-        // printk("addr:%d\n",addr);
-    }
-    // printk("read_data:%s\n",buf);
-    return 0;
-}
-
-int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the start should not bigger than size
-    inode* ino=NULL;
-    get_inode_by_id(inode_id,&ino);
-    if(start>ino->size){
-        printk("start out of file size\n");
-        return -1;
-    }
-    //write data
-    char* addr=(char*)(((void*)FILE_DATA_ADDR)+mul(ino->start_block,BLOCK_SIZE));
-    ino->size=start+count;
-    uint32_t global_offset=0;
-    while(start>4092){
-        addr+=4092;
-        int next=(*(int*)addr)&0x0fffffff;//去除前四位
-        // printk("recur_next:%d\n",next);
-        addr=(char*)(((void*)FILE_DATA_ADDR)+mul(next,BLOCK_SIZE));
-        start-=4092;
-    }
-    addr+=start;
-    global_offset+=start;
-    for(int i=0;i<count;i++){
-        if(global_offset==4092){
-            uint32_t next=(*(uint32_t*)addr)&0x0fffffff;//去除前四位
-            if(next==0){
-                (*(uint32_t*)addr)=(*(uint32_t*)addr)+alloc_block();
-            }
-            next=(*(uint32_t*)addr)&0x0fffffff;//去除前四位
-            addr=(char*)(((void*)FILE_DATA_ADDR)+mul(next,BLOCK_SIZE));
-            global_offset=0;
-            i-=1;
-        }else{
-            *addr=buf[i];
-            global_offset+=1;
-            addr+=1;
-        }
-    }
-    addr=addr+4092-global_offset;
-    int next=(*(int*)addr)&0x0fffffff;
-    delete_block_link(next);//TODO:未测试
-    (*(uint32_t*)addr)=(*(uint32_t*)addr)&0xf0000000;
-    return 0;
-}
-
-int openk(char* file_path,uint32_t* inode_id){
-    //解析地址
-    uint32_t file_path_len=str_len(file_path);
-    char stack[128];
-    int stack_ptr=0;
-    uint32_t cur_inode_id=0;
-    for(int i=1;i<file_path_len;i++){
-        if(file_path[i]=='/'){
-            stack[stack_ptr]='\0';
-            int in=find_file_in_dir(cur_inode_id,stack);
-            if(in!=-1)
-                cur_inode_id=in;
-            else{
-                printk("path is not exist\n");
-                return -1;//can not find file;
-            }
-            stack_ptr=0;
-        }else{
-            stack[stack_ptr++]=file_path[i];
-        }
-    }
-    inode* ino;
-    if(stack_ptr){
-        stack[stack_ptr]='\0';
-        int in=find_file_in_dir(cur_inode_id,stack);
-        if(in!=-1){
-            *inode_id=in;
-            return 0;
-        }
-        else{
-            printk("file is not exist\n");
-            return -1;
-        }
-    }else if(file_path_len==1){//只有根目录
-        get_inode_by_id(0,&ino);
-        if(ino->type==0){
-            printk("root hasn't been created\n");
-            // *status=-1;
-            return -1;
-        }else{
-            *inode_id=0;
-            // *status=0;
-            return 0;
+// 通过完整路径查找inode
+int find_inode_by_path(const char* path, uint32_t* id) {
+    uint32_t max_inodes = (FAT_START - INODE_START) / sizeof(inode);
+    for (uint32_t i = 0; i < max_inodes; i++) {
+        inode* node = get_inode_ptr(i);
+        if (node->type != 0 && !str_cmp(node->file_name, path) == 0) {
+            *id = i;
+            return 1;
         }
     }
     return 0;
 }
 
-int createk(char* file_path,char type,uint32_t* inode_id){
-    //解析地址
-    uint32_t file_path_len=str_len(file_path);
-    char stack[128];
-    int stack_ptr=0;
-    uint32_t cur_inode_id=0;
-    for(int i=1;i<file_path_len;i++){
-        if(file_path[i]=='/'){
-            stack[stack_ptr]='\0';
-            int in=find_file_in_dir(cur_inode_id,stack);
-            if(in!=-1)
-                cur_inode_id=in;
-            else{
-                printk("path is not exist\n");
-                // *status=-1;
-                return -1;//can not find file;
+// 分割路径为父目录和文件名
+int split_parent_and_filename(const char* path, char* parent, char* filename) {
+    const char* end = strrchr(path, '/');
+    if (!end) return 0;
+    strncpy(parent, path, end - path);
+    parent[end - path] = '\0';
+    str_cpy(end + 1,filename);
+    // printk("parent:%s\n",parent);
+    // printk("filename:%s\n",filename);
+    return 1;
+}
+
+// 在目录中添加条目
+int add_directory_entry(uint32_t dir_inode_id, const char* name, uint32_t entry_inode, uint8_t type) {
+    inode* dir = get_inode_ptr(dir_inode_id);
+    if (dir->type != DIR_TYPE) return -1;
+
+    uint32_t block = dir->start_block;
+    uint32_t prev_block = 0xFFFFFFFF;
+
+    while (1) {
+        if (block == 0xFFFFFFFF) {
+            // 分配新块
+            int new_block = find_free_block();
+            if (new_block == -1) return -2;
+            if (prev_block == 0xFFFFFFFF) {
+                dir->start_block = new_block;
+            } else {
+                set_fat_entry(prev_block, new_block);
             }
-            stack_ptr=0;
-        }else{
-            stack[stack_ptr++]=file_path[i];
+            set_fat_entry(new_block, 0xFFFFFFFF);
+            block = new_block;
+            memset_s((void*)(DATA_START + block * BLOCK_SIZE), 0, BLOCK_SIZE);
         }
-    }
-    inode* ino;
-    if(stack_ptr){//如果/后还有名称,/home/test
-        stack[stack_ptr]='\0';
-        printk("create_file_name:%s\n",stack);
-        int in=find_file_in_dir(cur_inode_id,stack);
-        if(in!=-1){
-            printk("file has been exist\n");
-            // *status=-2;
-            return -2;//重名文件
-        }
-        else{
-            get_inode_by_id(cur_inode_id,&ino);
-            if(ino->type=='d'){
-                *inode_id=(uint32_t)create_inode(stack,type);
-                char buf[4];
-                uint32_to_char(*inode_id,buf);
-                // printk("inode_id:%s\n",buf);
-                writek(cur_inode_id,buf,ino->size,4);
+
+        dir_entry* entries = (dir_entry*)(DATA_START + block * BLOCK_SIZE);
+        for (int i = 0; i < BLOCK_SIZE / sizeof(dir_entry); i++) {
+            if (entries[i].inode_id == 0) {
+                strncpy(entries[i].name, name, MAX_NAME);
+                entries[i].inode_id = entry_inode;
+                entries[i].type = type;
                 return 0;
-            }else{
-                printk("parent is not a dir\n");
-                // *status=-3;
-                return -3;
             }
         }
-    }else if(file_path_len==1){//只有根目录
-        get_inode_by_id(0,&ino);
-        if(ino->type==0){
-            *inode_id=create_inode(file_path,type);
-            // *status=0;
-            return 0;
-        }else{
-            printk("root has been exist\n");
-            // *status=-1;
-            return -1;//已存在
-        }
+
+        prev_block = block;
+        block = get_fat_entry(block);
     }
+}
+
+// 创建文件或目录（支持自动创建父目录）
+int createk(char* file_path, char type, uint32_t* inode_id) {
+    uint32_t existing_id;
+    if (find_inode_by_path(file_path, &existing_id)) return -1;
+
+    char parent_path[MAX_PATH_LEN], filename[MAX_NAME];
+    if (!split_parent_and_filename(file_path, parent_path, filename)) return -2;
+
+    // 递归创建父目录
+    uint32_t parent_inode;
+    if (str_len(parent_path) > 0 && !find_inode_by_path(parent_path, &parent_inode)) {
+        int res = createk(parent_path, DIR_TYPE, &parent_inode);
+        if (res != 0) return res;
+    } else if (str_len(parent_path) == 0) {
+        parent_inode = 0; // 根目录
+    }
+
+    inode* parent = get_inode_ptr(parent_inode);
+    if (parent->type != DIR_TYPE) return -3;
+
+    // 创建新inode
+    uint32_t new_id;
+    if (allocate_inode(&new_id) != 0) return -4;
+    inode* new_node = get_inode_ptr(new_id);
+    str_cpy(file_path,new_node->file_name);
+    new_node->type = type;
+    new_node->size = 0;
+    new_node->start_block = 0xFFFFFFFF;
+
+    // 添加目录条目到父目录
+    
+    if (add_directory_entry(parent_inode, filename, new_id, type) != 0) {
+        new_node->type = 0;
+        return -5;
+    }
+
+    *inode_id = new_id;
     return 0;
+}
+
+// 打开文件（返回inode_id）
+int openk(char* file_path, uint32_t* inode_id) {
+    return find_inode_by_path(file_path, inode_id) ? 0 : -1;
+}
+
+// 读取文件
+int readk(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
+    inode* node = get_inode_ptr(inode_id);
+    if (node->type == 0 || start >= node->size) return 0;
+
+    uint32_t copied = 0;
+    uint32_t block_idx = start / BLOCK_SIZE;
+    uint32_t offset = start % BLOCK_SIZE;
+    uint32_t current_block = node->start_block;
+
+    // 定位到起始块
+    for (uint32_t i = 0; i < block_idx && current_block != 0xFFFFFFFF; i++)
+        current_block = get_fat_entry(current_block);
+
+    while (count > 0 && current_block != 0xFFFFFFFF) {
+        char* data = (char*)(DATA_START + current_block * BLOCK_SIZE);
+        uint32_t chunk = (BLOCK_SIZE - offset < count) ? BLOCK_SIZE - offset : count;
+        memcpy(buf + copied, data + offset, chunk);
+        copied += chunk;
+        count -= chunk;
+        offset = 0;
+        current_block = get_fat_entry(current_block);
+    }
+    return copied;
+}
+
+// 写入文件
+int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
+    inode* node = get_inode_ptr(inode_id);
+    if (node->type == 0) return -1;
+
+    // 扩展文件大小并分配块
+    uint32_t required_size = start + count;
+    if (required_size > node->size) {
+        uint32_t new_blocks = (required_size + BLOCK_SIZE - 1) / BLOCK_SIZE - (node->size + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        uint32_t last_block = find_last_block(node);
+
+        for (uint32_t i = 0; i < new_blocks; i++) {
+            int free_block = find_free_block();
+            if (free_block == -1) return -1;
+            if (last_block == 0xFFFFFFFF) {
+                node->start_block = free_block;
+            } else {
+                set_fat_entry(last_block, free_block);
+            }
+            set_fat_entry(free_block, 0xFFFFFFFF);
+            last_block = free_block;
+        }
+        node->size = required_size;
+    }
+
+    // 写入数据
+    uint32_t written = 0;
+    uint32_t block_idx = start / BLOCK_SIZE;
+    uint32_t offset = start % BLOCK_SIZE;
+    uint32_t current_block = node->start_block;
+
+    for (uint32_t i = 0; i < block_idx && current_block != 0xFFFFFFFF; i++)
+        current_block = get_fat_entry(current_block);
+
+    while (count > 0 && current_block != 0xFFFFFFFF) {
+        char* data = (char*)(DATA_START + current_block * BLOCK_SIZE);
+        uint32_t chunk = (BLOCK_SIZE - offset < count) ? BLOCK_SIZE - offset : count;
+        memcpy(data + offset, buf + written, chunk);
+        written += chunk;
+        count -= chunk;
+        offset = 0;
+        current_block = get_fat_entry(current_block);
+    }
+    return written;
+}
+
+// 获取文件信息
+int get_file_info(char* file_path, inode* out_info) {
+    uint32_t id;
+    if (!find_inode_by_path(file_path, &id)) return -1;
+    memcpy(out_info, get_inode_ptr(id), sizeof(inode));
+    return 0;
+}
+
+int init_fs(){
+    uint32_t root_id;
+    if (!find_inode_by_path("/", &root_id)) {
+        printk("find /\n");
+        createk("/", DIR_TYPE, &root_id);
+        printk("create /\n");
+        inode* root = get_inode_ptr(root_id);
+        root->start_block = find_free_block();
+        set_fat_entry(root->start_block, 0xFFFFFFFF);
+        add_directory_entry(root_id, ".", root_id, DIR_TYPE);
+        add_directory_entry(root_id, "..", root_id, DIR_TYPE);
+    }
+    createk("/include",DIR_TYPE,&root_id);
+    printk("create /include\n");
+    createk("/tmp",DIR_TYPE,&root_id);
+    printk("create /tmp\n");
+    createk("/tmp/test.bin",FILE_TYPE,&root_id);
+    printk("create /tmp/test.bin\n");
 }

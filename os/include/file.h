@@ -9,15 +9,18 @@
 #include "syscall.h"
 #include "std.h"
 
-typedef struct file
-{
-    /* data */
-    char file_name[MAX_NAME];//max 128
+typedef struct file {
+    char file_name[MAX_NAME];
     uint32_t size;
     uint32_t start_block;
     uint8_t type;
-    //119 bit reserved
-}inode;
+} inode;
+
+typedef struct dir_entry {
+    char name[MAX_NAME];
+    uint32_t inode_id;
+    uint8_t type;
+} dir_entry;
 
 int init_fs();
 
@@ -47,17 +50,15 @@ int openk(char* file_path,uint32_t* inode_id);
 
 int open_i(char* file_path,uint32_t* inode_id);
 
-// _syscall2(int,read,uint32_t,inode_id,char*,buf);
 int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-// _syscall3(int,write,uint32_t,inode_id,char*,buf,uint32_t,length);
 int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-// _syscall3(int,create,uint32_t,dir_inode_id,char*,file_path,char,type);
 int create(char* file_path,char type,uint32_t* inode_id);
 
-// _syscall1(uint32_t,open,const char*,file_path);
 int open(char* file_path,uint32_t* inode_id);
+
+int get_file_info(char* file_path, inode* out_info);
 
 void regist_read(int* dt_addr);
 

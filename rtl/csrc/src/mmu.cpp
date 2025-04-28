@@ -15,6 +15,7 @@ int tlb::insert(uint32_t vir,uint32_t ppn){//TODO:采用什么换入换出策略
     }else{
         this->pages1[vir]=ppn;
     }
+    return 0;
 }
 
 int tlb::check_tlb1(uint32_t vir){

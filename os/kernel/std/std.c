@@ -15,6 +15,8 @@ _syscall4(int,read,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,count);
 _syscall4(int,write,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,length);
 _syscall3(int,create,char*,file_path,char,type,uint32_t*,inode_id);
 _syscall2(int,open,char*,file_path,uint32_t*,inode_id);
+_syscall1(int,free,void*,pointer);
+_syscall1(void*,malloc,uint32_t,size);
 _syscall3(int,send,socket*,sock,char*,buf,uint32_t,buf_length);
 _syscall3(int,recv,socket*,sock,char*,buf,uint32_t,buf_length);
 _syscall4(int,draw_label,point*,p1,char*,str,color*,c,int,font);

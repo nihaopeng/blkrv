@@ -155,13 +155,13 @@ int atoi(const char* str){
         str++;
     }
 	while (*str>='0'&&*str<='9') {
-        res = mul(res , 10) + (*str - '0');
+        res = res * 10) + (*str - '0';
         str++;
     }
     if(res==INT_MIN){
     	return res;
 	}
-    return mul(sign , res);
+    return sign * res;
 }
 
 void uint32_to_char(uint32_t value, char *buf) {

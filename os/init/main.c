@@ -8,15 +8,34 @@ int main(){
     init_input();
     init_out();
     init_net();
-    init_nvmm();
+    // init_nvmm();
     init_fs();
-    init_vmm();
+    // init_vmm();
     //init_vmm启用内核页表,启用内核页表后，所有的kernel系统调用将不被允许
     //init_ps()应该放在init_vmm之后以便于取得satp的值从而初始化shell进程。
-    init_ps();
+    // init_ps();
     //init_console是shell进程，运行在线性内核空间，pid=1。
+    /*
+        test fs
+    */
+   // 创建文件
+    uint32_t file_id;
+    createk("/docs/report.txt", FILE_TYPE, &file_id);
 
-    // init_console();
+    // 写入数据
+    char data[] = "Hello, World!";
+    writek(file_id, data, 0, str_len(data));
+
+    // 读取数据
+    char buf[512];
+    readk(file_id, buf, 0, sizeof(buf));
+    printk("read file:%s\n",buf);
+
+    // 获取文件信息
+    inode info;
+    get_file_info("/docs/report.txt", &info);
+
+    printk("file name:%s,file size:%d,file type:%c\n",info.file_name,info.size,info.type);
 
     /*
         test graphics
@@ -30,38 +49,44 @@ int main(){
     /*
         get exec file from server and exec it.
     */
-    uint32_t inode_id=0;
-    // below is a simple wget
-    socket sock={0,"127.0.0.1",8080};
-    char message[]="testfile";
-    char buf[1024];
-    memset_s(buf,0,1024);
-    send(&sock,message,str_len(message));
-    open("/tmp/test.bin",&inode_id);
-    print("\n");
-    uint32_t fp=0;
-    for(int i=0;;i++){
-        uint32_t data_len=recv(&sock,buf,1024);
-        if(data_len==0){
-            break;
-        }
-        write(inode_id,buf,fp,data_len);
-        fp+=data_len;
-        print("file pointer:%d\n",fp);
-    }
-    uint32_t pid;
-    open("/tmp/test.bin",&inode_id);
-    print("fid:%d\nexec file...\b\n",inode_id);
-    char para1[]="./user_program.bin";
-    char para2[]="1234";
-    char para3[]="578";
-    char para4[]="wuhu";
-    char para5[]="enheng";
-    char para6[]="he";
-    char* para[]={para1,para2,para3,para4,para5,para6};
-    print("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
-    exec(inode_id,-1,para,7);
+    // uint32_t inode_id=0;
+    // inode* ino;
+    // openk("/tmp/test.bin",&inode_id);
+    // get_inode_by_id(inode_id,&ino);
+    // printk("file size:%d\n",ino->size);
+    // // below is a simple wget
+    // if(ino->size!=35800){
+    //     socket sock={0,"127.0.0.1",8080};
+    //     char message[]="testfile";
+    //     char buf[1024];
+    //     memset_s(buf,0,1024);
+    //     sendk(&sock,message,str_len(message));
+    //     uint32_t fp=0;
+    //     for(int i=0;;i++){
+    //         uint32_t data_len=recvk(&sock,buf,1024);
+    //         if(data_len==0){
+    //             break;
+    //         }
+    //         writek(inode_id,buf,fp,data_len);
+    //         fp+=data_len;
+    //         printk("file pointer:%d\n",fp);
+    //     }
+    // }
+    // //exec file
+    // printk("fid:%d\nexec file...\b\n",inode_id);
+    // char para1[]="./user_program.bin";
+    // char para2[]="1234";
+    // char para3[]="578";
+    // char para4[]="wuhu";
+    // char para5[]="enheng";
+    // char para6[]="he";
+    // char* para[]={para1,para2,para3,para4,para5,para6};
+    // // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
+    // execk(inode_id,-1,para,7);
 
+    /*
+        test input
+    */
     // char s[20];
     // printk("getline:");
     // getline(s);

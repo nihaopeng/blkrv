@@ -12,6 +12,10 @@ void str_cpy(const char* src,char* dst);
 
 void str_cpy_s(const char* src,char* dst,uint32_t start,uint32_t end);
 
+char* strrchr(const char *str, int c);
+
+char* strncpy(char *dest, const char *src, uint32_t n);
+
 void split(const char* str,char separator,uint32_t* node);
 
 void itoa(int num, char *str);

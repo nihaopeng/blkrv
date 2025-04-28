@@ -4,7 +4,7 @@ int send_i(socket* sock,char* buf,uint32_t buf_length){
     _vir2phyk(socket*,sock);
     _vir2phyk(char*,buf);
     
-    printk("sock:%x\n",sock);
+    // printk("sock:%x\n",sock);
     sendk(sock,buf,buf_length);
 }
 

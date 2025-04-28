@@ -3,13 +3,14 @@
 int free_i(void* pointer){
     uint32_t satp=0;
     __asm__ volatile("csrr %0,0x181\n"::"r"(satp));//获取satp的值，也就是页表基址
-    return freek(satp&0xfffff000,pointer);
+    return freek(pointer,(uint32_t*)(satp&0xfffff000));
 }
 
 void* malloc_i(uint32_t size){
     uint32_t satp=0;
-    __asm__ volatile("csrr %0,0x181\n"::"r"(satp));//获取satp的值，也就是页表基址
-    return mallock(size,satp&0xfffff000);
+    __asm__ volatile("csrr %0,0x181"::"r"(satp));//获取satp的值，也就是页表基址
+    printk("malloc satp:%x\n",satp);
+    return mallock(size,(uint32_t*)(satp&0xfffff000));
 }
 
 _regist_syscall(void,free);

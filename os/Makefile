@@ -22,9 +22,8 @@ KERNEL_SRC := ./kernel
 SRC_FILES = $(shell find ./kernel -name *.c)
 OBJ_FILES = $(SRC_FILES:%.c=%.o)
 
-all:build_dir bootsect _start u_console sys $(OBJ_FILES) _pull_prog
+all:build_dir bootsect _start u_console sys $(OBJ_FILES)
 	$(cc) -o ./build/init/sysimg ./build/init/_start.o \
-	./build/init/_pull_prog.o \
 	$(OBJ_FILES) \
 	./build/init/console.o \
 	./build/init/main.o  -I$(INCLUDE) -nostdlib -lgcc -fPIE -Wl,--no-relax
