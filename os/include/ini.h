@@ -14,6 +14,8 @@
 #define DIR_TYPE 'd'
 #define FILE_TYPE 'f'
 #define BLOCK_SIZE 1024
+#define EOF 0xffffffff
+#define ROOT_INODE_ID 0
 
 //ram
 #define PAGE_SIZE 4096

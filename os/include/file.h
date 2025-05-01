@@ -24,15 +24,15 @@ typedef struct dir_entry {
 
 int init_fs();
 
-int get_inode_by_id(uint32_t inode_id,inode** inode_get);
+// int get_inode_by_id(uint32_t inode_id,inode** inode_get);
 
-int delete_block_link(uint32_t start_block);
+// int delete_block_link(uint32_t start_block);
 
-int find_file_in_dir(uint32_t inode_id,const char* name);
+// int find_file_in_dir(uint32_t inode_id,const char* name);
 
-int create_inode(const char* file_name,char type);
+// int create_inode(const char* file_name,char type);
 
-int delete_inode(uint32_t inode_id);
+// int delete_inode(uint32_t inode_id);
 
 int readk(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
@@ -46,9 +46,9 @@ int createk(char* file_path,char type,uint32_t* inode_id);
 
 int create_i(char* file_path,char type,uint32_t* inode_id);
 
-int openk(char* file_path,uint32_t* inode_id);
+int openk(const char* file_path);
 
-int open_i(char* file_path,uint32_t* inode_id);
+int open_i(const char* file_path);
 
 int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
@@ -56,7 +56,7 @@ int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 int create(char* file_path,char type,uint32_t* inode_id);
 
-int open(char* file_path,uint32_t* inode_id);
+int open(const char* file_path);
 
 int get_file_info(char* file_path, inode* out_info);
 

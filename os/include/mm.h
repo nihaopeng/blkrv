@@ -15,15 +15,15 @@ typedef struct mnode{
     struct mnode* next;
 }mnode;
 
-void init_nvmm();
+// void init_nvmm();
 
-/*get a block number that is 0, 0 represents free
-fail return -1*/
-uint32_t alloc_block();
+// /*get a block number that is 0, 0 represents free
+// fail return -1*/
+// uint32_t alloc_block();
 
-/*free a block
-fail return -1*/
-int free_block(uint16_t block_num);
+// /*free a block
+// fail return -1*/
+// int free_block(uint16_t block_num);
 
 //ram
 void init_vmm();

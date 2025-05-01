@@ -12,12 +12,11 @@ int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//the sta
     return writek(inode_id,buf,start,count);
 }
 
-int open_i(char* file_path,uint32_t* inode_id){
+int open_i(char* file_path){
     _vir2phyk(char*,file_path);
-    _vir2phyk(uint32_t*,inode_id);
     // _vir2phyk(int*,status);
 
-    return openk(file_path,inode_id);
+    return openk(file_path);
 }
 
 int create_i(char* file_path,char type,uint32_t* inode_id){

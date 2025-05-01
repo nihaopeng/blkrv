@@ -212,6 +212,8 @@ void* mallock(uint32_t size,uint32_t* page_content_addr){//size为字节数
                 used_node_phy->size=size-sizeof(mnode);
                 used_node_phy->next=list_node_phy->next;
                 prev_node_phy->next=used_node_phy;
+            }else{
+                prev_node_phy->next=list_node_phy->next;
             }
             return (void*)((uint32_t)list_node_vir+sizeof(mnode));
         }

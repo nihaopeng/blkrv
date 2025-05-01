@@ -19,23 +19,23 @@ int main(){
         test fs
     */
    // 创建文件
-    uint32_t file_id;
-    createk("/docs/report.txt", FILE_TYPE, &file_id);
+    // uint32_t file_id;
+    // createk("/docs/report.txt", FILE_TYPE, &file_id);
 
-    // 写入数据
-    char data[] = "Hello, World!";
-    writek(file_id, data, 0, str_len(data));
+    // // 写入数据
+    // char data[] = "Hello, World!";
+    // writek(file_id, data, 0, str_len(data));
 
-    // 读取数据
-    char buf[512];
-    readk(file_id, buf, 0, sizeof(buf));
-    printk("read file:%s\n",buf);
+    // // 读取数据
+    // char buf[512];
+    // readk(file_id, buf, 0, sizeof(buf));
+    // printk("read file:%s\n",buf);
 
-    // 获取文件信息
-    inode info;
-    get_file_info("/docs/report.txt", &info);
+    // // 获取文件信息
+    // inode info;
+    // get_file_info("/docs/report.txt", &info);
 
-    printk("file name:%s,file size:%d,file type:%c\n",info.file_name,info.size,info.type);
+    // printk("file name:%s,file size:%d,file type:%c\n",info.file_name,info.size,info.type);
 
     /*
         test graphics
