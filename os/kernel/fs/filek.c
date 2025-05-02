@@ -52,7 +52,7 @@ inode* get_inode_in_dir_by_name(char* file_name,inode* dir_inode){
                 return NULL;
             }
             inode* f_inode=get_inode_by_id(inode_id);
-            // printk("check:%s,check:%s\n",f_inode->file_name,file_name);
+            printk("check:%s,check:%s\n",f_inode->file_name,file_name);
             if(str_cmp(f_inode->file_name,file_name)){//文件名相等，找到文件
                 return f_inode;
             }
@@ -146,7 +146,7 @@ uint32_t create_Recursive(char* file_path, char type, uint32_t* inode_id,uint32_
     char* parent=file_path;
     char* filename=last_seperator+1;
     uint32_t parent_inode_id=0;
-    // printk("depth:%d,parent_path:%s,filename:%s\n",depth,parent,filename);
+    printk("depth:%d,parent_path:%s,filename:%s\n",depth,parent,filename);
     if(file_path==last_seperator){//此时父文件夹为根目录
         *last_seperator='/';//!!!恢复静态字符串，编译时相同字符会被编译为相同地址。
         inode* root_inode=get_inode_by_id(ROOT_INODE_ID);
@@ -254,7 +254,7 @@ int readk(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
     char* fp=block_addr+start%BLOCK_SIZE;
     uint32_t cur_size=(start/BLOCK_SIZE)*BLOCK_SIZE+start%BLOCK_SIZE;
     uint32_t pos=0;
-    printk("read:block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
+    // printk("read:block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
     for(int i=0;i<count;i++){
         if(cur_size>=f_inode->size){
             return pos;
@@ -309,8 +309,8 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
 }
 
 // 获取文件信息
-int get_file_info(char* file_path, inode* out_info) {
-    
+inode* get_file_info(uint32_t inode_id) {
+    return get_inode_by_id(inode_id);
 }
 
 int init_fs(){
@@ -323,25 +323,25 @@ int init_fs(){
     printk("create /tmp/test/test.bin,inode_id:%d\n",createk("/tmp/test/test.bin",FILE_TYPE,&root_id));
     // printk("open /,inode_id:%d\n",openk("/tmp/test/test/test.bin"));
     //below is test
-    uint32_t testbin_inode=openk("/tmp/test/test.bin");
-    char ctx[20]="hello world ";
-    uint32_t ctx_len=str_len(ctx);
-    uint32_t sum1=0;
-    for(int i=0;i<300;i++){
-        writek(testbin_inode,ctx,i*ctx_len,ctx_len);
-        sum1+=ctx_len;
-    }
-    char buf[512];
-    uint32_t sum2=0;
-    for(int i=0;i<1000;i++){
-        uint32_t len=readk(testbin_inode,buf,i*511,511);
-        buf[511]='\0';
-        printk("len:%d\n",len);
-        sum2+=len;
-        if(len==0){
-            break;
-        }
-        printk("buf:%s\n",buf);
-    }
-    printk("sum1:%d,sum2:%d\n",sum1,sum2);
+    // uint32_t testbin_inode=openk("/tmp/test/test.bin");
+    // char ctx[20]="hello world ";
+    // uint32_t ctx_len=str_len(ctx);
+    // uint32_t sum1=0;
+    // for(int i=0;i<300;i++){
+    //     writek(testbin_inode,ctx,i*ctx_len,ctx_len);
+    //     sum1+=ctx_len;
+    // }
+    // char buf[512];
+    // uint32_t sum2=0;
+    // for(int i=0;i<1000;i++){
+    //     uint32_t len=readk(testbin_inode,buf,i*511,511);
+    //     buf[511]='\0';
+    //     printk("len:%d\n",len);
+    //     sum2+=len;
+    //     if(len==0){
+    //         break;
+    //     }
+    //     printk("buf:%s\n",buf);
+    // }
+    // printk("sum1:%d,sum2:%d\n",sum1,sum2);
 }

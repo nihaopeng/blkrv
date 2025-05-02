@@ -4,6 +4,8 @@
 #include "ini.h"
 #include "drivers.h"
 #include "file.h"
+#include "proc.h"
+
 typedef struct syscall_table
 {
     uint32_t addr;

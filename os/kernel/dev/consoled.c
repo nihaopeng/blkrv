@@ -33,7 +33,7 @@ int printk(const char* fmt,...){//放在这里为了访问out_cache
             switch (fmt[i+1])
             {
                 case 'c':
-                    char ch= va_arg(args,char);
+                    char ch=(char)va_arg(args,int);//所有参数均是4字节对齐；
                     out_cache_k[out_cache_n++]=ch;
                     break;
                 case 's':

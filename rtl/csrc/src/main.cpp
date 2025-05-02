@@ -29,8 +29,8 @@ int main(int argc, char** argv, char** env) {
     for(;;i++){
         top->clk=0;
         top->eval();
-        // tfp->dump(main_time); //dump wave
-        // main_time+=1;
+        tfp->dump(main_time); //dump wave
+        main_time+=1;
 
         //经过mmu转换虚址后，将数据请求发给各设备
         my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
@@ -42,8 +42,8 @@ int main(int argc, char** argv, char** env) {
 
         top->clk=1;
         top->eval();
-        // tfp->dump(main_time); //dump wave
-        // main_time+=1;
+        tfp->dump(main_time); //dump wave
+        main_time+=1;
     }
     end=clock();
     printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);

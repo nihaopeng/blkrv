@@ -57,7 +57,7 @@ uint32_t mmu::check_page_list(Vtop* top){//TODO:缺页异常中断添加。
     // printf("page_list_base_ppn:%d\n",page_list_base_ppn);
     uint32_t page1_index=page_list_base_ppn+(((top->load_addr_v&0xffc00000)>>22)<<2);//获取一级页表中的pte
     // printf("page1_index:%d\n",page1_index);
-    uint32_t pte1=my_devices.my_ram->get4B(page1_index-0x00100000);//TODO:直接跳过RIB，省开发时间做法，实际硬件中这样实现并不规范
+    uint32_t pte1=my_devices.my_ram->get4B(page1_index-0x00100000);//TODO:直接跳过RIB，省开发时间做法，实际硬件中这样实现会更复杂
     // printf("pte1:%d\n",pte1);
     uint32_t page2_index=(pte1&0xfffff000) + (((top->load_addr_v&0x003ff000)>>12)<<2);//前20位为ppn
     // printf("page2_index:%d\n",page2_index);
@@ -71,6 +71,8 @@ uint32_t mmu::check_page_list(Vtop* top){//TODO:缺页异常中断添加。
 uint32_t mmu::convert(Vtop* top,devices* devices){
     if(top->satp & 0x00000fff){//mmu使能，top->satp & 0xfff00000提取asid标识进程号，0号进程属于内核进程，直接使用物理地址。
         // printf("mmu enable,addr:%d\n",top->load_addr_v);
+        // int a=0;
+        // scanf("%d",&a);
         uint32_t vir=((top->load_addr_v&0xfffff000)|(top->satp&0x00000fff));//vir: vpn(20) | asid(12)
         uint32_t ppn=this->my_tlb.check(vir);
         if(ppn!=-1){//命中
@@ -83,10 +85,16 @@ uint32_t mmu::convert(Vtop* top,devices* devices){
             // int a=0;
             // scanf("%d",&a);
             // sleep(2);
+            // if(top->load_addr_v==0x100b4)
+            //     printf("phy:%x\n",(ppn | (top->load_addr_v & 0x00000fff)));
             return (ppn | (top->load_addr_v & 0x00000fff));
         }
         return 0;
     }else{//mmu不使能
+        // if(top->load_addr_v==0x112ed0){
+        //     uint32_t data=my_devices.my_ram->get4B(top->load_addr_v);
+        //     printf("data:%x\n",data);
+        // }
         return top->load_addr_v;
     }
 }

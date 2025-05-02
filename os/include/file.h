@@ -1,12 +1,7 @@
 #ifndef _FILE_H_
 #define _FILE_H_
 
-#include "ini.h"
-#include "mm.h"
-#include "str.h"
-#include "math.h"
-#include "set_gate.h"
-#include "syscall.h"
+#include "drivers.h"
 #include "std.h"
 
 typedef struct file {
@@ -58,7 +53,7 @@ int create(char* file_path,char type,uint32_t* inode_id);
 
 int open(const char* file_path);
 
-int get_file_info(char* file_path, inode* out_info);
+inode* get_file_info(uint32_t inode_id);
 
 void regist_read(int* dt_addr);
 

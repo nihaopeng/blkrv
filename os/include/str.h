@@ -1,6 +1,6 @@
 #ifndef _STR_H_
 #define _STR_H_
-#include "ini.h"
+
 #include "math.h"
 #include "drivers.h"
 

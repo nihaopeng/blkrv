@@ -1,10 +1,7 @@
 #ifndef _STD_H_
 #define _STD_H_
 
-#include "ini.h"
 #include "str.h"
-#include "set_gate.h"
-#include "syscall.h"
 #include "dt.h"
 #include "drivers.h"
 

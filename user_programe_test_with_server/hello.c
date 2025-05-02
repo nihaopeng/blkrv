@@ -1,7 +1,7 @@
 #include "std.h"
 
 int main(int argc,char* argv[]){
-    print("argc:%d,argv_addr:%d\n",argc,argv);
+    print("argc:%d,argv_addr:%x\n",argc,argv);
     for(int i=0;i<argc;i++){
         print("arg%d:%s\n",i,argv[i]);
     }
@@ -26,24 +26,24 @@ int main(int argc,char* argv[]){
         }
     }
     print("##kbhit pass\n");
-    uint32_t inode_id=0;
-    create("/tmp/user_program_test.txt",'f',&inode_id);
-    print("##create pass\n");
-    open("/tmp/user_program_test.txt",&inode_id);
-    print("##open pass\n");
-    char buf[]="hello world";
-    write(inode_id,buf,0,str_len(buf));
-    print("##write pass\n");
-    char read_buf[20];
-    read(inode_id,read_buf,0,20);
-    print("%s\n",read_buf);
-    print("##read pass\n");
+    // uint32_t inode_id=0;
+    // create("/tmp/user_program_test.txt",'f',&inode_id);
+    // print("##create pass\n");
+    // inode_id=open("/tmp/user_program_test.txt");
+    // print("##open pass\n");
+    // char buf[]="hello world";
+    // write(inode_id,buf,0,str_len(buf));
+    // print("##write pass\n");
+    // char read_buf[20];
+    // read(inode_id,read_buf,0,20);
+    // print("%s\n",read_buf);
+    // print("##read pass\n");
 
     socket sock={0,"127.0.0.1",8080};
     char message[]="send test";
     char buf1[1024];
     send(&sock,message,str_len(message));
-    open("/tmp/test.bin",&inode_id);
+    // inode_id=open("/tmp/test.bin");
     while(1){
         if(recv(&sock,buf1,1024)==-1){
             break;
@@ -62,7 +62,7 @@ int main(int argc,char* argv[]){
     //     }
     // }
 
-    print("graphic tests pass\n");
+    // print("graphic tests pass\n");
 
-    print("##all tests pass!\n");
+    // print("##all tests pass!\n");
 }

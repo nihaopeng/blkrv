@@ -34,7 +34,37 @@ void str_cpy_s(const char* src,char* dst,uint32_t start,uint32_t end){//[]
     }
 }
 
+char* strrchr(const char *str, int c) {
+    char *last = NULL;
+    // 遍历字符串直到遇到终止符'\0'
+    while (*str != '\0') {
+        if (*str == (char)c) {
+            last = (char *)str; // 更新最后出现的位置
+        }
+        str++;
+    }
+    // 检查目标字符是否是终止符'\0'
+    if ((char)c == '\0') {
+        return (char *)str;
+    }
+    return last;
+}
 
+char* strncpy(char *dest, const char *src, uint32_t n) {
+    char *original_dest = dest; // 保存原始 dest 指针用于返回
+
+    // 复制最多 n 个字符（包括 \0）
+    for (; n > 0 && *src != '\0'; n--, src++, dest++) {
+        *dest = *src;
+    }
+
+    // 如果还有剩余空间，用 \0 填充
+    for (; n > 0; n--, dest++) {
+        *dest = '\0';
+    }
+
+    return original_dest;
+}
 
 void split(const char* str,char separator,uint32_t* node){
     uint32_t length=str_len(str);
@@ -155,7 +185,7 @@ int atoi(const char* str){
         str++;
     }
 	while (*str>='0'&&*str<='9') {
-        res = res * 10) + (*str - '0';
+        res = res * 10 + *str - '0';
         str++;
     }
     if(res==INT_MIN){
