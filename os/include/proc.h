@@ -32,6 +32,8 @@ void enter_prog();
 
 int exit_i();
 
+int exitk();
+
 int exit();
 
 int exec_i(uint32_t inode_id,int stdout,char** para,uint32_t para_num);

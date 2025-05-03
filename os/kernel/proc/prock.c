@@ -2,21 +2,32 @@
 
 pcb global_pcb_list[MAX_PRO_NUM];
 
-int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
-    uint32_t new_pid=0;
-    //获取空闲pid
-    //以下初始化pcb
+int exitk(){
+    //获取调用exit的程序的进程号；
+    uint32_t satp=0;
+    __asm__ volatile("csrrw %0,0x181,zero":"=r"(satp));
+    uint32_t pid=satp&0x00000fff;
+    printk("process: %d, mem space free list:\n",pid);
+    show_free_node_list((uint32_t*)(satp&0xfffff000),&(global_pcb_list[pid].free_block_head));
+    printk("process exit wait to implement\n");
+    shutdown();
+    //回收程序内存空间。
+    //调用schedular进入下一个进程。
+}
+
+int get_free_pid(){
     for(uint32_t i=1;i<MAX_PRO_NUM;i++){
         if(global_pcb_list[i].is_alive==0){
-            new_pid=i;
-            break;
+            return i;
         }
     }
+}
+
+uint32_t init_pcb(int new_pid,int stdout){
     global_pcb_list[new_pid].is_alive = 1;
     global_pcb_list[new_pid].stdout=stdout;
     global_pcb_list[new_pid].free_block_head.next=(mnode*)0x4;
     global_pcb_list[new_pid].free_block_head.size=0x0;
-    mnode* free_block_head=&(global_pcb_list[new_pid].free_block_head);
     uint32_t page_content_addr=(alloc_page()<<12) + RAM_START;
     //分配一页用于初始化
     uint32_t new_page=(alloc_page()<<12)+RAM_START;
@@ -29,46 +40,10 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     node_in_page->next=0;
     node_in_page->size=0xffffff4;
     printk("global_pcb_list[%d].satp:%x\n",new_pid,global_pcb_list[new_pid].satp);
+    return page_content_addr;
+}
 
-    // /*
-    //     test vmm here;
-    // */
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // uint32_t* malloc1=(uint32_t*)mallock(4095,(uint32_t*)page_content_addr,free_block_head);
-    // debugk(malloc1);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // char* malloc2=(char*)mallock(16,(uint32_t*)page_content_addr,free_block_head);
-    // debugk(malloc2);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // char* malloc3=(char*)mallock(31,(uint32_t*)page_content_addr,free_block_head);
-    // debugk(malloc3);
-    // //既不向前合并，也不向后合并
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // freek(malloc2,(uint32_t*)page_content_addr,free_block_head);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // printk("free malloc2:%x\n",malloc2);
-    // //向前合并&向后合并
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // freek(malloc3,(uint32_t*)page_content_addr,free_block_head);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // printk("free malloc3:%x\n",malloc3);
-    
-    // //向后合并
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // freek(malloc3,(uint32_t*)page_content_addr,free_block_head);
-    // printk("free malloc3:%x\n",malloc3);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-
-    // //向前合并
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // freek(malloc1,(uint32_t*)page_content_addr,free_block_head);
-    // printk("free malloc1:%x\n",malloc1);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-    // freek(malloc2,(uint32_t*)page_content_addr,free_block_head);
-    // printk("free malloc2:%x\n",malloc2);
-    // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
-
+uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_block_head){
     //以下加载程序代码
     inode* ino;
     ino=get_file_info(inode_id);
@@ -121,14 +96,6 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
         uint32_t prog_head_memsize=*(prog_head_addr+5);
         uint32_t prog_head_flags=*(prog_head_addr+6);
         uint32_t prog_head_align=*(prog_head_addr+7);
-        // debugk(prog_head_type);
-        // debugk(prog_head_offset);
-        // debugk(prog_head_vaddr);
-        // debugk(prog_head_paddr);
-        // debugk(prog_head_filesize);
-        // debugk(prog_head_memsize);
-        // debugk(prog_head_flags);
-        // debugk(prog_head_align);
         if(prog_head_type==1){
             //加载可执行文件
             // printk("prog_head_memsize:%x\n",prog_head_memsize);
@@ -163,13 +130,10 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
             }
         }
     }
+    return prog_start_addr;
+}
 
-    //以下初始化栈空间
-    uint32_t* stack_top=(uint32_t*)mallock(0x100000,(uint32_t*)page_content_addr,free_block_head);//1MB栈空间
-    // debugk(stack_top);
-    uint32_t* stack_bottom=(uint32_t*)((void*)stack_top+0x100000);
-    // debugk(stack_bottom);
-
+uint32_t load_params(uint32_t para_num,char** para,uint32_t page_content_addr,mnode* free_block_head){
     uint32_t argc=para_num;
     //以下加载传入参数
     uint32_t argv=(uint32_t)mallock(para_num,(uint32_t*)page_content_addr,free_block_head);//char* []的空间
@@ -182,18 +146,33 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
         *(argv_phy++)=(uint32_t)para_addr;
         if((argv+i)%PAGE_SIZE==0)
             argv_phy=(uint32_t*)vir2phy((uint32_t*)page_content_addr,argv+i);
-        _vir2phy(uint8_t*,para_addr,global_pcb_list[new_pid].satp);
+        para_addr=(uint8_t*)vir2phy((uint32_t*)page_content_addr,(uint32_t)para_addr);
         for(int j=0;j<para_size;j++){
             *(para_addr++)=para[i][j];
         }
         *para_addr='\0';
     }
+    return argv;
+}
 
-    debugk(prog_start_addr);
-    uint32_t* prog_start_addr_phy=(uint32_t*)vir2phy((uint32_t*)page_content_addr,prog_start_addr);
-    // debugk(prog_start_addr_phy);
-    debugk(*prog_start_addr_phy);
-    // printk("_start:%x%x%x%x\n",*(char*)(prog_start_addr_phy+3),*(char*)(prog_start_addr_phy+2),*(char*)(prog_start_addr_phy+1),*(char*)(prog_start_addr_phy));
+int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
+    uint32_t new_pid=get_free_pid();
+    //获取空闲pid
+    //以下初始化pcb
+    uint32_t page_content_addr=init_pcb(new_pid,stdout);
+
+    mnode* free_block_head=&(global_pcb_list[new_pid].free_block_head);
+    
+    uint32_t prog_start_addr=load_program(inode_id,page_content_addr,free_block_head);
+
+    //以下初始化栈空间
+    uint32_t* stack_top=(uint32_t*)mallock(0x100000,(uint32_t*)page_content_addr,free_block_head);//1MB栈空间
+    // debugk(stack_top);
+    uint32_t* stack_bottom=(uint32_t*)((void*)stack_top+0x100000);
+    // debugk(stack_bottom);
+
+    uint32_t argv=load_params(para_num,para,page_content_addr,free_block_head);
+
     __asm__ volatile(
         "mv t0,%3\n"//加载程序页表基址
         "mv t1,%4\n"//加载程序入口地址
@@ -205,7 +184,7 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
         "nop\n"
         "nop\n"
         :
-        :"r"(argc),"r"(argv),"r"(stack_bottom),"r"(global_pcb_list[new_pid].satp),"r"(prog_start_addr)//设置satp
+        :"r"(para_num),"r"(argv),"r"(stack_bottom),"r"(global_pcb_list[new_pid].satp),"r"(prog_start_addr)//设置satp
     );
 
     //更新栈底

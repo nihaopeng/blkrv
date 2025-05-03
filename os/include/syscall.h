@@ -88,6 +88,7 @@ type name(atype a,btype b,ctype c) \
         : "memory"); \
     return (type) __res; \
 }
+
 //to avoid compile error
 #define _syscall4(type,name,atype,a,btype,b,ctype,c,dtype,d) \
 type name(atype a,btype b,ctype c,dtype d) \
