@@ -27,10 +27,29 @@ assign	r2_o=REGS[r2_id_i];
 integer i;
 always @(posedge clk_i) begin
     if(interrupt_flag_i) begin
+        for(i=0;i<32;i++) begin
+            REGS_CP_M[i]<=REGS[i];
+        end
         read_valid_o<=1'b1;
     end
     else if(syscall_flag_i) begin
+        for(i=0;i<32;i++) begin
+            REGS_CP_S[i]<=REGS[i];
+        end
         read_valid_o<=1'b1;
+    end
+    else if(mret_flag_i) begin
+        for(i=0;i<32;i++) begin
+            REGS[i]<=REGS_CP_M[i];
+        end
+    end
+    else if(sret_flag_i) begin
+        for(i=0;i<10;i++) begin
+            REGS[i]<=REGS_CP_S[i];
+        end
+        for(i=11;i<32;i++) begin
+            REGS[i]<=REGS_CP_S[i];
+        end
     end
     else if(read_valid_i) begin
         if(we_i&&rd_id_i!=5'd0) begin

@@ -5,9 +5,9 @@
 .global _start,_gdt_search,_idt_search
 _start:
     la x1,_gdt_search//syscall_table adrr
-    csrrw zero,stvec,x1//syscall addr
+    csrw stvec,x1//syscall addr
     la x1,_idt_search
-    csrrw zero,mtvec,x1
+    csrw mtvec,x1
     csrrwi zero,mstatus,8//中断使能
     li x1,0
     j main
@@ -45,7 +45,7 @@ _start:
 .endm
 
 .macro recover_ctx
-    lw x2,-16(s0)//恢复上下文
+    # lw x2,-16(s0)//恢复上下文
     lw x3,-20(s0)
     lw x4,-24(s0)
     lw x5,-28(s0)
@@ -76,37 +76,63 @@ _start:
     lw x31,-132(s0)
 .endm
 
+.macro _vir2phy
+    csrr t0, 0x181             # 读取satp寄存器到t0
+    lui t1, 0xfffff            # 构造掩码0xfffff000
+    and t0, t0, t1             # 提取页表基址(satp & 0xfffff000)
+    mv t2, sp                  # 将sp的值复制到t2
+    srli t3, t2, 22            # 提取VPN[1] (高10位)
+    slli t3, t3, 2             # 计算一级页表偏移(VPN[1] * 4)
+    add t3, t0, t3             # 一级页表项地址
+    lw t4, 0(t3)               # 加载一级页表项到t4
+    lui t1, 0xfffff            # 重新加载PPN掩码
+    and t4, t4, t1             # 提取二级页表基址(PTE1 & 0xfffff000)
+    lui t5, 0x3ff              # 构造掩码0x003ff000
+    and t3, t2, t5             # 提取中间VPN[0]部分
+    srli t3, t3, 12            # 右移得到VPN[0]
+    slli t3, t3, 2             # 计算二级页表偏移(VPN[0] * 4)
+    add t3, t4, t3             # 二级页表项地址
+    lw t4, 0(t3)               # 加载二级页表项到t4
+    and t4, t4, t1             # 提取物理页号(PTE2 & 0xfffff000)
+    li t5, 0xfff               # 构造页内偏移掩码t5 = 0x00000fff
+    and t3, t2, t5             # 提取页内偏移(sp & 0xfff)
+    add sp, t4, t3             # 组合物理地址到t6
+.endm
+
 _gdt_search:
-    addi sp,sp,-132
-    sw ra,128(sp)
-    sw s0,124(sp)
-    addi s0,sp,132
-    save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。
+    _vir2phy//转换后的物理sp地址存储在t6中，保存虚拟地址sp后，sp赋值为物理地址
+    # addi t6,t6,-132
+    # sw ra,128(t6)
+    # sw s0,124(t6)
+    # addi s0,t6,132
+    # save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。同时保存了虚拟sp
+    # mv sp,t6//t6赋值物理sp
     slli a7,a7,2
     la a4,syscall_table//调用表基址
     add a7,a7,a4
     lw a7,0(a7)
     jalr ra,a7
-    recover_ctx
-    lw s0,124(sp)
-    lw ra,128(sp)
-    addi sp,sp,132
+    # recover_ctx//恢复上下文
+    # lw s0,124(sp)//还原s0，此时sp仍是物理地址
+    # lw ra,128(sp)//还原ra，貌似没用
+    # lw sp,116(sp)//还原sp
     sret
 
 _idt_search:
-    addi sp,sp,-132
-    sw ra,128(sp)
-    sw s0,124(sp)
-    addi s0,sp,132
-    save_ctx//保存上下文
+    # _vir2phy//新的物理sp地址存储在t6中，保存虚拟地址sp后，sp赋值为物理地址
+    li sp,0x00300000
+    # addi t6,t6,-132
+    # sw ra,128(t6)
+    # sw s0,124(t6)
+    # addi s0,t6,132
+    # save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。同时保存了虚拟sp
     csrrw a7,mcause,zero
     slli a7,a7,2
     la a4,inter_table//中断表基址
     add a7,a7,a4
     lw a7,0(a7)
     jalr ra,a7
-    recover_ctx
-    lw s0,124(sp)
-    lw ra,128(sp)
-    addi sp,sp,132
+    # lw s0,124(sp)//还原s0，此时sp仍是物理地址
+    # lw ra,128(sp)//还原ra，貌似没用
+    # recover_ctx//恢复上下文，此时sp还原为虚拟地址
     mret

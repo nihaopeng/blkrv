@@ -26,18 +26,18 @@ int main(int argc,char* argv[]){
         }
     }
     print("##kbhit pass\n");
-    // uint32_t inode_id=0;
-    // create("/tmp/user_program_test.txt",'f',&inode_id);
-    // print("##create pass\n");
-    // inode_id=open("/tmp/user_program_test.txt");
-    // print("##open pass\n");
-    // char buf[]="hello world";
-    // write(inode_id,buf,0,str_len(buf));
-    // print("##write pass\n");
-    // char read_buf[20];
-    // read(inode_id,read_buf,0,20);
-    // print("%s\n",read_buf);
-    // print("##read pass\n");
+    uint32_t inode_id=0;
+    create("/tmp/user_program_test.txt",'f',&inode_id);
+    print("##create pass\n");
+    inode_id=open("/tmp/user_program_test.txt");
+    print("##open pass\n");
+    char buf[]="hello world";
+    write(inode_id,buf,0,str_len(buf));
+    print("##write pass\n");
+    char read_buf[20];
+    read(inode_id,read_buf,0,20);
+    print("%s\n",read_buf);
+    print("##read pass\n");
 
     socket sock={0,"127.0.0.1",8080};
     char message[]="send test";
@@ -45,7 +45,7 @@ int main(int argc,char* argv[]){
     send(&sock,message,str_len(message));
     // inode_id=open("/tmp/test.bin");
     while(1){
-        if(recv(&sock,buf1,1024)==-1){
+        if(recv(&sock,buf1,1024)==0){
             break;
         }
         print("\n%s\n",buf1);

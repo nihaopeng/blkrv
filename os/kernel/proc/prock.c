@@ -175,6 +175,7 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     uint32_t argv=(uint32_t)mallock(para_num,(uint32_t*)page_content_addr,free_block_head);//char* []的空间
     uint32_t* argv_phy=(uint32_t*)vir2phy((uint32_t*)page_content_addr,argv);
     for(int i=0;i<para_num;i++){
+        printk("para:%d,%s\n",i,para[i]);
         uint32_t para_size=str_len(para[i])+1;
         uint8_t* para_addr=(uint8_t*)mallock(para_size,(uint32_t*)page_content_addr,free_block_head);
         // show_free_node_list((uint32_t*)page_content_addr,free_block_head);

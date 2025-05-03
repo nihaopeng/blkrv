@@ -34,7 +34,7 @@ int main(){
     ino=get_file_info(inode_id);
     printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,ino,ino->size);
     // below is a simple wget
-    if(ino->size!=35908){
+    if(ino->size!=36228){
         socket sock={0,"127.0.0.1",8080};
         char message[]="testfile";
         char buf[1024];
