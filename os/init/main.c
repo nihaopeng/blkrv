@@ -1,5 +1,4 @@
 // #include "std.h"
-#include "console.h"
 #include "file.h"
 #include "proc.h"
 
