@@ -52,7 +52,7 @@ inode* get_inode_in_dir_by_name(char* file_name,inode* dir_inode){
                 return NULL;
             }
             inode* f_inode=get_inode_by_id(inode_id);
-            printk("check:%s,check:%s\n",f_inode->file_name,file_name);
+            // printk("check:%s,check:%s\n",f_inode->file_name,file_name);
             if(str_cmp(f_inode->file_name,file_name)){//文件名相等，找到文件
                 return f_inode;
             }
@@ -146,7 +146,7 @@ uint32_t create_Recursive(char* file_path, char type, uint32_t* inode_id,uint32_
     char* parent=file_path;
     char* filename=last_seperator+1;
     uint32_t parent_inode_id=0;
-    printk("depth:%d,parent_path:%s,filename:%s\n",depth,parent,filename);
+    // printk("depth:%d,parent_path:%s,filename:%s\n",depth,parent,filename);
     if(file_path==last_seperator){//此时父文件夹为根目录
         *last_seperator='/';//!!!恢复静态字符串，编译时相同字符会被编译为相同地址。
         inode* root_inode=get_inode_by_id(ROOT_INODE_ID);
@@ -191,7 +191,7 @@ uint32_t create_Recursive(char* file_path, char type, uint32_t* inode_id,uint32_
             return create_file(filename,DIR_TYPE,get_inode_by_id(parent_inode_id));
         }
     }else{
-        // printk("parent:%s,file:%s has been exist\n",parent,filename);
+        printk("parent:%s,file:%s has been exist\n",parent,filename);
         return (file_inode-(inode*)INODE_START);//返回inode-id
     }
 }

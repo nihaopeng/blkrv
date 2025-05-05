@@ -3,6 +3,7 @@
 #include "Vtop.h"  // create `top.v`,so use `Vtop.h`
 #include "devices.h"
 #include "mmu.h"
+#include "monitor.h"
 
 extern vluint64_t main_time;
 extern devices my_devices;
@@ -21,6 +22,8 @@ int main(int argc, char** argv, char** env) {
     tfp->open("wave.vcd"); //设置输出的文件wave.vcd
     
     std::cout<<"start initializing devices..."<<std::endl;
+    std::cout<<"$init monitor"<<std::endl;
+    monitor my_monitor=monitor(1<<28,"../data.csv");
 
     clock_t start,end;
     start=clock();
@@ -38,6 +41,7 @@ int main(int argc, char** argv, char** env) {
             printf("tick:%d,data:%x,write_data:%x\n",main_time,data,top->write_data);
         }
         my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
+        my_monitor.process(&my_rib,&my_mmu,main_time);
         if(my_devices.process(&my_rib,i)){
             break;
         }

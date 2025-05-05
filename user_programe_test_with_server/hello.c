@@ -53,15 +53,17 @@ int main(int argc,char* argv[]){
     print("##send and recv pass\n");
 
     //test vmm
+    open_monitor();
     char* tmp=(char*)malloc(30);
+    close_monitor();
     tmp="this is blkrv malloc test";
-    print("tmp:%s\n",tmp);
+    print("tmp:%x:%s\n",tmp,tmp);
     char* tmp1=(char*)malloc(30);
     tmp1="this is blkrv malloc test1";
-    print("tmp1:%s\n",tmp1);
+    print("tmp1:%x:%s\n",tmp1,tmp1);
     char* tmp2=(char*)malloc(30);
     tmp2="this is blkrv malloc test2";
-    print("tmp2:%s\nfree tmp1\n",tmp2);
+    print("tmp2:%x:%s\nfree tmp1\n",tmp2,tmp2);
     free(tmp1);
 
     //严重违规操作，自己调用自己，将会陷入调用地狱，此处做测试使用。

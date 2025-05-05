@@ -22,8 +22,8 @@ devices::devices(){
     #endif // ENABLE_GPU
     std::cout<<"$init pmc"<<std::endl;
     this->my_pmc=new pmc(0);
-    std::cout<<"$init monitor"<<std::endl;
-    this->my_monitor=new monitor(1<<28,"../data.csv");
+    // std::cout<<"$init monitor"<<std::endl;
+    // this->my_monitor=new monitor(1<<28,"../data.csv");
     system("make loadmem");
     this->my_bios->sync();
     this->my_flash->sync();
@@ -39,7 +39,7 @@ int devices::process(rib* top,uint32_t tick){
     this->my_flash->process(top);
     this->my_screen->process(top);
     this->my_net_card->process(top);
-    this->my_monitor->process(top);
+    // this->my_monitor->process(top);
     #ifdef ENABLE_GPU
         this->my_gpu->process(top);
     #endif // ENABLE_GPU

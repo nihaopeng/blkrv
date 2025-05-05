@@ -3,6 +3,7 @@
 
 #include<fstream>
 #include "Vtop.h"
+// #include "mmu.h"
 
 #define DISPATCH(n,dev) do { \
     this->s##n##_req = 1; \
@@ -24,8 +25,10 @@
 
 #define ZERO_REQ(n) REQ(n)=0
 
+class mmu;
 class rib{
     public:
+        mmu* my_mmu;
         uint32_t int_port0=0;
         uint32_t int_port1=0;
         uint32_t int_port2=0;

@@ -22,9 +22,15 @@ class tlb{
 
 class mmu{
     public:
+        uint32_t addr=0;
+        uint32_t is_hit=0;
+        uint32_t is_enable=0;
         tlb my_tlb;
         mmu();
         ~mmu();
+        uint32_t get_addr() const;
+        uint32_t get_is_hit() const;
+        uint32_t get_is_enable() const;
         uint32_t check_page_list(Vtop* top);
         uint32_t convert(Vtop* top,devices* devices);
 };

@@ -170,7 +170,6 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     // debugk(stack_top);
     uint32_t* stack_bottom=(uint32_t*)((void*)stack_top+0x100000);
     // debugk(stack_bottom);
-
     uint32_t argv=load_params(para_num,para,page_content_addr,free_block_head);
 
     __asm__ volatile(

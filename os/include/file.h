@@ -11,12 +11,6 @@ typedef struct file {
     uint8_t type;
 } inode;
 
-typedef struct dir_entry {
-    char name[MAX_NAME];
-    uint32_t inode_id;
-    uint8_t type;
-} dir_entry;
-
 int init_fs();
 
 // int get_inode_by_id(uint32_t inode_id,inode** inode_get);

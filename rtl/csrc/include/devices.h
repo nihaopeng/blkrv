@@ -8,7 +8,7 @@
 #include "net_card.h"
 #include "pmc.h"
 #include "graphics.h"
-#include "monitor.h"
+// #include "monitor.h"
 
 class devices
 {
@@ -20,7 +20,7 @@ public:
     flash* my_flash;
     screen* my_screen;
     net_card* my_net_card;
-    monitor* my_monitor;
+    // monitor* my_monitor;
     #ifdef ENABLE_GPU
         gpu* my_gpu;
     #endif // ENABLE_GPU

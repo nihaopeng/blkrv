@@ -50,6 +50,21 @@ mmu::mmu(){}
 
 mmu::~mmu(){}
 
+uint32_t mmu::get_addr() const
+{
+    return this->addr;
+}
+
+uint32_t mmu::get_is_hit() const
+{
+    return this->is_hit;
+}
+
+uint32_t mmu::get_is_enable() const
+{
+    return this->is_enable;
+}
+
 uint32_t mmu::check_page_list(Vtop* top){//TODO:缺页异常中断添加。
     // printf("miss,satp:%d\n",top->satp);
     uint32_t page_list_base_ppn=(top->satp & 0xfffff000);//top->satp & 0x000fffff提取ppn，一级页表基址
@@ -70,6 +85,7 @@ uint32_t mmu::check_page_list(Vtop* top){//TODO:缺页异常中断添加。
 
 uint32_t mmu::convert(Vtop* top,devices* devices){
     if(top->satp & 0x00000fff){//mmu使能，top->satp & 0xfff00000提取asid标识进程号，0号进程属于内核进程，直接使用物理地址。
+        this->is_enable=1;
         // printf("mmu enable,addr:%d\n",top->load_addr_v);
         // int a=0;
         // scanf("%d",&a);
@@ -77,6 +93,7 @@ uint32_t mmu::convert(Vtop* top,devices* devices){
         uint32_t ppn=this->my_tlb.check(vir);
         if(ppn!=-1){//命中
             // printf("hit:%x,%x\n",top->load_addr_v,ppn | (top->load_addr_v & 0x00000fff));
+            this->is_hit=1;
             return (ppn | (top->load_addr_v & 0x00000fff));//物理页号加偏移得到物理基址
         }else{//未命中
             // printf("miss:%x,",top->load_addr_v);
@@ -87,14 +104,17 @@ uint32_t mmu::convert(Vtop* top,devices* devices){
             // sleep(2);
             // if(top->load_addr_v==0x100b4)
             //     printf("phy:%x\n",(ppn | (top->load_addr_v & 0x00000fff)));
+            this->is_hit=0;
             return (ppn | (top->load_addr_v & 0x00000fff));
         }
-        return 0;
+        // this->addr=0;
     }else{//mmu不使能
         // if(top->load_addr_v==0x112ed0){
         //     uint32_t data=my_devices.my_ram->get4B(top->load_addr_v);
         //     printf("data:%x\n",data);
         // }
+        this->is_enable=0;
+        // this->is_hit=1;
         return top->load_addr_v;
     }
 }

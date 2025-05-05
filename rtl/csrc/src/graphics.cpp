@@ -1,6 +1,6 @@
 #ifdef ENABLE_GPU
 
-    #include "gpu.h"
+    #include "graphics.h"
     gpu::gpu(uint32_t size):vmem(size){
         this->if_start_up=0;
         this->if_clear=0;

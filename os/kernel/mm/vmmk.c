@@ -124,6 +124,7 @@ uint32_t alloc_page_table(uint32_t* page_content_addr,uint32_t vir_start,uint32_
 }
 
 int freek(void* pointer,uint32_t* page_content_addr,mnode* free_block_head){//pointer为虚拟地址
+    show_free_node_list(page_content_addr,free_block_head);
     uint32_t used_node_vir=(uint32_t)pointer-sizeof(mnode);
     mnode* used_node_phy=(mnode*)vir2phy(page_content_addr,used_node_vir);
     // printk("free size:%d\n",used_node_phy->size);
@@ -189,16 +190,20 @@ int freek(void* pointer,uint32_t* page_content_addr,mnode* free_block_head){//po
     debugk(free_vir_start);
     debugk(free_vir_end);
     free_page_table(page_content_addr,free_vir_start,free_vir_end);
+    show_free_node_list(page_content_addr,free_block_head);
     return 0;
 }
 
 void* mallock(uint32_t size,uint32_t* page_content_addr,mnode* free_block_head){//size为字节数
     //遍历空闲链表，分配合适的块
+    // printk("page_content_addr:%x,free_block_head:%x\nstart malloc...\n");
+    show_free_node_list(page_content_addr,free_block_head);
     mnode* list_node_phy=free_block_head;
     uint32_t list_node_vir=0x0;
     mnode* prev_node_phy=list_node_phy;
     do{
-        if(list_node_phy->size >= size){
+        // printk("cur_node_size:%d\n",list_node_phy->size);
+        if(list_node_phy->size >= size){    
             //分配物理页
             uint32_t vir_start=list_node_vir+sizeof(mnode);
             uint32_t vir_end=list_node_phy->size!=size?list_node_vir+sizeof(mnode)*2+size:list_node_vir+sizeof(mnode)+size;//是否产生新的空闲碎片
@@ -217,6 +222,7 @@ void* mallock(uint32_t size,uint32_t* page_content_addr,mnode* free_block_head){
             }
             list_node_phy->size=size;
             list_node_phy->next=NULL;
+            show_free_node_list(page_content_addr,free_block_head);
             return (void*)(list_node_vir+sizeof(mnode));
         }
         //到下一个节点
