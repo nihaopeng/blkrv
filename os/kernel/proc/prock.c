@@ -136,10 +136,11 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
 uint32_t load_params(uint32_t para_num,char** para,uint32_t page_content_addr,mnode* free_block_head){
     uint32_t argc=para_num;
     //以下加载传入参数
-    uint32_t argv=(uint32_t)mallock(para_num,(uint32_t*)page_content_addr,free_block_head);//char* []的空间
+    uint32_t argv=(uint32_t)mallock(sizeof(char*)*para_num,(uint32_t*)page_content_addr,free_block_head);//char* []的空间
     uint32_t* argv_phy=(uint32_t*)vir2phy((uint32_t*)page_content_addr,argv);
     for(int i=0;i<para_num;i++){
         printk("para:%d,%s\n",i,para[i]);
+        show_free_node_list((uint32_t*)page_content_addr,free_block_head);
         uint32_t para_size=str_len(para[i])+1;
         uint8_t* para_addr=(uint8_t*)mallock(para_size,(uint32_t*)page_content_addr,free_block_head);
         // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
@@ -155,6 +156,16 @@ uint32_t load_params(uint32_t para_num,char** para,uint32_t page_content_addr,mn
     return argv;
 }
 
+uint32_t vmm_test(uint32_t page_content_addr,mnode* free_block_head){
+    char* tmp=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
+    printk("tmp:%x\n",tmp);
+    char* tmp1=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
+    printk("tmp1:%x\n",tmp1);
+    char* tmp2=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
+    printk("tmp2:%x\nfree tmp1",tmp2);
+    freek(tmp1,(uint32_t*)page_content_addr,free_block_head);
+}
+
 int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     uint32_t new_pid=get_free_pid();
     //获取空闲pid
@@ -165,12 +176,15 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     
     uint32_t prog_start_addr=load_program(inode_id,page_content_addr,free_block_head);
 
+    vmm_test(page_content_addr,free_block_head);
     //以下初始化栈空间
     uint32_t* stack_top=(uint32_t*)mallock(0x100000,(uint32_t*)page_content_addr,free_block_head);//1MB栈空间
     // debugk(stack_top);
-    uint32_t* stack_bottom=(uint32_t*)((void*)stack_top+0x100000);
+    uint32_t* stack_bottom=(uint32_t*)((void*)stack_top+0xffffc);
     // debugk(stack_bottom);
     uint32_t argv=load_params(para_num,para,page_content_addr,free_block_head);
+
+    vmm_test(page_content_addr,free_block_head);
 
     __asm__ volatile(
         "mv t0,%3\n"//加载程序页表基址

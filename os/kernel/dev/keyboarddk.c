@@ -61,13 +61,13 @@ int inputk(const char* fmt,...){
             int num=0;
             while(1){
                 // print("getting ch\n");
-                char ch=0;vgetchk(&ch);
+                char ch=vgetchk();
                 if(ch==10||ch==32){
-                    // printk("%c",ch);
+                    printk("%c",ch);
                    if(p==0)continue;
                    else break;
                 }else if(ch!=0){
-                    // printk("%c",ch);
+                    printk("%c",ch);
                     if(ch==127){
                         p-=1;
                         fmts[p]=0;

@@ -6,25 +6,25 @@ int main(int argc,char* argv[]){
         print("arg%d:%s\n",i,argv[i]);
     }
 
-    char res[20]="";
-    int t=0;
-    print("\n----hello----\nthis is user program,are you ok?(yes/no)(1/2)");
-    input("%s,%d",res,&t);
-    print("ans:%s,%d\n",res,t);
-    if(str_cmp("yes",res)){
-        print("fine\n");
-    }else if(str_cmp("no",res)){
-        print("i'm sorry to hear that\n");
-    }else{
-        print("what the fuck?\n");
-    }
-    print("##vgetch pass\ninput 'q' to test:");
-    while(1){
-        if(kbhit()){
-            if(vgetch()=='q')
-                break;
-        }
-    }
+    // char res[20]="";
+    // int t=0;
+    // print("\n----hello----\nthis is user program,are you ok?(yes/no)(1/2)");
+    // input("%s,%d",res,&t);
+    // print("ans:%s,%d\n",res,t);
+    // if(str_cmp("yes",res)){
+    //     print("fine\n");
+    // }else if(str_cmp("no",res)){
+    //     print("i'm sorry to hear that\n");
+    // }else{
+    //     print("what the fuck?\n");
+    // }
+    // print("##vgetch pass\ninput 'q' to test:");
+    // while(1){
+    //     if(kbhit()){
+    //         if(vgetch()=='q')
+    //             break;
+    //     }
+    // }
     print("##kbhit pass\n");
     uint32_t inode_id=0;
     create("/tmp/user_program_test.txt",'f',&inode_id);
@@ -39,31 +39,32 @@ int main(int argc,char* argv[]){
     print("%s\n",read_buf);
     print("##read pass\n");
 
-    socket sock={0,"127.0.0.1",8080};
-    char message[]="send test";
-    char buf1[1024];
-    send(&sock,message,str_len(message));
-    // inode_id=open("/tmp/test.bin");
-    while(1){
-        if(recv(&sock,buf1,1024)==0){
-            break;
-        }
-        print("\n%s\n",buf1);
-    }
-    print("##send and recv pass\n");
+    // socket sock={0,"127.0.0.1",8080};
+    // char message[]="send test";
+    // char buf1[1024];
+    // send(&sock,message,str_len(message));
+    // // inode_id=open("/tmp/test.bin");
+    // while(1){
+    //     if(recv(&sock,buf1,1024)==0){
+    //         break;
+    //     }
+    //     print("\n%s\n",buf1);
+    // }
+    // print("##send and recv pass\n");
 
     //test vmm
     open_monitor();
     char* tmp=(char*)malloc(30);
     close_monitor();
-    tmp="this is blkrv malloc test";
-    print("tmp:%x:%s\n",tmp,tmp);
+    // tmp="this is blkrv malloc test";
+    print("tmp:%d:%s\n",(uint32_t)tmp,tmp);
     char* tmp1=(char*)malloc(30);
-    tmp1="this is blkrv malloc test1";
-    print("tmp1:%x:%s\n",tmp1,tmp1);
+    // tmp1="this is blkrv malloc test1";
+    print("tmp1:%d:%s\n",(uint32_t)tmp1,tmp1);
     char* tmp2=(char*)malloc(30);
-    tmp2="this is blkrv malloc test2";
-    print("tmp2:%x:%s\nfree tmp1\n",tmp2,tmp2);
+    // tmp2="this is blkrv malloc test2";//错误赋值方式。
+    str_cpy("this is blkrv malloc test2",tmp2);
+    print("tmp2:%d:%s\nfree tmp1\n",(uint32_t)tmp2,tmp2);
     free(tmp1);
 
     //严重违规操作，自己调用自己，将会陷入调用地狱，此处做测试使用。

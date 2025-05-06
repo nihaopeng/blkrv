@@ -93,7 +93,7 @@ uint32_t show_free_node_list(uint32_t* page_content_addr,mnode* free_block_head)
             // printk("list_node_phy->size:%d\n",list_node_phy->size);
             break;
         }
-        printk("(%x)&(%x)-> ",list_node_vir,list_node_phy->size);
+        printk("(%x)&(%x)&(%x)-> ",list_node_vir,list_node_phy->size,list_node_phy);
         list_node_vir=list_node_phy->next;
         // printk("list_node_vir:%x\n",list_node_vir);
         list_node_phy=(mnode*)vir2phy(page_content_addr,(uint32_t)list_node_vir);
@@ -125,8 +125,11 @@ uint32_t alloc_page_table(uint32_t* page_content_addr,uint32_t vir_start,uint32_
 
 int freek(void* pointer,uint32_t* page_content_addr,mnode* free_block_head){//pointer为虚拟地址
     show_free_node_list(page_content_addr,free_block_head);
-    uint32_t used_node_vir=(uint32_t)pointer-sizeof(mnode);
+    uint32_t used_node_vir=(uint32_t)(pointer-sizeof(mnode));
     mnode* used_node_phy=(mnode*)vir2phy(page_content_addr,used_node_vir);
+    debugk(used_node_vir);
+    debugk(used_node_phy);
+    debugk(used_node_phy->size);
     // printk("free size:%d\n",used_node_phy->size);
     if(!used_node_phy){
         return -1;
@@ -151,8 +154,6 @@ int freek(void* pointer,uint32_t* page_content_addr,mnode* free_block_head){//po
     uint32_t free_vir_start=0;
     uint32_t free_vir_end=0;
     //向前合并
-    debugk(prev_node_vir+sizeof(mnode)+prev_node_phy->size);
-    debugk(used_node_vir);
     if(prev_node_vir+sizeof(mnode)+prev_node_phy->size==used_node_vir){//可以合并
         free_vir_start=prev_node_vir+sizeof(mnode);
         //对齐4096KB，如果在free返回则重新减小边界，将页free限制在used_node的范围，同时消除物理页碎片
@@ -160,8 +161,6 @@ int freek(void* pointer,uint32_t* page_content_addr,mnode* free_block_head){//po
         prev_node_phy->size+=sizeof(mnode)+used_node_phy->size;
         //向后合并
         if(used_node_vir+sizeof(mnode)+used_node_phy->size==list_node_vir){//可以合并
-            debugk(list_node_vir);
-            debugk(list_node_phy->size);
             free_vir_end=list_node_vir+sizeof(mnode)+list_node_phy->size;
             //对齐4096KB，如果在free返回则重新减小边界，将页free限制在used_node的范围，同时消除物理页碎片
             free_vir_end=((used_node_vir+PAGE_SIZE-1)&0xfffff000)<free_vir_end?((used_node_vir+PAGE_SIZE-1)&0xfffff000):free_vir_end;
@@ -175,8 +174,6 @@ int freek(void* pointer,uint32_t* page_content_addr,mnode* free_block_head){//po
         free_vir_start=used_node_vir;
         prev_node_phy->next=(mnode*)used_node_vir;
         //向后合并
-        debugk(used_node_vir+sizeof(mnode)+used_node_phy->size);
-        debugk(list_node_vir);
         if(used_node_vir+sizeof(mnode)+used_node_phy->size==list_node_vir){//可以合并
             free_vir_end=list_node_vir+sizeof(mnode)+list_node_phy->size;
             free_vir_end=((used_node_vir+PAGE_SIZE-1)&0xfffff000)<free_vir_end?((used_node_vir+PAGE_SIZE-1)&0xfffff000):free_vir_end;
@@ -209,7 +206,7 @@ void* mallock(uint32_t size,uint32_t* page_content_addr,mnode* free_block_head){
             uint32_t vir_end=list_node_phy->size!=size?list_node_vir+sizeof(mnode)*2+size:list_node_vir+sizeof(mnode)+size;//是否产生新的空闲碎片
             alloc_page_table(page_content_addr,vir_start,vir_end);
             //重新构造链表
-            if(list_node_phy->size!=size){//如果产生新的空闲块//TODO:fix bug
+            if(list_node_phy->size>=size+sizeof(mnode)){//如果产生新的空闲块,剩余空间如果小于一个mnode的大小，也认为没有产生空闲块。
                 uint32_t new_free_node_vir=list_node_vir+sizeof(mnode)+size;
                 mnode* new_free_node_phy=(mnode*)vir2phy(page_content_addr,new_free_node_vir);
                 // printk("new_free_node_phy:%x,list_node_vir:%x,list_node_phy:%x\n",new_free_node_phy,list_node_vir,list_node_phy);
@@ -217,10 +214,14 @@ void* mallock(uint32_t size,uint32_t* page_content_addr,mnode* free_block_head){
                 new_free_node_phy->size=list_node_phy->size-size-sizeof(mnode);
                 new_free_node_phy->next=list_node_phy->next;
                 prev_node_phy->next=(mnode*)new_free_node_vir;
+                list_node_phy->size=size;
             }else{
                 prev_node_phy->next=list_node_phy->next;
+                list_node_phy->size=list_node_phy->size;//没有产生新的空闲块，那么将剩余所有的空间都进行分配。
             }
-            list_node_phy->size=size;
+            debugk(list_node_vir);
+            debugk(list_node_phy);
+            debugk(list_node_phy->size);
             list_node_phy->next=NULL;
             show_free_node_list(page_content_addr,free_block_head);
             return (void*)(list_node_vir+sizeof(mnode));

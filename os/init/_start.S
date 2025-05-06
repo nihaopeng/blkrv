@@ -108,8 +108,8 @@ _gdt_search:
     # save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。同时保存了虚拟sp
     # mv sp,t6//t6赋值物理sp
     slli a7,a7,2
-    la a4,syscall_table//调用表基址
-    add a7,a7,a4
+    la t1,syscall_table//调用表基址
+    add a7,a7,t1
     lw a7,0(a7)
     jalr ra,a7
     # recover_ctx//恢复上下文
@@ -128,8 +128,8 @@ _idt_search:
     # save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。同时保存了虚拟sp
     csrrw a7,mcause,zero
     slli a7,a7,2
-    la a4,inter_table//中断表基址
-    add a7,a7,a4
+    la t1,inter_table//中断表基址
+    add a7,a7,t1
     lw a7,0(a7)
     jalr ra,a7
     # lw s0,124(sp)//还原s0，此时sp仍是物理地址
