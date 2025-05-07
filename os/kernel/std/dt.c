@@ -32,11 +32,13 @@ void regist_fs(){
     int* gdt_addr_open=(int*)(&syscall_table[_NR_open]);
     int* gdt_addr_create=(int*)(&syscall_table[_NR_create]);
     int* gdt_addr_finfo=(int*)(&syscall_table[_NR_finfo]);
+    int* gdt_addr_delete=(int*)(&syscall_table[_NR_delete]);
     regist_read(gdt_addr_read);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_write(gdt_addr_write);
     regist_open(gdt_addr_open);
     regist_create(gdt_addr_create);
     regist_finfo(gdt_addr_finfo);
+    regist_delete(gdt_addr_delete);
 }
 
 void regist_ps(){

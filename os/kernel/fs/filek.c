@@ -21,10 +21,11 @@ int alloc_block(){
             return j;
         }
     }
-    return -1;//TODO:dangerous operation
+    return -1;
 }
 
 int free_block(uint32_t block_id){//递归释放块
+    // printk("free block recursive:%d\n",block_id);
     if(block_id==EOF){
         return 0;
     }
@@ -111,11 +112,18 @@ int add_inode_id_to_dir(inode* dir_inode,uint32_t file_id){
 }
 
 int delete_inode(uint32_t inode_id){
-    
+    inode* finode=(inode*)INODE_START+inode_id;
+    str_cpy("",finode->file_name);
+    finode->type=0;
+    finode->size=0;
+    finode->start_block=0;
 }
 
-int delete_file(uint32_t inode_id){
-
+int deletek(uint32_t inode_id){
+    inode* finode=(inode*)INODE_START+inode_id;
+    free_block(finode->start_block);
+    delete_inode(inode_id);
+    return 1;
 }
 
 uint32_t create_inode(char* file_name,char type){
@@ -287,7 +295,7 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
     char* fp=block_addr+start%BLOCK_SIZE;
     uint32_t pos=0;
     uint32_t cur_size=(start/BLOCK_SIZE)*BLOCK_SIZE+start%BLOCK_SIZE;
-    printk("block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
+    // printk("block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
     for(int i=0;i<count;i++){
         *fp=buf[pos++];
         cur_size+=1;
@@ -305,6 +313,8 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
             fp=(char*)get_block_addr(block_id);
         }
     }
+    free_block(get_next_block_id(block_id));//递归释放剩余块
+    f_inode->size=start+count;
     return 1;
 }
 
@@ -322,10 +332,11 @@ int init_fs(){
     uint32_t root_id;
     printk("create /,inode_id:%d\n",createk("/",DIR_TYPE,&root_id));
     printk("create /include,inode_id:%d\n",createk("/include",DIR_TYPE,&root_id));
-    // printk("create /tmp,inode_id:%d\n",createk("/tmp",DIR_TYPE,&root_id));
-    printk("create /tmp/test.bin,inode_id:%d\n",createk("/tmp/test.bin",FILE_TYPE,&root_id));
-    printk("create /tmp/test/test/test.bin,inode_id:%d\n",createk("/tmp/test/test/test.bin",FILE_TYPE,&root_id));
-    printk("create /tmp/test/test.bin,inode_id:%d\n",createk("/tmp/test/test.bin",FILE_TYPE,&root_id));
+    printk("create /tmp,inode_id:%d\n",createk("/tmp",DIR_TYPE,&root_id));
+    printk("create /bin,inode_id:%d\n",createk("/bin",DIR_TYPE,&root_id));
+    // printk("create /tmp/test.bin,inode_id:%d\n",createk("/tmp/test.bin",FILE_TYPE,&root_id));
+    // printk("create /tmp/test/test/test.bin,inode_id:%d\n",createk("/tmp/test/test/test.bin",FILE_TYPE,&root_id));
+    // printk("create /tmp/test/test.bin,inode_id:%d\n",createk("/tmp/test/test.bin",FILE_TYPE,&root_id));
     // printk("open /,inode_id:%d\n",openk("/tmp/test/test/test.bin"));
     //below is test
     // uint32_t testbin_inode=openk("/tmp/test/test.bin");

@@ -42,14 +42,15 @@ int main(){
         get exec file from server and exec it.
     */
     
-    inode* ino;
-    uint32_t inode_id=openk("/tmp/test.bin");
+    inode ino;
+    uint32_t tmp=0;
+    uint32_t inode_id=createk("/bin/hello.elf",DIR_TYPE,&tmp);
     // open_monitor_k();
-    finfo_k(inode_id,ino);
+    finfo_k(inode_id,&ino);
     // close_monitor_k();
-    printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,ino,ino->size);
+    printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // below is a simple wget
-    if(ino->size!=35844){
+    if(ino.size!=35780){
         socket sock={0,"127.0.0.1",8080};
         char message[]="testfile";
         char buf[1024];
@@ -66,17 +67,23 @@ int main(){
             printk("file pointer:%d\n",fp);
         }
     }
+    finfo_k(inode_id,&ino);
+    printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
+    deletek(inode_id);//删除文件
+    finfo_k(inode_id,&ino);
+    printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
+    printk("after delete id:%d\n",openk("/bin/hello.elf"));
     //exec file
-    printk("fid:%d\nexec file...\b\n",inode_id);
-    char para1[]="./user_program.bin";
-    char para2[]="1234";
-    char para3[]="578";
-    char para4[]="wuhu";
-    char para5[]="enheng";
-    char para6[]="he";
-    char* para[]={para1,para2,para3,para4,para5,para6};
-    // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
-    execk(inode_id,-1,para,6);
+    // printk("fid:%d\nexec file...\b\n",inode_id);
+    // char para1[]="./user_program.bin";
+    // char para2[]="1234";
+    // char para3[]="578";
+    // char para4[]="wuhu";
+    // char para5[]="enheng";
+    // char para6[]="he";
+    // char* para[]={para1,para2,para3,para4,para5,para6};
+    // // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
+    // execk(inode_id,-1,para,6);
 
     /*
         test input

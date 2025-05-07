@@ -25,12 +25,12 @@ sok* net_card::sok_from_blkos(){
     }
 }
 
-void net_card::connect2server(char ip[16],uint32_t port) {
+int net_card::connect2server(char ip[16],uint32_t port) {
     // 创建 socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("socket creation failed");
-        return;
+        return NULL;
     }
     // 设置服务器地址结构
     struct sockaddr_in server_addr;
@@ -43,8 +43,9 @@ void net_card::connect2server(char ip[16],uint32_t port) {
         perror("connection to server failed");
         close(sockfd);
         sockfd = -1;
-        return;
+        return NULL;
     }
+    return sockfd;
     // std::cout << "Connected to server: " << server_ip << ":" << server_port << std::endl;
 }
 
@@ -74,7 +75,7 @@ void* net_card::thread_function(void* arg) {
         sok* sock=nic->sok_from_blkos();//阻塞
         // std::cout<<"get a request!\nip:"<<sock->ip<<"port:"<<sock->port<<"\ndata:"<<sock->data;
         if(sock){
-            nic->connect2server(sock->ip,sock->port);
+            int sockfd=nic->connect2server(sock->ip,sock->port);
             // 发送和接收消息的循环
             nic->send_message(sock->data,sock->data_len);
             while(1){
@@ -87,13 +88,13 @@ void* net_card::thread_function(void* arg) {
                     for(int l=0;l<response.size();l++){
                         nic->putB(rData_addr+cur_ptr+l,response[l]);
                     }
-                    std::cout<<std::endl<<"get response!recv size:"<<response.size()<<std::endl;
+                    // std::cout<<std::endl<<"get response!recv size:"<<response.size()<<std::endl;
                     nic->put4B(1<<22,cur_ptr+response.size());//put at last as a mark;
                 }else{
                     break;
                 }
             }
-            
+            close(sockfd);
         }
     }
     return nullptr;

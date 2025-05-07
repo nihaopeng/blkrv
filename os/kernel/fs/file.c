@@ -32,9 +32,14 @@ int finfo_i(uint32_t inode_id,inode* finode){
     return finfo_k(inode_id,finode);
 }
 
+int delete_i(uint32_t inode_id){
+    return deletek(inode_id);
+}
+
 _regist_syscall(void,read);
 _regist_syscall(void,write);
 _regist_syscall(void,open);
 _regist_syscall(void,create);
 _regist_syscall(void,finfo);
+_regist_syscall(void,delete);
 

@@ -25,6 +25,7 @@ _syscall0(int,flush);
 _syscall0(int,open_monitor);
 _syscall0(int,close_monitor);
 _syscall2(int,finfo,uint32_t,inode_id,inode*,finode);
+_syscall1(int,delete,uint32_t,inode_id);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);

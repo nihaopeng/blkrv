@@ -43,6 +43,10 @@ int finfo_i(uint32_t inode_id,inode* finode);
 
 int finfo_k(uint32_t inode_id,inode* finode);
 
+int delete_i(uint32_t inode_id);
+
+int deletek(uint32_t inode_id);
+
 int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
@@ -53,6 +57,8 @@ int open(const char* file_path);
 
 int finfo(uint32_t inode_id,inode* finode);
 
+int delete(uint32_t inode_id);
+
 void regist_finfo(int* dt_addr);
 
 void regist_read(int* dt_addr);
@@ -62,6 +68,8 @@ void regist_write(int* dt_addr);
 void regist_open(int* dt_addr);
 
 void regist_create(int* dt_addr);
+
+void regist_delete(int* dt_addr);
 
 //initialize the file system
 int root();

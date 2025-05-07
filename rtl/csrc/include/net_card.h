@@ -30,7 +30,7 @@ public:
     net_card(uint32_t size);
     ~net_card();
     sok* sok_from_blkos();
-    void connect2server(char ip[16],uint32_t port);
+    int connect2server(char ip[16],uint32_t port);
     void send_message(const char* message,const uint32_t data_len);
     std::string receive_message();
     static void* thread_function(void* arg);

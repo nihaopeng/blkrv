@@ -39,10 +39,10 @@ int main(int argc, char** argv, char** env) {
         // main_time+=1;
 
         //经过mmu转换虚址后，将数据请求发给各设备
-        if(top->load_addr_v==0x112ed0&&top->we){
-            uint32_t data=my_devices.my_ram->get4B(top->load_addr_v);
-            printf("tick:%d,data:%x,write_data:%x\n",main_time,data,top->write_data);
-        }
+        // if(top->load_addr_v==0x112ed0&&top->we){
+        //     uint32_t data=my_devices.my_ram->get4B(top->load_addr_v);
+        //     printf("tick:%d,data:%x,write_data:%x\n",main_time,data,top->write_data);
+        // }
         my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
         my_monitor->process(&my_rib,&my_mmu,main_time);
         if(my_devices.process(&my_rib,i)){
