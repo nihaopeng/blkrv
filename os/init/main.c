@@ -67,23 +67,23 @@ int main(){
             printk("file pointer:%d\n",fp);
         }
     }
-    finfo_k(inode_id,&ino);
-    printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
-    deletek(inode_id);//删除文件
-    finfo_k(inode_id,&ino);
-    printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
-    printk("after delete id:%d\n",openk("/bin/hello.elf"));
+    // finfo_k(inode_id,&ino);
+    // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
+    // deletek(inode_id);//删除文件
+    // finfo_k(inode_id,&ino);
+    // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
+    // printk("after delete id:%d\n",openk("/bin/hello.elf"));
     //exec file
     // printk("fid:%d\nexec file...\b\n",inode_id);
-    // char para1[]="./user_program.bin";
-    // char para2[]="1234";
-    // char para3[]="578";
-    // char para4[]="wuhu";
-    // char para5[]="enheng";
-    // char para6[]="he";
-    // char* para[]={para1,para2,para3,para4,para5,para6};
-    // // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
-    // execk(inode_id,-1,para,6);
+    char para1[]="./user_program.bin";
+    char para2[]="1234";
+    char para3[]="578";
+    char para4[]="wuhu";
+    char para5[]="enheng";
+    char para6[]="he";
+    char* para[]={para1,para2,para3,para4,para5,para6};
+    // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
+    execk(inode_id,-1,para,6);
 
     /*
         test input

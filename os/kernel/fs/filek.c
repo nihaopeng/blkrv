@@ -314,6 +314,7 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
         }
     }
     free_block(get_next_block_id(block_id));//递归释放剩余块
+    *((uint32_t*)FAT_START+block_id)=EOF;
     f_inode->size=start+count;
     return 1;
 }
