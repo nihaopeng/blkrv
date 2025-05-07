@@ -45,7 +45,7 @@ int main(){
     inode* ino;
     uint32_t inode_id=openk("/tmp/test.bin");
     // open_monitor_k();
-    ino=get_file_info(inode_id);
+    finfo_k(inode_id,ino);
     // close_monitor_k();
     printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,ino,ino->size);
     // below is a simple wget

@@ -24,6 +24,7 @@ _syscall4(int,draw_triangle,point*,p1,point*,p2,point*,p3,color*,c);
 _syscall0(int,flush);
 _syscall0(int,open_monitor);
 _syscall0(int,close_monitor);
+_syscall2(int,finfo,uint32_t,inode_id,inode*,finode);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);

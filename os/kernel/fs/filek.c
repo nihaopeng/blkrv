@@ -309,8 +309,13 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
 }
 
 // 获取文件信息
-inode* get_file_info(uint32_t inode_id) {
-    return get_inode_by_id(inode_id);
+int finfo_k(uint32_t inode_id,inode* finode){
+    inode* tmp_inode=get_inode_by_id(inode_id);
+    str_cpy(tmp_inode->file_name,finode->file_name);
+    finode->size=tmp_inode->size;
+    finode->start_block=tmp_inode->start_block;
+    finode->type=tmp_inode->type;
+    return 1;
 }
 
 int init_fs(){

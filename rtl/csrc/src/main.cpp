@@ -23,8 +23,11 @@ int main(int argc, char** argv, char** env) {
     
     std::cout<<"start initializing devices..."<<std::endl;
     std::cout<<"$init monitor"<<std::endl;
-    monitor my_monitor=monitor(1<<28,"../data.csv");
-
+    monitor* my_monitor;
+    if(argc>=2)
+        my_monitor=new monitor(1<<28,argv[1]);
+    else
+        my_monitor=new monitor(1<<28,"../data.txt");
     clock_t start,end;
     start=clock();
     top->clk=0;
@@ -41,7 +44,7 @@ int main(int argc, char** argv, char** env) {
             printf("tick:%d,data:%x,write_data:%x\n",main_time,data,top->write_data);
         }
         my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
-        my_monitor.process(&my_rib,&my_mmu,main_time);
+        my_monitor->process(&my_rib,&my_mmu,main_time);
         if(my_devices.process(&my_rib,i)){
             break;
         }

@@ -46,7 +46,7 @@ uint32_t init_pcb(int new_pid,int stdout){
 uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_block_head){
     //以下加载程序代码
     inode* ino;
-    ino=get_file_info(inode_id);
+    finfo_k(inode_id,ino);
     printk("file size:%d\n",ino->size);
     char read_buf[512];
     memset_s(read_buf,0,512);

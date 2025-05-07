@@ -72,6 +72,7 @@
 #define _NR_close_monitor 17
 #define _NR_malloc 18
 #define _NR_free 19
+#define _NR_finfo 20
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

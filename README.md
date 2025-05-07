@@ -13,19 +13,14 @@ make
 fltk
 
 ## usage
-### compile
-`cd rtl/`
-
 `make` for command version
 
-`make ENABLE_GPU=1` for gui version
-
-### it's time to run!
-`make run`
+`make clean&&make ENABLE_GPU=1` for gui version
 
 ## for more information
 
-https://gitee.com/c-nameless/blkrv-pre-design
+[blkrv-pre-design](https://gitee.com/c-nameless/blkrv-pre-design)
+[BLKRv主页](https://blkrv.moeyuki.net/)
 
 ## some details
 ### instructions
@@ -46,4 +41,3 @@ csr instruction
 
 ## os
 [syscall_func](./os/doc/syscall_func.md)
-   

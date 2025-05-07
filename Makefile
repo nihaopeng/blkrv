@@ -7,11 +7,15 @@ compile:
 
 vis:
 	mkdir -p ./blkrvis/data
-	cp $(file_path) ./blkrvis/data/data.txt
-	python3 -m http.server 8000 -d ./blkrvis
+	@if [ -z "$(file_path)" ]; then \
+		python3 -m http.server 8000 -d ./blkrvis; \
+	else \
+		cp "$(file_path)" ./blkrvis/data/data.txt; \
+		python3 -m http.server 8000 -d ./blkrvis; \
+	fi
 
 clean:
 	make clean -C ./os
 	make clean -C ./rtl
 
-.PHONY:run clean
+.PHONY:run clean compile vis

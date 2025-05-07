@@ -39,6 +39,10 @@ int openk(const char* file_path);
 
 int open_i(const char* file_path);
 
+int finfo_i(uint32_t inode_id,inode* finode);
+
+int finfo_k(uint32_t inode_id,inode* finode);
+
 int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
 int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
@@ -47,7 +51,9 @@ int create(char* file_path,char type,uint32_t* inode_id);
 
 int open(const char* file_path);
 
-inode* get_file_info(uint32_t inode_id);
+int finfo(uint32_t inode_id,inode* finode);
+
+void regist_finfo(int* dt_addr);
 
 void regist_read(int* dt_addr);
 

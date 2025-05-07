@@ -85,7 +85,7 @@ loadmem:mkutils mkbios
 	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 1048576 -tar_start 512 -tar_end 1049088
 
 run:
-	$(EXECUTABLE_NAME)
+	$(EXECUTABLE_NAME) $(FILE_PATH)
 
 clean:
 	@rm -rf $(BUILD_ROOT)
