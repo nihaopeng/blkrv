@@ -14,6 +14,8 @@ void str_cpy_s(const char* src,char* dst,uint32_t start,uint32_t end);
 
 char* strrchr(const char *str, int c);
 
+char* strchr(const char* str, int c);
+
 char* strncpy(char *dest, const char *src, uint32_t n);
 
 void split(const char* str,char separator,uint32_t* node);
@@ -27,5 +29,14 @@ void ftoa(float num, char *str, int precision);
 int atoi(const char* str);
 
 void uint32_to_char(uint32_t value, char *buf);
+
+
+int tolower(int c);
+
+int isdigit(int c);
+
+int isspace(int c);
+
+int isxdigit(int c);
 
 #endif // !_STR_H_
