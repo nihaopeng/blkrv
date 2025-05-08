@@ -34,25 +34,23 @@ int main(){
     // point p2={300,300};
     // point p3={400,400};
     // color c={255,0,0};
-    // draw_trianglek(&p1,&p2,&p3,&c);
-    // flushk();
+    // while(1){
+    //     p1.x+=1;p2.x+=1;p3.x+=1;
+    //     draw_trianglek(&p1,&p2,&p3,&c);
+    //     flushk();
+    // }
     // while(1);
-
-    /*
-        get exec file from server and exec it.
-    */
-    
     inode ino;
     uint32_t tmp=0;
-    uint32_t inode_id=createk("/bin/hello.elf",DIR_TYPE,&tmp);
+    uint32_t inode_id=createk("/tmp/test.jpg",FILE_TYPE,&tmp);
     // open_monitor_k();
     finfo_k(inode_id,&ino);
     // close_monitor_k();
     printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // below is a simple wget
-    if(ino.size!=35780){
+    if(ino.size!=136813){
         socket sock={0,"127.0.0.1",8080};
-        char message[]="testfile";
+        char message[]="jpg";
         char buf[1024];
         memset_s(buf,0,1024);
         sendk(&sock,message,str_len(message));
@@ -67,23 +65,57 @@ int main(){
             printk("file pointer:%d\n",fp);
         }
     }
+    finfo_k(inode_id,&ino);
+    draw_jpgk(inode_id,ino.size,0,0);
+    flushk();
+    while(1);
+
+    /*
+        get exec file from server and exec it.
+    */
+    
+    // inode ino;
+    // uint32_t tmp=0;
+    // uint32_t inode_id=createk("/bin/hello.elf",FILE_TYPE,&tmp);
+    // // open_monitor_k();
     // finfo_k(inode_id,&ino);
-    // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
-    // deletek(inode_id);//删除文件
-    // finfo_k(inode_id,&ino);
-    // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
-    // printk("after delete id:%d\n",openk("/bin/hello.elf"));
-    //exec file
-    // printk("fid:%d\nexec file...\b\n",inode_id);
-    char para1[]="./user_program.bin";
-    char para2[]="1234";
-    char para3[]="578";
-    char para4[]="wuhu";
-    char para5[]="enheng";
-    char para6[]="he";
-    char* para[]={para1,para2,para3,para4,para5,para6};
-    // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
-    execk(inode_id,-1,para,6);
+    // // close_monitor_k();
+    // printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
+    // // below is a simple wget
+    // if(ino.size!=35780){
+    //     socket sock={0,"127.0.0.1",8080};
+    //     char message[]="testfile";
+    //     char buf[1024];
+    //     memset_s(buf,0,1024);
+    //     sendk(&sock,message,str_len(message));
+    //     uint32_t fp=0;
+    //     for(int i=0;;i++){
+    //         uint32_t data_len=recvk(&sock,buf,1024);
+    //         if(data_len==0){
+    //             break;
+    //         }
+    //         writek(inode_id,buf,fp,data_len);
+    //         fp+=data_len;
+    //         printk("file pointer:%d\n",fp);
+    //     }
+    // }
+    // // finfo_k(inode_id,&ino);
+    // // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
+    // // deletek(inode_id);//删除文件
+    // // finfo_k(inode_id,&ino);
+    // // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
+    // // printk("after delete id:%d\n",openk("/bin/hello.elf"));
+    // //exec file
+    // // printk("fid:%d\nexec file...\b\n",inode_id);
+    // char para1[]="./user_program.bin";
+    // char para2[]="1234";
+    // char para3[]="578";
+    // char para4[]="wuhu";
+    // char para5[]="enheng";
+    // char para6[]="he";
+    // char* para[]={para1,para2,para3,para4,para5,para6};
+    // // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
+    // execk(inode_id,-1,para,6);
 
     /*
         test input

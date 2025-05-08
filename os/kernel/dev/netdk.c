@@ -1,5 +1,5 @@
 #include "net.h"
-
+#include "str.h"
 uint32_t rData_flag=0;
 
 int init_net(){

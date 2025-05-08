@@ -21,6 +21,12 @@ int draw_label_i(point* p1,char* str,color* c,int font){
     draw_labelk(p1,str,c,font);
 }
 
+int draw_jpg_i(uint32_t inode_id,uint32_t size,uint32_t x,uint32_t y){
+    return draw_jpgk(inode_id,size,x,y);
+}
+
+_regist_syscall(void,draw_jpg);
+
 _regist_syscall(void,draw_triangle);
 
 _regist_syscall(void,draw_label);

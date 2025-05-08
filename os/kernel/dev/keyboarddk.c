@@ -1,5 +1,6 @@
 #include "drivers.h"
 #include<stdarg.h>
+#include "str.h"
 // int un_use=0;
 int in_cache_frontp=0;
 int in_cache_backp=0;

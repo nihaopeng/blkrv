@@ -59,9 +59,11 @@ void regist_graphic(){
     int* gdt_addr_draw_label=(int*)(&syscall_table[_NR_draw_label]);
     int* gdt_addr_draw_triangle=(int*)(&syscall_table[_NR_draw_triangle]);
     int* gdt_addr_flush=(int*)(&syscall_table[_NR_flush]);
+    int* gdt_addr_draw_jpg=(int*)(&syscall_table[_NR_draw_jpg]);
     regist_draw_label(gdt_addr_draw_label);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_draw_triangle(gdt_addr_draw_triangle);
     regist_flush(gdt_addr_flush);
+    regist_draw_jpg(gdt_addr_draw_jpg);
 }
 
 void regist_monitor(){

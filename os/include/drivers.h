@@ -2,13 +2,10 @@
 #define _DRIVERS_H_
 
 #include "ini.h"
-#include "mm.h"
 #include "math.h"
 #include "set_gate.h"
 #include "syscall.h"
-#include "net.h"
-#include "graphic.h"
-#include "monitor.h"
+
 
 void set_stdout(int stdouts,int stdout_start);
 

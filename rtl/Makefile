@@ -8,7 +8,7 @@ endif
 cc = g++
 ccflag = -lstdc++ -lm -pthread 
 ifeq ($(ENABLE_GPU), 1)
-    ccflag += -DENABLE_GPU -lfltk
+    ccflag += -DENABLE_GPU -lfltk -lfltk_images
 endif
 
 # the include and src of verilator

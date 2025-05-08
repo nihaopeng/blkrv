@@ -72,8 +72,13 @@ int main() {
                     std::cout<<"size:"<<response.size()<<std::endl;
                     send(new_socket, response.c_str(), response.size(), 0);
                 }
-                else{
+                else if(!strcmp(buffer,"hello")){
                     std::string response= "hello,this is response from icca";
+                    send(new_socket, response.c_str(), response.size(), 0);
+                }
+                else if(!strcmp(buffer,"jpg")){
+                    std::string response =readBinaryFile("./test.jpg");
+                    std::cout<<"size:"<<response.size()<<std::endl;
                     send(new_socket, response.c_str(), response.size(), 0);
                 }
                 break;

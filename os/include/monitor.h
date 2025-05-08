@@ -1,5 +1,7 @@
 #include "ini.h"
 #include "set_gate.h"
+#include "syscall.h"
+#include "std.h"
 
 int open_monitor();
 

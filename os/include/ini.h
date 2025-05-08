@@ -73,7 +73,7 @@
 #define _NR_malloc 18
 #define _NR_free 19
 #define _NR_finfo 20
-#define _NR_delete 21
+#define _NR_draw_jpg 21
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

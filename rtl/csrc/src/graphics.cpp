@@ -14,7 +14,7 @@
         uint32_t addr=GPU_ADDR_CACHE;
         uint32_t event=gput->get4B(addr);
         // char* t=new char[1024];
-        char* t;int x0,y0,x1,y1,x2,y2,font,r,g,b;
+        char* t;int x0,y0,x1,y1,x2,y2,font,r,g,b,x,y,image_size;
         gput->buffered_widget->img_surf->set_current();  // 切换到缓冲区上下文
         if(gput->if_clear==0){
             gput->buffered_widget->clear_screen();
@@ -40,8 +40,18 @@
             break;
         case 3:
             gput->if_clear=0;
+            // gput->buffered_widget->clear_screen();
             gput->put4B(addr,0);
             gput->buffered_widget->flush();
+            break;
+        case 4:
+            x=gput->get4B(addr+4);
+            y=gput->get4B(addr+8);
+            image_size=gput->get4B(addr+12);
+            printf("x:%d,y:%d,size:%d\n",x,y,image_size);
+            gput->put4B(addr,0);
+            gput->buffered_widget->draw_jpg(gput->mem_space+16,image_size,x,y);
+            break;
         default:
             break;
         }
@@ -57,6 +67,7 @@
         Fl::add_timeout(1/500,gpu::draw,arg);
         gput->win->show();
         Fl::run();
+        return nullptr;
     }
 
     int gpu::process(rib* rib,uint32_t tick){

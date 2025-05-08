@@ -1,4 +1,6 @@
 #include "drivers.h"
+#include "str.h"
+#include "file.h"
 #include <stdarg.h>
 
 int stdout=-1;

@@ -3,8 +3,11 @@
 
 #include "ini.h"
 #include "drivers.h"
+#include "graphic.h"
 #include "file.h"
 #include "proc.h"
+#include "net.h"
+#include "monitor.h"
 
 typedef struct syscall_table
 {
