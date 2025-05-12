@@ -25,6 +25,12 @@ int draw_jpg_i(uint32_t inode_id,uint32_t size,uint32_t x,uint32_t y){
     return draw_jpgk(inode_id,size,x,y);
 }
 
+int draw_png_i(uint32_t inode_id,uint32_t size,uint32_t x,uint32_t y){
+    return draw_pngk(inode_id,size,x,y);
+}
+
+_regist_syscall(void,draw_png);
+
 _regist_syscall(void,draw_jpg);
 
 _regist_syscall(void,draw_triangle);

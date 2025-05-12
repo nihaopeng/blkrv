@@ -7,6 +7,22 @@
     #include <atomic>
 
     #define GPU_ADDR_CACHE 0x00000000
+    #define INODE_START 0x00200000//存放inode，2MB大小，最多14979个文件。
+    #define FAT_START 0x00400000//2MB,flash起始为0x40200000,前2MB为kernel程序存放位置,从0x40400000开始的2MB存储fat表
+    #define DATA_START 0x00600000//4MB
+    #define BLOCK_SIZE 1024//4KB
+    #define EOF 0xFFFFFFFF
+    #define MAX_NAME 128
+
+    #define SCREEN_WIDTH 1920
+    #define SCREEN_HEIGHT 1080
+
+    typedef struct screen_file{
+        char file_name[MAX_NAME];
+        uint32_t size;
+        uint32_t start_block;
+        uint8_t type;
+    } screen_inode;
 
     class gpu:public vmem
     {

@@ -11,17 +11,41 @@ typedef struct socket
     uint32_t target_port;
 }socket;
 
-int send(socket* sock,char* buf,uint32_t buf_length);
+int send(int sockfd,char* buf,uint32_t buf_length);
 
-int sendk(socket* sock,char* buf,uint32_t buf_length);
+int sendk(int sockfd,char* buf,uint32_t buf_length);
 
-int send_i(socket* sock,char* buf,uint32_t buf_length);
+int send_i(int sockfd,char* buf,uint32_t buf_length);
 
-int recvk(socket* sock,char* buf,uint32_t buf_length);
+int recvk(int sockfd,char* buf,uint32_t buf_length);
 
-int recv(socket* sock,char* buf,uint32_t buf_length);
+int recv(int sockfd,char* buf,uint32_t buf_length);
 
-int recv_i(socket* sock,char* buf,uint32_t buf_length);
+int recv_i(int sockfd,char* buf,uint32_t buf_length);
+
+int accept(socket* sock);
+
+int acceptk(socket* sock);
+
+int accept_i(socket* sock);
+
+int connect(socket* sock);
+
+int connectk(socket* sock);
+
+int connect_i(socket* sock);
+
+int close(int sockfd);
+
+int closek(int sockfd);
+
+int close_i(int sockfd);
+
+void regist_accept(int* dt_addr);
+
+void regist_connect(int* dt_addr);
+
+void regist_close(int* dt_addr);
 
 void regist_send(int* dt_addr);
 

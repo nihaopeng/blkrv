@@ -65,22 +65,32 @@ int main() {
             if (bytes_read > 0) {
                 std::cout << "Received: " << buffer << std::endl;
                 
-                // 回复客户端
-                if(!strcmp(buffer,"testfile"))
-                {
-                    std::string response =readBinaryFile("./hello");
-                    std::cout<<"size:"<<response.size()<<std::endl;
-                    send(new_socket, response.c_str(), response.size(), 0);
+                // 读取文件并准备响应
+                std::string filePath(buffer);
+                std::string response = readBinaryFile(filePath);
+                uint32_t file_size = static_cast<uint32_t>(response.size());
+                // uint32_t net_file_size = htonl(file_size); // 转换为网络字节序
+                printf("File size: %u bytes\n", file_size);
+                // 发送文件大小（4字节）
+                ssize_t sent_size = send(new_socket, &file_size, sizeof(file_size), 0);
+                if (sent_size != sizeof(file_size)) {
+                    perror("send file size failed");
+                    break;
                 }
-                else if(!strcmp(buffer,"hello")){
-                    std::string response= "hello,this is response from icca";
-                    send(new_socket, response.c_str(), response.size(), 0);
+
+                // 发送文件内容
+                const char* file_data = response.data();
+                size_t remaining = file_size;
+                while (remaining > 0) {
+                    ssize_t sent_bytes = send(new_socket, file_data, remaining, 0);
+                    if (sent_bytes <= 0) {
+                        perror("send file data failed");
+                        break;
+                    }
+                    remaining -= sent_bytes;
+                    file_data += sent_bytes;
                 }
-                else if(!strcmp(buffer,"jpg")){
-                    std::string response =readBinaryFile("./test.jpg");
-                    std::cout<<"size:"<<response.size()<<std::endl;
-                    send(new_socket, response.c_str(), response.size(), 0);
-                }
+
                 break;
             } else {
                 std::cout << "Connection closed." << std::endl;

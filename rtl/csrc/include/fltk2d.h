@@ -7,6 +7,7 @@
 #include <FL/Fl_Image_Surface.H>
 #include <FL/Fl_RGB_Image.H>
 #include <FL/Fl_JPEG_Image.H>  // 新增JPEG支持头文件
+#include <FL/Fl_PNG_Image.H>
 #include <cmath>  // 用于 sin 和 cos 函数
 
 class BufferedWidget : public Fl_Box {
@@ -20,7 +21,9 @@ public:
 
     void text(int x0,int y0,int r,int b,int g,int font,const char* str);
 
-    void draw_jpg(const unsigned char* jpg_data, size_t data_length,int x, int y);
+    void draw_jpg(unsigned char* jpg_data, size_t data_length,int x, int y);
+
+    void draw_png(unsigned char* png_data, size_t data_length,int x, int y);
     
     BufferedWidget(int X, int Y, int W, int H, const char* L = nullptr);
 

@@ -6,7 +6,8 @@ test/
 rtl/devices/
 .VSCodeCounter
 *.csv
-user_programe_test_with_server/hello
-user_programe_test_with_server/server
-user_programe_test_with_server/hello.elf
-user_programe_test_with_server/hello.s
+example/hello
+example/server
+example/hello.elf
+example/hello.s
+example/ppt_pngs/

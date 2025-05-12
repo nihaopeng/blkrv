@@ -6,96 +6,107 @@ net_card::net_card(uint32_t size):vmem(size){
 
 net_card::~net_card(){pthread_join(thread, nullptr);}
 
-sok* net_card::sok_from_blkos(){
-    while(1){
-        if(this->get4B(20)){//sData_length is exist
-            sok* sock_from_os=(sok*)malloc(sizeof(sok));
-            for(int i=0;i<16;i++){
-                sock_from_os->ip[i]=this->getB(i);
-            }
-            sock_from_os->port=this->get4B(16);
-            sock_from_os->data_len=this->get4B(20);
-            this->put4B(20,0);//清除标志
-            sock_from_os->data=(char*)malloc(sizeof(char)*sock_from_os->data_len);
-            for(int i=0;i<sock_from_os->data_len;i++){
-                sock_from_os->data[i]=this->getB(24+i);
-            }
-            return sock_from_os;
+int net_card::blk_accept(){
+    if(this->get4B(0)==1){//port位不为0，产生请求
+        char ip[16];
+        for(int i=4;i<20;i++){
+            ip[i-4]=this->getB(i);
         }
+        uint16_t port=this->get4B(20);
+        // printf("accept:ip:%s,port:%d\n",ip,port);
+        uint32_t protocol=this->get4B(24);
+        int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in server_addr, client_addr;
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_addr.s_addr = inet_addr(ip);
+        server_addr.sin_port = htons(port);
+        bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+        listen(server_fd, 5);
+        socklen_t addr_len = sizeof(client_addr);
+        int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &addr_len);
+        // printf("accept:client_fd:%d\n",client_fd);
+        this->put4B(28,client_fd);
+        this->put4B(0,0);//通知发送完成
     }
+    return 0;
 }
 
-int net_card::connect2server(char ip[16],uint32_t port) {
-    // 创建 socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        perror("socket creation failed");
-        return NULL;
+int net_card::blk_send(){
+    if(this->get4B(0)==2){//sockfd位不为0，产生请求
+        int sockfd=this->get4B(4);
+        int data_phy_addr=this->get4B(8);
+        int data_len=this->get4B(12);
+        printf("send:sockfd:%d,data_phy_addr:%x,data_len:%d\n",sockfd,data_phy_addr,data_len);
+        char* data=new char[data_len];
+        for(int i=0;i<data_len;i++){
+            data[i]=this->my_ram->getB(data_phy_addr+i);
+        }
+        printf("send data:%s\n",data);
+        send(sockfd, data, data_len, 0);
+        delete[] data;
+        this->put4B(0,0);//通知发送完成
     }
-    // 设置服务器地址结构
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = inet_addr(ip);
-    // 连接到服务器
-    printf("Connecting to server: %s:%d\n", ip, port);
-    if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-        perror("connection to server failed");
+    return 0;
+}
+
+int net_card::blk_recv(){
+    if(this->get4B(0)==3){//sockfd位不为0，产生请求
+        int sockfd=this->get4B(4);
+        int data_phy_addr=this->get4B(8);
+        int data_len=this->get4B(12);
+        // printf("recv:sockfd:%d,data_phy_addr:%x,data_len:%d\n",sockfd,data_phy_addr,data_len);
+        char* data=new char[data_len];
+        uint32_t size=recv(sockfd, data, data_len, 0);
+        for(int i=0;i<data_len;i++){
+            this->my_ram->putB(data_phy_addr+i,data[i]);
+        }
+        delete[] data;
+        this->put4B(16,size);//通知接收数据长度
+        this->put4B(0,0);//通知接收完成
+    }
+    return 0;
+}
+
+int net_card::blk_connect(){
+    if(this->get4B(0)==4){//port位不为0，产生请求
+        char ip[16]={0};
+        for(int i=4;i<20;i++){
+            ip[i-4]=this->getB(i);
+        }
+        uint16_t port=this->get4B(20);
+        uint32_t protocol=this->get4B(24);
+        // printf("connect:ip:%s,port:%d\n",ip,port);
+        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in servaddr;
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons(port);
+        inet_pton(AF_INET, ip, &servaddr.sin_addr);
+        connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr));
+        // printf("connect:sockfd:%d\n",sockfd);
+        this->put4B(28,sockfd);//通知连接完成
+        this->put4B(0,0);//通知发送完成
+    }
+    return 0;
+}
+
+int net_card::blk_close(){
+    if(this->get4B(0)==5){//sockfd位不为0，产生请求
+        int sockfd=this->get4B(4);
         close(sockfd);
-        sockfd = -1;
-        return NULL;
+        this->put4B(0,0);//通知关闭完成
     }
-    return sockfd;
-    // std::cout << "Connected to server: " << server_ip << ":" << server_port << std::endl;
-}
-
-void net_card::send_message(const char* message,const uint32_t data_len) {
-    if (sockfd != -1) {
-        send(sockfd, message, data_len, 0);
-    }
-}
-
-std::string net_card::receive_message() {
-    std::string data;
-    char buffer[1024];
-    ssize_t bytes_received;
-    // printf("ready get\n");
-    bytes_received = recv(sockfd, buffer, sizeof(buffer), 0);
-    // printf("size:%ld",bytes_received);
-    if(bytes_received>0){
-        data.append(buffer, bytes_received);
-    }
-    return data;
+    return 0;
 }
 
 void* net_card::thread_function(void* arg) {
     std::cout<<"net interface card start up!\n";
+    net_card* nic = static_cast<net_card*>(arg);
     while(1){
-        net_card* nic = static_cast<net_card*>(arg);
-        sok* sock=nic->sok_from_blkos();//阻塞
-        // std::cout<<"get a request!\nip:"<<sock->ip<<"port:"<<sock->port<<"\ndata:"<<sock->data;
-        if(sock){
-            int sockfd=nic->connect2server(sock->ip,sock->port);
-            // 发送和接收消息的循环
-            nic->send_message(sock->data,sock->data_len);
-            while(1){
-                std::string response = nic->receive_message();
-                // std::cout<<response.size()<<std::endl;
-                if (!response.empty()) {
-                    // std::cout << "Received: " << response << std::endl;
-                    uint32_t rData_addr=4*1024*1024+4;
-                    uint32_t cur_ptr=nic->get4B(4*1024*1024);
-                    for(int l=0;l<response.size();l++){
-                        nic->putB(rData_addr+cur_ptr+l,response[l]);
-                    }
-                    // std::cout<<std::endl<<"get response!recv size:"<<response.size()<<std::endl;
-                    nic->put4B(1<<22,cur_ptr+response.size());//put at last as a mark;
-                }else{
-                    break;
-                }
-            }
-            close(sockfd);
-        }
+        nic->blk_accept();
+        nic->blk_connect();
+        nic->blk_send();
+        nic->blk_recv();
+        nic->blk_close();
     }
     return nullptr;
 }
@@ -111,7 +122,7 @@ int net_card::process(rib* rib,uint32_t tick){
                 case 0:this->putB(rib->s5_addr,uint8_t(rib->s5_write_data));break;
                 case 1:this->put2B(rib->s5_addr,uint16_t(rib->s5_write_data));break;
                 case 2:this->put4B(rib->s5_addr,uint32_t(rib->s5_write_data));
-                        // printf("%d:%d:%d\n",rib->s1_addr,rib->s1_write_data,this->get4B(rib->s1_addr));
+                        // printf("%x:%d:%d\n",rib->s5_addr,rib->s5_write_data,this->get4B(rib->s5_addr));
                         break;
                 default:break;
             }
@@ -124,5 +135,11 @@ int net_card::process(rib* rib,uint32_t tick){
             }
         }
     }
+    return 0;
+}
+
+int net_card::dma_link(ram *my_ram)
+{
+    this->my_ram=my_ram;
     return 0;
 }

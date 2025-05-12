@@ -8,13 +8,57 @@
 
     gpu::~gpu(){pthread_join(thread, nullptr);}
 
+    uint32_t get_next_block_id_s(std::fstream &fp,uint32_t cur_block_id){
+        fp.seekg(FAT_START+cur_block_id*4);
+        uint32_t data;
+        fp.read(reinterpret_cast<char*>(&data), sizeof(data));
+        return data;
+    }
+    
+    screen_inode* get_inode_by_id_s(std::fstream &fp,uint32_t inode_id){
+        fp.seekg(INODE_START+inode_id*sizeof(screen_inode));
+        screen_inode* data=new screen_inode;
+        fp.read(reinterpret_cast<char*>(data), sizeof(screen_inode));
+        return data;
+    }
+    
+    char getB(std::fstream &fp,char* addr){
+        fp.seekg((uint64_t)addr);
+        char data;
+        fp.read(reinterpret_cast<char*>(&data), sizeof(data));
+        return data;
+    }
+    
+    // 读取文件
+    int readk_s(uint32_t inode_id,unsigned char* buf) {
+        std::fstream f;
+        f.open("./devices/flash",std::ios::binary|std::ios::in);
+        screen_inode* f_inode=get_inode_by_id_s(f,inode_id);
+        uint32_t block_id=f_inode->start_block;
+        // printf("readk_s:inode_id:%d,block_id:%d,size:%d\n",inode_id,block_id,f_inode->size);
+        if(block_id==EOF) return 0;
+        char* fp=(char*)(DATA_START+block_id*BLOCK_SIZE);
+        // printk("read:block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
+        for(int i=0;i<f_inode->size;i++){
+            buf[i]=getB(f,fp);
+            fp+=1;
+            if(((uint64_t)fp-(uint64_t)DATA_START)%(uint64_t)BLOCK_SIZE==0){
+                block_id=get_next_block_id_s(f,block_id);
+                // printf("block_id:%d\n",block_id);
+                if(block_id==EOF) return 0;
+                fp=(char*)(DATA_START+block_id*BLOCK_SIZE);
+            }
+        }
+        return 0;
+    }
+
     void gpu::draw(void* arg){
         gpu* gput=static_cast<gpu*>(arg);
         //get event
         uint32_t addr=GPU_ADDR_CACHE;
         uint32_t event=gput->get4B(addr);
         // char* t=new char[1024];
-        char* t;int x0,y0,x1,y1,x2,y2,font,r,g,b,x,y,image_size;
+        char* t;unsigned char* image_buf;int x0,y0,x1,y1,x2,y2,font,r,g,b,x,y,image_size,inode_id;
         gput->buffered_widget->img_surf->set_current();  // 切换到缓冲区上下文
         if(gput->if_clear==0){
             gput->buffered_widget->clear_screen();
@@ -48,9 +92,25 @@
             x=gput->get4B(addr+4);
             y=gput->get4B(addr+8);
             image_size=gput->get4B(addr+12);
-            printf("x:%d,y:%d,size:%d\n",x,y,image_size);
+            inode_id=gput->get4B(addr+16);
+            printf("x:%d,y:%d,size:%d,inode_id:%d\n",x,y,image_size,inode_id);
             gput->put4B(addr,0);
-            gput->buffered_widget->draw_jpg(gput->mem_space+16,image_size,x,y);
+            image_buf=new unsigned char[image_size];
+            readk_s(inode_id,image_buf);
+            // printf("image_buf:%c%c%c%c\n",image_buf[0],image_buf[1],image_buf[2],image_buf[3]);
+            gput->buffered_widget->draw_jpg(image_buf,image_size,x,y);
+            break;
+        case 5:
+            x=gput->get4B(addr+4);
+            y=gput->get4B(addr+8);
+            image_size=gput->get4B(addr+12);
+            inode_id=gput->get4B(addr+16);
+            // printf("x:%d,y:%d,size:%d,inode_id:%d\n",x,y,image_size,inode_id);
+            gput->put4B(addr,0);
+            image_buf=new unsigned char[image_size];
+            readk_s(inode_id,image_buf);
+            // printf("image_buf:%c%c%c%c\n",image_buf[0],image_buf[1],image_buf[2],image_buf[3]);
+            gput->buffered_widget->draw_png(image_buf,image_size,x,y);
             break;
         default:
             break;
@@ -61,8 +121,8 @@
     void* gpu::thread_function(void* arg) {
         printf("gpu start up!\n");
         gpu* gput = static_cast<gpu*>(arg);
-        gput->win = new Fl_Window(800, 600, "Rotating Triangle Example");
-        gput->buffered_widget = new BufferedWidget(0, 0, 800, 600);
+        gput->win = new Fl_Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Rotating Triangle Example");
+        gput->buffered_widget = new BufferedWidget(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         gput->win->end();
         Fl::add_timeout(1/500,gpu::draw,arg);
         gput->win->show();

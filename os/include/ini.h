@@ -34,12 +34,7 @@
 
 #define GPU_ADDR_CACHE 0x20200000
 
-#define NIC_IP_ADDR 0x30200000
-#define NIC_PORT_ADDR 0x30200010
-#define NIC_SDATA_LEN_ADDR 0x30200014
-#define NIC_SDATA_ADDR 0x30200018
-#define NIC_RDATA_LEN_ADDR 0x30600000
-#define NIC_RDATA_ADDR 0x30600004
+#define NIC_CTRL_ADDR 0x30200000
 
 // #define FILE_TABLE_ADDR 0x40400000//2MB前2MB为kernel程序存放位置
 // #define FILE_DATA_ADDR 0x40500000//3MB
@@ -74,6 +69,10 @@
 #define _NR_free 19
 #define _NR_finfo 20
 #define _NR_draw_jpg 21
+#define _NR_draw_png 22
+#define _NR_accept 23
+#define _NR_connect 24
+#define _NR_close 24
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

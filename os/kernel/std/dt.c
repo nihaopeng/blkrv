@@ -51,8 +51,14 @@ void regist_ps(){
 void regist_net(){
     int* gdt_addr_send=(int*)(&syscall_table[_NR_send]);
     int* gdt_addr_recv=(int*)(&syscall_table[_NR_recv]);
-    regist_send(gdt_addr_send);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    int* gdt_addr_accept=(int*)(&syscall_table[_NR_accept]);
+    int* gdt_addr_connect=(int*)(&syscall_table[_NR_connect]);
+    int* gdt_addr_close=(int*)(&syscall_table[_NR_close]);
+    regist_accept(gdt_addr_accept);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    regist_connect(gdt_addr_connect);
+    regist_send(gdt_addr_send);
     regist_recv(gdt_addr_recv);
+    regist_close(gdt_addr_close);
 }
 
 void regist_graphic(){
@@ -60,10 +66,12 @@ void regist_graphic(){
     int* gdt_addr_draw_triangle=(int*)(&syscall_table[_NR_draw_triangle]);
     int* gdt_addr_flush=(int*)(&syscall_table[_NR_flush]);
     int* gdt_addr_draw_jpg=(int*)(&syscall_table[_NR_draw_jpg]);
+    int* gdt_addr_draw_png=(int*)(&syscall_table[_NR_draw_png]);
     regist_draw_label(gdt_addr_draw_label);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_draw_triangle(gdt_addr_draw_triangle);
     regist_flush(gdt_addr_flush);
     regist_draw_jpg(gdt_addr_draw_jpg);
+    regist_draw_png(gdt_addr_draw_png);
 }
 
 void regist_monitor(){

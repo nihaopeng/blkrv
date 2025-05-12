@@ -11,7 +11,7 @@ devices::devices(){
     std::cout<<"$init ram"<<std::endl;
     this->my_ram=new ram(1<<28);
     std::cout<<"$init flash"<<std::endl;
-    this->my_flash=new flash("./devices/flash",1<<30);
+    this->my_flash=new flash("./devices/flash",1<<29);
     std::cout<<"$init screen"<<std::endl;
     this->my_screen=new screen(1<<28);
     std::cout<<"$init net_card"<<std::endl;
@@ -25,6 +25,7 @@ devices::devices(){
     // std::cout<<"$init monitor"<<std::endl;
     // this->my_monitor=new monitor(1<<28,"../data.csv");
     system("make loadmem");
+    this->my_net_card->dma_link(this->my_ram);//建立dma连接，此处不走bus
     this->my_bios->sync();
     this->my_flash->sync();
 }

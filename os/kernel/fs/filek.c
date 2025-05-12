@@ -218,7 +218,7 @@ int openk(const char* file_path) {
     char* parent=file_path;
     char* filename=last_seperator+1;
     uint32_t parent_inode_id=0;
-    // printk("file_path:%x,sep:%x\n",file_path,last_seperator);
+    // printk("file_path:%s,sep:%s\n",file_path,filename);
     if(file_path==last_seperator){//此时父文件夹为根目录
         // printk("it is root\n");
         *last_seperator='/';

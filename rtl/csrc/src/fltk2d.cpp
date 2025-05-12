@@ -37,7 +37,7 @@ BufferedWidget::~BufferedWidget()
     delete cached_image; // 释放图像缓存
 }
 
-void BufferedWidget::draw_jpg(const unsigned char* jpg_data, size_t data_length,int x, int y){
+void BufferedWidget::draw_jpg(unsigned char* jpg_data, size_t data_length,int x, int y){
     Fl_Surface_Device* current = Fl_Surface_Device::surface();
     img_surf->set_current();
 
@@ -45,6 +45,20 @@ void BufferedWidget::draw_jpg(const unsigned char* jpg_data, size_t data_length,
     Fl_JPEG_Image jpg_image(nullptr, jpg_data, data_length);
     if (!jpg_image.fail() && jpg_data != nullptr) {
         jpg_image.draw(x, y);
+    }
+
+    current->set_current();
+}
+
+void BufferedWidget::draw_png(unsigned char* png_data,size_t data_length,int x, int y)
+{
+    Fl_Surface_Device* current = Fl_Surface_Device::surface();
+    img_surf->set_current();
+
+    // 从内存创建PNG图像对象
+    Fl_PNG_Image png_image(nullptr, png_data, data_length);
+    if (!png_image.fail() && png_data != nullptr) {
+    png_image.draw(x, y);
     }
 
     current->set_current();
