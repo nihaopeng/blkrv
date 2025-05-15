@@ -145,6 +145,7 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
                 <<"hit_times:"<<this->hit_times<<std::endl
                 <<"phy_time:"<<(std::chrono::duration_cast<std::chrono::milliseconds>)(this->end_time-this->start_time).count()<<" ms"<<std::endl;
             this->fp.flush();
+            this->fp.close();
     }
     return 0;
 }
