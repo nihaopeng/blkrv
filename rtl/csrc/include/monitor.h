@@ -3,12 +3,15 @@
 
 #include<string>
 #include<fstream>
+#include <chrono>
 #include "rib.h"
 #include "mmu.h"
 
 class monitor
 {
 public:
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock> end_time;
     uint32_t size;
     uint8_t* mem_space;
     uint32_t is_enable=0;
