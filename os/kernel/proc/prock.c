@@ -176,7 +176,7 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     
     uint32_t prog_start_addr=load_program(inode_id,page_content_addr,free_block_head);
 
-    vmm_test(page_content_addr,free_block_head);
+    // vmm_test(page_content_addr,free_block_head);
     //以下初始化栈空间
     uint32_t* stack_top=(uint32_t*)mallock(0x100000,(uint32_t*)page_content_addr,free_block_head);//1MB栈空间
     // debugk(stack_top);
@@ -184,7 +184,7 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     // debugk(stack_bottom);
     uint32_t argv=load_params(para_num,para,page_content_addr,free_block_head);
 
-    vmm_test(page_content_addr,free_block_head);
+    // vmm_test(page_content_addr,free_block_head);
 
     __asm__ volatile(
         "mv t0,%3\n"//加载程序页表基址

@@ -14,8 +14,8 @@
     #define EOF 0xFFFFFFFF
     #define MAX_NAME 128
 
-    #define SCREEN_WIDTH 1920
-    #define SCREEN_HEIGHT 1080
+    #define SCREEN_WIDTH 800
+    #define SCREEN_HEIGHT 800
 
     typedef struct screen_file{
         char file_name[MAX_NAME];
