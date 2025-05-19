@@ -3,7 +3,7 @@
 monitor::monitor(uint32_t size,std::string data_path){
     this->size=size;
     this->mem_space=(uint8_t*)malloc(sizeof(uint8_t)*size);
-    this->fp.open(data_path,std::ios::out);
+    this->data_path=data_path;
     // this->fp<<
     // "lui,auipc,jal,jalr,bj,load,store,calc,calci,sys,bios,ram,keyboard,screen,nic,flash"
     // <<std::endl;
@@ -86,6 +86,9 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
     {
         // printf("monitor opened\n");
         // inst_type={22'd0,lui,auipc,jal,jalr,bj,load,store,calc,calci,sys};
+        if(this->is_enable==0){
+            this->start_time = std::chrono::high_resolution_clock::now();
+        }
         this->is_enable=1;
         uint32_t inst_type=rib->inst_type_o;
         this->sum_ticks+=1;
@@ -115,6 +118,8 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
         this->mmu_enable_times+=my_mmu->is_enable;
     }else if(this->is_enable==1&&this->get4B(0)==0){//开启后又关闭
         // printf("physic monitor opened\n");
+        this->fp.open(this->data_path,std::ios::out);
+        this->end_time = std::chrono::high_resolution_clock::now();
         this->is_enable=0;
         this->fp<<"sum_ticks:"<<this->sum_ticks<<std::endl
                 <<"lui_times:"<<this->lui_times<<std::endl
@@ -137,7 +142,10 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
                 <<"align_times:"<<this->align_times<<std::endl
                 <<"none_align_times:"<<this->none_align_times<<std::endl
                 <<"mmu_enable_times:"<<this->mmu_enable_times<<std::endl
-                <<"hit_times:"<<this->hit_times<<std::endl;
+                <<"hit_times:"<<this->hit_times<<std::endl
+                <<"phy_time:"<<(std::chrono::duration_cast<std::chrono::milliseconds>)(this->end_time-this->start_time).count()<<" ms"<<std::endl;
+            this->fp.flush();
+            this->fp.close();
     }
     return 0;
 }
