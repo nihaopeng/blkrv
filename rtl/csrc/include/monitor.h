@@ -22,6 +22,7 @@ public:
     uint64_t sum_ticks=0;
     std::string data_path;
     std::fstream fp;
+    std::fstream fp_bin;
     monitor(uint32_t size,std::string data_path);
     ~monitor();
     uint8_t getB(uint32_t pointer);

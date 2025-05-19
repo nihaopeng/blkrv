@@ -87,31 +87,33 @@ int main(){
     int cur_page=0;
     inode_id=openk(ppts[cur_page]);
     finfo_k(inode_id,&ino);
+    open_monitor_k();
     draw_pngk(inode_id,ino.size,0,0);
+    close_monitor_k();
     flushk();
-    while(1){
-        if(kbhitk()){
-            char ch=vgetchk();
-            if(ch=='j'){
-                cur_page=cur_page-1>=0?cur_page-1:0;
-                printk("cur_page:%d\n",cur_page);
-                inode_id=openk(ppts[cur_page]);
-                finfo_k(inode_id,&ino);
-                draw_pngk(inode_id,ino.size,0,0);
-                flushk();
-            }
-            else if(ch=='q'){
-                break;
-            }
-            else if(ch=='k'){
-                cur_page=cur_page+1<=5?cur_page+1:5;
-                inode_id=openk(ppts[cur_page]);
-                finfo_k(inode_id,&ino);
-                draw_pngk(inode_id,ino.size,0,0);
-                flushk();
-            }
-        }
-    }
+     while(1){
+         if(kbhitk()){
+             char ch=vgetchk();
+             if(ch=='j'){
+                 cur_page=cur_page-1>=0?cur_page-1:0;
+                 printk("cur_page:%d\n",cur_page);
+                 inode_id=openk(ppts[cur_page]);
+                 finfo_k(inode_id,&ino);
+                 draw_pngk(inode_id,ino.size,0,0);
+                 flushk();
+             }
+             else if(ch=='q'){
+                 break;
+             }
+             else if(ch=='k'){
+                 cur_page=cur_page+1<=5?cur_page+1:5;
+                 inode_id=openk(ppts[cur_page]);
+                 finfo_k(inode_id,&ino);
+                 draw_pngk(inode_id,ino.size,0,0);
+                 flushk();
+             }
+         }
+     }
 
     /*
         test graphics

@@ -100,7 +100,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
             //加载可执行文件
             // printk("prog_head_memsize:%x\n",prog_head_memsize);
             uint8_t* program_start_vir=(uint8_t*)prog_head_vaddr;//程序存放位置
-            printk("program_start vir:%x\n",program_start_vir);
+            // printk("program_start vir:%x\n",program_start_vir);
             uint8_t* program_start=(uint8_t*)vir2phy((uint32_t*)page_content_addr,(uint32_t)program_start_vir);//转换为物理地址；根据新satp转换，
             // printk("program_start:%x\n",program_start);
             readk(inode_id,file_data_buf,prog_head_offset,512);
@@ -156,15 +156,15 @@ uint32_t load_params(uint32_t para_num,char** para,uint32_t page_content_addr,mn
     return argv;
 }
 
-uint32_t vmm_test(uint32_t page_content_addr,mnode* free_block_head){
-    char* tmp=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
-    printk("tmp:%x\n",tmp);
-    char* tmp1=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
-    printk("tmp1:%x\n",tmp1);
-    char* tmp2=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
-    printk("tmp2:%x\nfree tmp1",tmp2);
-    freek(tmp1,(uint32_t*)page_content_addr,free_block_head);
-}
+// uint32_t vmm_test(uint32_t page_content_addr,mnode* free_block_head){
+//     char* tmp=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
+//     printk("tmp:%x\n",tmp);
+//     char* tmp1=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
+//     printk("tmp1:%x\n",tmp1);
+//     char* tmp2=(char*)mallock(30,(uint32_t*)page_content_addr,free_block_head);
+//     printk("tmp2:%x\nfree tmp1",tmp2);
+//     freek(tmp1,(uint32_t*)page_content_addr,free_block_head);
+// }
 
 int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     uint32_t new_pid=get_free_pid();
@@ -176,7 +176,7 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     
     uint32_t prog_start_addr=load_program(inode_id,page_content_addr,free_block_head);
 
-    vmm_test(page_content_addr,free_block_head);
+    // vmm_test(page_content_addr,free_block_head);
     //以下初始化栈空间
     uint32_t* stack_top=(uint32_t*)mallock(0x100000,(uint32_t*)page_content_addr,free_block_head);//1MB栈空间
     // debugk(stack_top);
@@ -184,7 +184,7 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num){
     // debugk(stack_bottom);
     uint32_t argv=load_params(para_num,para,page_content_addr,free_block_head);
 
-    vmm_test(page_content_addr,free_block_head);
+    // vmm_test(page_content_addr,free_block_head);
 
     __asm__ volatile(
         "mv t0,%3\n"//加载程序页表基址
