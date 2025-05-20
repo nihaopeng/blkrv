@@ -4,6 +4,7 @@ monitor::monitor(uint32_t size,std::string data_path){
     this->size=size;
     this->mem_space=(uint8_t*)malloc(sizeof(uint8_t)*size);
     this->data_path=data_path;
+    this->fp.open(this->data_path,std::ios::out | std::ios::trunc);  // 关键：使用 trunc 清空文件
     // this->fp<<
     // "lui,auipc,jal,jalr,bj,load,store,calc,calci,sys,bios,ram,keyboard,screen,nic,flash"
     // <<std::endl;
@@ -116,9 +117,24 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
         }
         this->hit_times+=my_mmu->is_hit;
         this->mmu_enable_times+=my_mmu->is_enable;
+
+        uint8_t flag=0;
+        if(((inst_type&(0x0000001f))>>4)||((inst_type&(0x0000000f))>>3)){
+            flag=flag|0b10000000;//mem op
+        }
+        if(my_mmu->is_enable){
+            flag=flag|0b01000000;//mmu enable
+        }
+        if(((inst_type&(0x00000007))>>2)||((inst_type&(0x00000003))>>1)){
+            flag=flag|0b00100000;//calc op
+        }
+        if(my_mmu->is_hit){
+            flag=flag|0b00010000;//hit
+        }
+        this->fp<<this->sum_ticks<<":"<<(uint32_t)flag<<std::endl;
+        this->fp.flush();
     }else if(this->is_enable==1&&this->get4B(0)==0){//开启后又关闭
-        // printf("physic monitor opened\n");
-        this->fp.open(this->data_path,std::ios::out);
+        printf("physic monitor closed\n");
         this->end_time = std::chrono::high_resolution_clock::now();
         this->is_enable=0;
         this->fp<<"sum_ticks:"<<this->sum_ticks<<std::endl

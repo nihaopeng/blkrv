@@ -69,51 +69,51 @@ int main(){
     // printk("B   B    LL      KK K\n");
     // printk("BBBB     LLLLLLL K   K\n");
     
-    inode ino;
-    char ppt1[]="/tmp/1.png";
-    char ppt2[]="/tmp/2.png";
-    char ppt3[]="/tmp/3.png";
-    char ppt4[]="/tmp/4.png";
-    char ppt5[]="/tmp/5.png";
-    char ppt6[]="/tmp/6.png";
-    char* ppts[6]={ppt1,ppt2,ppt3,ppt4,ppt5,ppt6};
-    get_file_from_server("./ppt_pngs/1.png",ppts[0],"127.0.0.1\0",8080);
-    get_file_from_server("./ppt_pngs/2.png",ppts[1],"127.0.0.1\0",8080);
-    get_file_from_server("./ppt_pngs/3.png",ppts[2],"127.0.0.1\0",8080);
-    get_file_from_server("./ppt_pngs/4.png",ppts[3],"127.0.0.1\0",8080);
-    get_file_from_server("./ppt_pngs/5.png",ppts[4],"127.0.0.1\0",8080);
-    get_file_from_server("./ppt_pngs/6.png",ppts[5],"127.0.0.1\0",8080);
-    uint32_t inode_id=0;
-    int cur_page=0;
-    inode_id=openk(ppts[cur_page]);
-    finfo_k(inode_id,&ino);
-    open_monitor_k();
-    draw_pngk(inode_id,ino.size,0,0);
-    close_monitor_k();
-    flushk();
-     while(1){
-         if(kbhitk()){
-             char ch=vgetchk();
-             if(ch=='j'){
-                 cur_page=cur_page-1>=0?cur_page-1:0;
-                 printk("cur_page:%d\n",cur_page);
-                 inode_id=openk(ppts[cur_page]);
-                 finfo_k(inode_id,&ino);
-                 draw_pngk(inode_id,ino.size,0,0);
-                 flushk();
-             }
-             else if(ch=='q'){
-                 break;
-             }
-             else if(ch=='k'){
-                 cur_page=cur_page+1<=5?cur_page+1:5;
-                 inode_id=openk(ppts[cur_page]);
-                 finfo_k(inode_id,&ino);
-                 draw_pngk(inode_id,ino.size,0,0);
-                 flushk();
-             }
-         }
-     }
+    // inode ino;
+    // char ppt1[]="/tmp/1.png";
+    // char ppt2[]="/tmp/2.png";
+    // char ppt3[]="/tmp/3.png";
+    // char ppt4[]="/tmp/4.png";
+    // char ppt5[]="/tmp/5.png";
+    // char ppt6[]="/tmp/6.png";
+    // char* ppts[6]={ppt1,ppt2,ppt3,ppt4,ppt5,ppt6};
+    // get_file_from_server("./ppt_pngs/1.png",ppts[0],"127.0.0.1\0",8080);
+    // get_file_from_server("./ppt_pngs/2.png",ppts[1],"127.0.0.1\0",8080);
+    // get_file_from_server("./ppt_pngs/3.png",ppts[2],"127.0.0.1\0",8080);
+    // get_file_from_server("./ppt_pngs/4.png",ppts[3],"127.0.0.1\0",8080);
+    // get_file_from_server("./ppt_pngs/5.png",ppts[4],"127.0.0.1\0",8080);
+    // get_file_from_server("./ppt_pngs/6.png",ppts[5],"127.0.0.1\0",8080);
+    // uint32_t inode_id=0;
+    // int cur_page=0;
+    // inode_id=openk(ppts[cur_page]);
+    // finfo_k(inode_id,&ino);
+    // open_monitor_k();
+    // draw_pngk(inode_id,ino.size,0,0);
+    // close_monitor_k();
+    // flushk();
+    //  while(1){
+    //      if(kbhitk()){
+    //          char ch=vgetchk();
+    //          if(ch=='j'){
+    //              cur_page=cur_page-1>=0?cur_page-1:0;
+    //              printk("cur_page:%d\n",cur_page);
+    //              inode_id=openk(ppts[cur_page]);
+    //              finfo_k(inode_id,&ino);
+    //              draw_pngk(inode_id,ino.size,0,0);
+    //              flushk();
+    //          }
+    //          else if(ch=='q'){
+    //              break;
+    //          }
+    //          else if(ch=='k'){
+    //              cur_page=cur_page+1<=5?cur_page+1:5;
+    //              inode_id=openk(ppts[cur_page]);
+    //              finfo_k(inode_id,&ino);
+    //              draw_pngk(inode_id,ino.size,0,0);
+    //              flushk();
+    //          }
+    //      }
+    //  }
 
     /*
         test graphics
@@ -139,48 +139,23 @@ int main(){
         get exec file from server and exec it.
     */
     
-    // inode ino;
-    // uint32_t tmp=0;
-    // uint32_t inode_id=createk("/bin/hello.elf",FILE_TYPE,&tmp);
-    // // open_monitor_k();
-    // finfo_k(inode_id,&ino);
-    // // close_monitor_k();
-    // printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
-    // // below is a simple wget
-    // if(ino.size!=35780){
-    //     socket sock={0,"127.0.0.1",8080};
-    //     char message[]="testfile";
-    //     char buf[1024];
-    //     memset_s(buf,0,1024);
-    //     sendk(&sock,message,str_len(message));
-    //     uint32_t fp=0;
-    //     for(int i=0;;i++){
-    //         uint32_t data_len=recvk(&sock,buf,1024);
-    //         if(data_len==0){
-    //             break;
-    //         }
-    //         writek(inode_id,buf,fp,data_len);
-    //         fp+=data_len;
-    //         printk("file pointer:%d\n",fp);
-    //     }
-    // }
-    // // finfo_k(inode_id,&ino);
-    // // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
-    // // deletek(inode_id);//删除文件
-    // // finfo_k(inode_id,&ino);
-    // // printk("inode_id:%d,inode:%x,file size:%d\n",inode_id,&ino,ino.size);
-    // // printk("after delete id:%d\n",openk("/bin/hello.elf"));
-    // //exec file
-    // // printk("fid:%d\nexec file...\b\n",inode_id);
-    // char para1[]="./user_program.bin";
-    // char para2[]="1234";
-    // char para3[]="578";
-    // char para4[]="wuhu";
-    // char para5[]="enheng";
-    // char para6[]="he";
-    // char* para[]={para1,para2,para3,para4,para5,para6};
-    // // printk("%d,%d,%d,%d,%d,%d",para,&para[1],&para[2],&para[3],&para[4],&para[5]);
-    // execk(inode_id,-1,para,6);
+    inode ino;
+    uint32_t tmp=0;
+    uint32_t inode_id=createk("/bin/hello.elf",FILE_TYPE,&tmp);
+    // open_monitor_k();
+    finfo_k(inode_id,&ino);
+    // close_monitor_k();
+    printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
+    // below is a simple wget
+    get_file_from_server("./hello","/bin/hello.elf","127.0.0.1",8080);
+    char para1[]="./user_program.bin";
+    char para2[]="1234";
+    char para3[]="578";
+    char para4[]="wuhu";
+    char para5[]="enheng";
+    char para6[]="he";
+    char* para[]={para1,para2,para3,para4,para5,para6};
+    execk(inode_id,-1,para,6);
 
     /*
         test input

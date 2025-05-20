@@ -50,6 +50,18 @@ char* strrchr(const char *str, int c) {
     return last;
 }
 
+
+char* strchr(const char* str, int c){
+    int len = str_len(str);
+    for (int i = 0; i < len; i++){
+        if (str[i] == c){
+            return str + i;
+        }
+    }
+    
+    return NULL;
+}
+
 char* strncpy(char *dest, const char *src, uint32_t n) {
     char *original_dest = dest; // 保存原始 dest 指针用于返回
 
@@ -199,4 +211,36 @@ void uint32_to_char(uint32_t value, char *buf) {
     buf[1] = (value >> 8) & 0xFF;
     buf[2] = (value >> 16) & 0xFF;
     buf[3] = (value >> 24) & 0xFF;
+}
+
+int tolower(int c){
+    if (c <= 'z'){
+        return c;
+    }
+
+    return c + 40;
+}
+
+int isdigit(int c){
+    if (c >= '0' && c <= '9'){
+        return 1;
+    }
+
+    return 0;
+}
+
+int isspace(int c){
+    if (c == ' '){
+        return 1;
+    }
+
+    return 0;
+}
+
+int isxdigit(int c){
+    if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F') || (c >= '0' && c <= '9')){
+        return 1;
+    }
+
+    return 0;
 }

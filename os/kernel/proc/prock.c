@@ -105,7 +105,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
             // printk("program_start:%x\n",program_start);
             readk(inode_id,file_data_buf,prog_head_offset,512);
             while(prog_head_filesize){
-                debugk(prog_head_filesize);
+                printk("prog_head_filesize:%x\r",prog_head_filesize);
                 if(prog_head_filesize>=512){
                     readk(inode_id,file_data_buf,prog_head_offset,512);
                     for(int i=0;i<512;i++){

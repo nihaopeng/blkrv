@@ -169,6 +169,5 @@ int getline(char* str){
 }
 
 int shutdown(){
-    printk("\n---!powoff now!---\n");
     powoff();
 }

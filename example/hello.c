@@ -25,19 +25,19 @@ int main(int argc,char* argv[]){
     //             break;
     //     }
     // }
-    print("##kbhit pass\n");
-    uint32_t inode_id=0;
-    create("/tmp/user_program_test.txt",'f',&inode_id);
-    print("##create pass\n");
-    inode_id=open("/tmp/user_program_test.txt");
-    print("##open pass\n");
-    char buf[]="hello world";
-    write(inode_id,buf,0,str_len(buf));
-    print("##write pass\n");
-    char read_buf[20];
-    read(inode_id,read_buf,0,20);
-    print("%s\n",read_buf);
-    print("##read pass\n");
+    // print("##kbhit pass\n");
+    // uint32_t inode_id=0;
+    // create("/tmp/user_program_test.txt",'f',&inode_id);
+    // print("##create pass\n");
+    // inode_id=open("/tmp/user_program_test.txt");
+    // print("##open pass\n");
+    // char buf[]="hello world";
+    // write(inode_id,buf,0,str_len(buf));
+    // print("##write pass\n");
+    // char read_buf[20];
+    // read(inode_id,read_buf,0,20);
+    // print("%s\n",read_buf);
+    // print("##read pass\n");
 
     // socket sock={0,"127.0.0.1",8080};
     // char message[]="send test";
@@ -55,7 +55,6 @@ int main(int argc,char* argv[]){
     //test vmm
     open_monitor();
     char* tmp=(char*)malloc(30);
-    close_monitor();
     // tmp="this is blkrv malloc test";
     print("tmp:%d:%s\n",(uint32_t)tmp,tmp);
     char* tmp1=(char*)malloc(30);
@@ -66,6 +65,7 @@ int main(int argc,char* argv[]){
     str_cpy("this is blkrv malloc test2",tmp2);
     print("tmp2:%d:%s\nfree tmp1\n",(uint32_t)tmp2,tmp2);
     free(tmp1);
+    close_monitor();
 
     //严重违规操作，自己调用自己，将会陷入调用地狱，此处做测试使用。
     // inode_id=open("/tmp/test.bin");
