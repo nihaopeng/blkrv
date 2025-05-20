@@ -2,6 +2,18 @@
 
 #include "fltk2d.h"
 
+int MyWindow::handle(int event) {
+    if (event == FL_KEYDOWN) {
+        int key = Fl::event_key();
+        // printf("key:%c\n",key);
+        this->my_rib->int_port2=1;
+        this->my_keyboard->put4B(0, key);
+        this->my_rib->s2_read_valid=1;
+        return 1; // 事件已处理
+    }
+    return Fl_Window::handle(event); // 调用基类的处理函数
+}
+
 void BufferedWidget::clear_screen()
 {
     fl_color(FL_WHITE);
@@ -85,6 +97,21 @@ void BufferedWidget::draw()
         cached_image->draw(x(), y(), w(), h());
     }
 }
+
+// int BufferedWidget::handle(int event) {
+//     this->my_rib->int_port2=0;
+//     this->my_rib->s2_read_valid=0;
+//     if (event == FL_KEYDOWN) {
+//         // 获取 ASCII 码和按键状态
+//         int key = Fl::event_key();
+//         printf("key:%d\n",key);
+//         this->my_rib->int_port2=1;
+//         this->my_keyboard->put4B(0, key);
+//         this->my_rib->s2_read_valid=1;
+//         return 1;
+//     }
+//     return Fl_Widget::handle(event);
+// }
 
 
 #endif // ENABLE_GPU

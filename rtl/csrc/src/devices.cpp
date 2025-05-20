@@ -18,7 +18,7 @@ devices::devices(){
     this->my_net_card=new net_card(1<<28);
     #ifdef ENABLE_GPU
         std::cout<<"$init gpu"<<std::endl;
-        this->my_gpu=new gpu(1<<28);
+        this->my_gpu=new gpu(1<<28,this->my_keyboard);
     #endif // ENABLE_GPU
     std::cout<<"$init pmc"<<std::endl;
     this->my_pmc=new pmc(0);

@@ -1,6 +1,6 @@
 all:
-	riscv32-unknown-elf-gcc _start.S ./std.c ./str.c ./math.c hello.c \
-	-I../os/include -nostdlib -fPIE -lgcc -o hello
+	riscv32-unknown-elf-gcc ./src/_start.S ./src/std.c ./src/str.c ./src/math.c ./src/hello.c \
+	-I./include -nostdlib -fPIE -lgcc -Wl,--no-relax -o hello
 
 	g++ server.cpp -o server -lpthread
 

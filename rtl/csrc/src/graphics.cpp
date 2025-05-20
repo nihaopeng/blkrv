@@ -1,9 +1,10 @@
 #ifdef ENABLE_GPU
 
     #include "graphics.h"
-    gpu::gpu(uint32_t size):vmem(size){
+    gpu::gpu(uint32_t size,keyboard* my_keyboard):vmem(size){
         this->if_start_up=0;
         this->if_clear=0;
+        this->my_keyboard=my_keyboard;
     }
 
     gpu::~gpu(){pthread_join(thread, nullptr);}
@@ -121,35 +122,37 @@
     void* gpu::thread_function(void* arg) {
         printf("gpu start up!\n");
         gpu* gput = static_cast<gpu*>(arg);
-        gput->win = new Fl_Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Rotating Triangle Example");
+        gput->win = new MyWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Rotating Triangle Example");
         gput->buffered_widget = new BufferedWidget(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gput->win->end();
+        gput->win->my_rib=gput->my_rib;
+        gput->win->my_keyboard=gput->my_keyboard;
         Fl::add_timeout(1/500,gpu::draw,arg);
         gput->win->show();
         Fl::run();
         return nullptr;
     }
 
-    int gpu::process(rib* rib,uint32_t tick){
+    int gpu::process(rib* my_rib,uint32_t tick){
         if(!this->if_start_up){
+            this->my_rib=my_rib;
             pthread_create(&thread,NULL,thread_function,this);
             this->if_start_up=1;
         }
-        if(rib->s4_req){
-            if(rib->s4_we){
-                switch(rib->s4_mem_op_type){
-                    case 0:this->putB(rib->s4_addr,uint8_t(rib->s4_write_data));break;
-                    case 1:this->put2B(rib->s4_addr,uint16_t(rib->s4_write_data));break;
-                    case 2:this->put4B(rib->s4_addr,uint32_t(rib->s4_write_data));
+        if(my_rib->s4_req){
+            if(my_rib->s4_we){
+                switch(my_rib->s4_mem_op_type){
+                    case 0:this->putB(my_rib->s4_addr,uint8_t(my_rib->s4_write_data));break;
+                    case 1:this->put2B(my_rib->s4_addr,uint16_t(my_rib->s4_write_data));break;
+                    case 2:this->put4B(my_rib->s4_addr,uint32_t(my_rib->s4_write_data));
                             // printf("%d:%d:%d\n",rib->s1_addr,rib->s1_write_data,this->get4B(rib->s1_addr));
                             break;
                     default:break;
                 }
             }else{
-                switch(rib->s4_mem_op_type){
-                    case 0:rib->s4_read_data=uint8_t(this->getB(rib->s4_addr));break;
-                    case 1:rib->s4_read_data=uint16_t(this->get2B(rib->s4_addr));break;
-                    case 2:rib->s4_read_data=uint32_t(this->get4B(rib->s4_addr));break;
+                switch(my_rib->s4_mem_op_type){
+                    case 0:my_rib->s4_read_data=uint8_t(this->getB(my_rib->s4_addr));break;
+                    case 1:my_rib->s4_read_data=uint16_t(this->get2B(my_rib->s4_addr));break;
+                    case 2:my_rib->s4_read_data=uint32_t(this->get4B(my_rib->s4_addr));break;
                     default:break;
                 }
             }

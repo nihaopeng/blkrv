@@ -4,6 +4,8 @@
     #define _GPU_H_
     #include "vmem.h"
     #include "fltk2d.h"
+    #include "keyboard.h"
+    #include "rib.h"
     #include <atomic>
 
     #define GPU_ADDR_CACHE 0x00000000
@@ -14,8 +16,8 @@
     #define EOF 0xFFFFFFFF
     #define MAX_NAME 128
 
-    #define SCREEN_WIDTH 1920
-    #define SCREEN_HEIGHT 1080
+    #define SCREEN_WIDTH 800
+    #define SCREEN_HEIGHT 800
 
     typedef struct screen_file{
         char file_name[MAX_NAME];
@@ -29,12 +31,14 @@
     public:
         int if_start_up;
         int if_clear;
-        Fl_Window* win;
+        rib* my_rib;
+        keyboard* my_keyboard;
+        MyWindow* win;
         BufferedWidget* buffered_widget;
         pthread_t thread;
-        gpu(uint32_t size);
+        gpu(uint32_t size,keyboard* my_keyboard);
         ~gpu();
-        int process(rib* rib,uint32_t tick=0);
+        int process(rib* my_rib,uint32_t tick=0);
         static void draw(void* arg);
         static void* thread_function(void* arg);
     };

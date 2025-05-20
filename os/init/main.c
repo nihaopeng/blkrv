@@ -133,7 +133,6 @@ int main(){
     //     flushk();
     // }
     // while(1);
-    
 
     /*
         get exec file from server and exec it.
@@ -141,13 +140,13 @@ int main(){
     
     inode ino;
     uint32_t tmp=0;
-    uint32_t inode_id=createk("/bin/hello.elf",FILE_TYPE,&tmp);
+    uint32_t inode_id=createk("/bin/snake",FILE_TYPE,&tmp);
     // open_monitor_k();
     finfo_k(inode_id,&ino);
     // close_monitor_k();
     printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // below is a simple wget
-    get_file_from_server("./hello","/bin/hello.elf","127.0.0.1",8080);
+    get_file_from_server("./snake_game/snake","/bin/snake","127.0.0.1",8080);
     char para1[]="./user_program.bin";
     char para2[]="1234";
     char para3[]="578";
@@ -180,15 +179,7 @@ int main(){
         test monitor.
     */
     // open_monitor_k();
-    // char s[1024];
-    // for(int i=0;i<1024;i++){
-    //     s[i]=0;
-    // }
-    // inputk("%s",s);
-    // printk("input: %s\n",s);
-    // for(int i=0;i<1024;i++){
-    //     s[i]=0;
-    // }
+    // finfo_k(inode_id,&ino);
     // close_monitor_k();
 
     shutdown();
