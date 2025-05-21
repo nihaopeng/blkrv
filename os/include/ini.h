@@ -72,7 +72,7 @@
 #define _NR_draw_png 22
 #define _NR_accept 23
 #define _NR_connect 24
-#define _NR_close 24
+#define _NR_close 25
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

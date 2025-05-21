@@ -19,6 +19,7 @@ int accept_i(socket* sock){
 
 int connect_i(socket* sock){
     _vir2phyk(socket*,sock);
+    printk("ip:%s,port:%d\n",sock->ip,sock->target_port);
     return connectk(sock);
 }
 

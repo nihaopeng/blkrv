@@ -31,10 +31,10 @@ int get_file_from_server(char* remote_file_name,char* local_file_name,char* ip,u
     
     recvk(sockfd,buf,4);//获得文件大小
     uint32_t recv_data_len=*(uint32_t*)buf;
-    if(recv_data_len==ino.size){
-        printk("%d:%d file size is same, no need to download\n",recv_data_len,ino.size);
-        return inode_id;
-    }
+    // if(recv_data_len==ino.size){
+    //     printk("%d:%d file size is same, no need to download\n",recv_data_len,ino.size);
+    //     return inode_id;
+    // }
     printk("%d:%d file size is diff, need to download\n",recv_data_len,ino.size);
     uint32_t fp=0;
     while(fp<recv_data_len){
@@ -140,13 +140,13 @@ int main(){
     
     inode ino;
     uint32_t tmp=0;
-    uint32_t inode_id=createk("/bin/snake",FILE_TYPE,&tmp);
-    // open_monitor_k();
+    uint32_t inode_id=createk("/bin/ppt_player",FILE_TYPE,&tmp);
+    open_monitor_k();
     finfo_k(inode_id,&ino);
-    // close_monitor_k();
+    close_monitor_k();
     printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // below is a simple wget
-    get_file_from_server("./snake_game/snake","/bin/snake","127.0.0.1",8080);
+    get_file_from_server("./ppt_player/ppt_player","/bin/ppt_player","127.0.0.1",8080);
     char para1[]="./user_program.bin";
     char para2[]="1234";
     char para3[]="578";

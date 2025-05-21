@@ -36,12 +36,12 @@ int net_card::blk_send(){
         int sockfd=this->get4B(4);
         int data_phy_addr=this->get4B(8);
         int data_len=this->get4B(12);
-        printf("send:sockfd:%d,data_phy_addr:%x,data_len:%d\n",sockfd,data_phy_addr,data_len);
+        // printf("send:sockfd:%d,data_phy_addr:%x,data_len:%d\n",sockfd,data_phy_addr,data_len);
         char* data=new char[data_len];
         for(int i=0;i<data_len;i++){
             data[i]=this->my_ram->getB(data_phy_addr+i);
         }
-        printf("send data:%s\n",data);
+        // printf("send data:%s\n",data);
         send(sockfd, data, data_len, 0);
         delete[] data;
         this->put4B(0,0);//通知发送完成

@@ -6,6 +6,7 @@ test/
 rtl/devices/
 .VSCodeCounter
 *.csv
+data.txt
 example/hello
 example/server
 example/hello.elf
