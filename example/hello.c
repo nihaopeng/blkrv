@@ -18,6 +18,7 @@ color COLOR_HINT = {0, 255, 0};
 static int counter = 0;
 int over = 0;
 int restart = 0;
+int score = 0;
 
 void sleep_ms(int ms){
     volatile long long count = (long long)ms * 200;
@@ -170,11 +171,44 @@ void draw_map(){
     draw_rectangle(SCREEN_WIDTH - THICKNESS,  THICKNESS, THICKNESS, SCREEN_HEIGHT - (2 * THICKNESS), COLOR_WALL);
 }
 
+void draw_score(){
+    char sc[100];
+    char t[10];
+    int i = 0;
+    int j = 0;
+    point scores = {SCREEN_WIDTH - THICKNESS - 110, THICKNESS + 20};
+    char* msg = "Score:";
+    char* msg1 = "         ";
+    int front = 20;
+    draw_label(&scores, msg, &COLOR_LABEL, front);
+    score = snake.length - 1;
+    if(score == 0){
+        sc[i++] = '0';
+    }
+    else{
+        while(score > 0){
+            t[j++] = (score % 10) + '0';
+            score = score / 10;
+        }
+        while(j--){
+            sc[i++] = t[j];
+        }
+    }
+    for(int k = 10;k > 0; k--){
+        sc[i++] = ' ';
+    }
+    sc[i] = 0;
+    point sco = {SCREEN_WIDTH - THICKNESS - 40,THICKNESS + 20};
+    int front1 = 20;
+    draw_label(&sco, sc, &COLOR_LABEL, front1);
+}
+
 int eat(){
     return snake.x[0] == food.x && snake.y[0] == food.y;
 }
 
 void draw_gaming(){
+    score = 0;
     init_snake();
     grow_food();
     while(over != 1){
@@ -182,6 +216,7 @@ void draw_gaming(){
         draw_map();
         draw_food();
         draw_snake();
+        draw_score();
         flush();
 
         if(kbhit()){
@@ -193,6 +228,7 @@ void draw_gaming(){
         update_snake(grow);
 
         if(grow){
+            score += 1;
             grow_food();
         }
 
