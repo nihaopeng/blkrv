@@ -138,23 +138,31 @@ int main(){
         get exec file from server and exec it.
     */
     
+    // inode ino;
+    // uint32_t tmp=0;
+    // uint32_t inode_id=createk("/bin/ppt_player",FILE_TYPE,&tmp);
+    // open_monitor_k();
+    // finfo_k(inode_id,&ino);
+    // close_monitor_k();
+    // printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
+    // // below is a simple wget
+    // get_file_from_server("./ppt_player/ppt_player","/bin/ppt_player","127.0.0.1",8080);
+    // char para1[]="./user_program.bin";
+    // char* para[]={para1};
+    // execk(inode_id,-1,para,1);
+
     inode ino;
     uint32_t tmp=0;
-    uint32_t inode_id=createk("/bin/ppt_player",FILE_TYPE,&tmp);
+    uint32_t inode_id=createk("/bin/snake_game",FILE_TYPE,&tmp);
     open_monitor_k();
     finfo_k(inode_id,&ino);
     close_monitor_k();
     printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // below is a simple wget
-    get_file_from_server("./ppt_player/ppt_player","/bin/ppt_player","127.0.0.1",8080);
-    char para1[]="./user_program.bin";
-    char para2[]="1234";
-    char para3[]="578";
-    char para4[]="wuhu";
-    char para5[]="enheng";
-    char para6[]="he";
-    char* para[]={para1,para2,para3,para4,para5,para6};
-    execk(inode_id,-1,para,6);
+    get_file_from_server("./snake_game/snake","/bin/snake_game","127.0.0.1",8080);
+    char para1[]="./snake_game";
+    char* para[]={para1};
+    execk(inode_id,-1,para,1);
 
     /*
         test input
