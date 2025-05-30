@@ -7,30 +7,45 @@ BLKRv是一个基于RISC-V架构的教学级计算机系统模拟平台，项目
 
 ## 环境要求
 
-linux
++ linux
 
-[verilator](https://blog.csdn.net/m0_59161987/article/details/136761879)
++ [verilator](https://blog.csdn.net/m0_59161987/article/details/136761879)
 
-make
++ make
 
-[riscv-unknow-elf-gcc](https://blog.csdn.net/m0_59161987/article/details/136761879)(required march:rv32i, mabi:ilp32)
++ [riscv-unknow-elf-gcc](https://blog.csdn.net/m0_59161987/article/details/136761879)(required march:rv32i, mabi:ilp32)
 
-fltk [可选]
++ fltk [可选]
+
+详细的环境配置请见
+[BLKRv主页](https://blkrv.moeyuki.net/)
 
 ## 运行
 
-`make` 仅命令行
++ `make` 仅命令行
 
-`make clean&&make ENABLE_GPU=1` 使能图形化界面
++ `make clean&&make ENABLE_GPU=1` 使能图形化界面
 
-## 预设计
++ `make vis file_path="./data.txt"` 启动可视化服务
+
+## 设计方案
 
 [blkrv-pre-design](https://gitee.com/c-nameless/blkrv-pre-design)
 
-## 详细教程
+[技术报告](./doc/技术报告.pdf)
 
-[BLKRv主页](https://blkrv.moeyuki.net/)
+## 运行效果
 
-## os
++ cli
 
-[syscall_func](./doc/syscall_func.md)
+![cli](./doc/res.png)
+
++ gui
+
+![gui](./doc/guiRes.png)
+
+![guitri](./doc/guitri.png)
+
++ 可视化
+
+![vis](./doc/vis.png)
