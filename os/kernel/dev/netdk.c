@@ -1,61 +1,75 @@
 #include "net.h"
 #include "str.h"
-uint32_t rData_flag=0;
+
+volatile int nic_done = 0;
+
+void nic_interrupt_i(){
+    nic_done = 1;
+}
+
+_regist_syscall(void, nic_interrupt);
 
 int init_net(){
-    *(uint32_t*)NIC_CTRL_ADDR==0;
+    *(uint32_t*)NIC_CTRL_ADDR = 0;
 }
 
-int recvk(int sockfd,char* buf,uint32_t buf_length){
-    if(*(uint32_t*)NIC_CTRL_ADDR==0){
-        *(uint32_t*)(NIC_CTRL_ADDR+4)=sockfd;
-        *(uint32_t*)(NIC_CTRL_ADDR+8)=(uint32_t)buf;//网卡DMA走总线, 直接传物理地址
-        *(uint32_t*)(NIC_CTRL_ADDR+12)=buf_length;
-        *(uint32_t*)NIC_CTRL_ADDR=3;
-        while(*(uint32_t*)NIC_CTRL_ADDR==3);//网卡通知接收结束，阻塞
-        return *(uint32_t*)(NIC_CTRL_ADDR+16);//返回接收数据长度
+int recvk(int sockfd, char* buf, uint32_t buf_length){
+    if (*(uint32_t*)NIC_CTRL_ADDR == 0) {
+        *(uint32_t*)(NIC_CTRL_ADDR + 4)  = sockfd;
+        *(uint32_t*)(NIC_CTRL_ADDR + 8)  = (uint32_t)buf;
+        *(uint32_t*)(NIC_CTRL_ADDR + 12) = buf_length;
+        nic_done = 0;
+        *(uint32_t*)NIC_CTRL_ADDR = 3;
+        while (!nic_done);  // 中断驱动等待, 不碰总线
+        return *(uint32_t*)(NIC_CTRL_ADDR + 16);
     }
+    return -1;
 }
 
-int sendk(int sockfd,char* buf,uint32_t buf_length){
-    if(*(uint32_t*)NIC_CTRL_ADDR==0){
-        *(uint32_t*)(NIC_CTRL_ADDR+4)=sockfd;
-        // printk("sendk:buf:%x,%s\n",buf,buf);
-        *(uint32_t*)(NIC_CTRL_ADDR+8)=(uint32_t)buf;//网卡DMA走总线, 直接传物理地址
-        *(uint32_t*)(NIC_CTRL_ADDR+12)=buf_length;
-        *(uint32_t*)NIC_CTRL_ADDR=2;
-        while(*(uint32_t*)NIC_CTRL_ADDR==2);//网卡通知发送结束，阻塞
+int sendk(int sockfd, char* buf, uint32_t buf_length){
+    if (*(uint32_t*)NIC_CTRL_ADDR == 0) {
+        *(uint32_t*)(NIC_CTRL_ADDR + 4)  = sockfd;
+        *(uint32_t*)(NIC_CTRL_ADDR + 8)  = (uint32_t)buf;
+        *(uint32_t*)(NIC_CTRL_ADDR + 12) = buf_length;
+        nic_done = 0;
+        *(uint32_t*)NIC_CTRL_ADDR = 2;
+        while (!nic_done);
         return 0;
     }
+    return -1;
 }
 
 int acceptk(socket* sock){
-    if(*(uint32_t*)NIC_CTRL_ADDR==0){
-        str_cpy_s(sock->ip,(char*)(NIC_CTRL_ADDR+4),0,16);
-        *(uint32_t*)(NIC_CTRL_ADDR+20)=sock->target_port;
-        *(uint32_t*)NIC_CTRL_ADDR=1;
-        while(*(uint32_t*)NIC_CTRL_ADDR==1);//网卡通知连接成功，阻塞
-        return *(uint32_t*)(NIC_CTRL_ADDR+28);//返回socket fd
+    if (*(uint32_t*)NIC_CTRL_ADDR == 0) {
+        str_cpy_s(sock->ip, (char*)(NIC_CTRL_ADDR + 4), 0, 16);
+        *(uint32_t*)(NIC_CTRL_ADDR + 20) = sock->target_port;
+        nic_done = 0;
+        *(uint32_t*)NIC_CTRL_ADDR = 1;
+        while (!nic_done);
+        return *(uint32_t*)(NIC_CTRL_ADDR + 28);
     }
+    return -1;
 }
 
 int connectk(socket* sock){
-    if(*(uint32_t*)NIC_CTRL_ADDR==0){
-        str_cpy_s(sock->ip,(char*)(NIC_CTRL_ADDR+4),0,16);
-        // printk("ip:%s,port:%d\n",(char*)(NIC_CTRL_ADDR+4),sock->target_port);
-        *(uint32_t*)(NIC_CTRL_ADDR+20)=sock->target_port;
-        *(uint32_t*)NIC_CTRL_ADDR=4;
-        // printk("ctrl:%d\n",*(uint32_t*)NIC_CTRL_ADDR);
-        while(*(uint32_t*)NIC_CTRL_ADDR==4);//网卡通知连接成功，阻塞
-        return *(uint32_t*)(NIC_CTRL_ADDR+28);//返回socket fd
+    if (*(uint32_t*)NIC_CTRL_ADDR == 0) {
+        str_cpy_s(sock->ip, (char*)(NIC_CTRL_ADDR + 4), 0, 16);
+        *(uint32_t*)(NIC_CTRL_ADDR + 20) = sock->target_port;
+        nic_done = 0;
+        *(uint32_t*)NIC_CTRL_ADDR = 4;
+        while (!nic_done);
+        return *(uint32_t*)(NIC_CTRL_ADDR + 28);
     }
+    return -1;
 }
 
 int closek(int sockfd){
-    if(*(uint32_t*)NIC_CTRL_ADDR==0){
-        *(uint32_t*)(NIC_CTRL_ADDR+4)=sockfd;
-        *(uint32_t*)NIC_CTRL_ADDR=5;
-        while(*(uint32_t*)NIC_CTRL_ADDR==5);//网卡通知连接成功，阻塞
+    if (*(uint32_t*)NIC_CTRL_ADDR == 0) {
+        *(uint32_t*)(NIC_CTRL_ADDR + 4) = sockfd;
+        nic_done = 0;
+        *(uint32_t*)NIC_CTRL_ADDR = 5;
+        while (!nic_done);
         return 0;
     }
+    return -1;
 }

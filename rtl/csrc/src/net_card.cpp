@@ -13,6 +13,7 @@ net_card::net_card(uint32_t size):vmem(size){
     this->pending_recv=nullptr;
     this->pending_recv_len=0;
     this->pending_recv_off=0;
+    this->irq_pending=false;
 }
 
 net_card::~net_card(){
@@ -55,6 +56,7 @@ int net_card::blk_accept_nb(){
     fcntl(client_fd, F_SETFL, flags|O_NONBLOCK);
     this->put4B(28,client_fd);//通知连接完成
     this->put4B(0,0);
+    this->irq_pending=true;
     close(this->pending_sockfd);
     this->pending_sockfd=-1;
     return 0;
@@ -80,12 +82,14 @@ int net_card::blk_connect_nb(){
         if(ret==0){//立即成功
             this->put4B(28,sockfd);
             this->put4B(0,0);
+            this->irq_pending=true;
             return 0;
         }
         if(errno!=EINPROGRESS){//连接失败
             close(sockfd);
             this->put4B(28,-1);
             this->put4B(0,0);
+            this->irq_pending=true;
             return 0;
         }
         this->pending_connect_fd=sockfd;
@@ -97,6 +101,7 @@ int net_card::blk_connect_nb(){
     if(err!=0) return 0;//尚未连接成功, 下个 tick 再查
     this->put4B(28,this->pending_connect_fd);//通知连接完成
     this->put4B(0,0);
+    this->irq_pending=true;
     this->pending_connect_fd=-1;
     return 0;
 }
@@ -121,6 +126,7 @@ int net_card::blk_send_nb(){
         delete[] this->pending_send;
         this->pending_send=nullptr;
         this->put4B(0,0);
+        this->irq_pending=true;
         return 0;
     }
     this->pending_send_off+=n;
@@ -128,6 +134,7 @@ int net_card::blk_send_nb(){
         delete[] this->pending_send;
         this->pending_send=nullptr;
         this->put4B(0,0);//通知发送完成
+        this->irq_pending=true;
     }
     return 0;
 }
@@ -151,6 +158,7 @@ int net_card::blk_recv_nb(){
         this->pending_recv=nullptr;
         this->put4B(16,0);
         this->put4B(0,0);
+        this->irq_pending=true;
         return 0;
     }
     if(n==0){//对端关闭
@@ -159,6 +167,7 @@ int net_card::blk_recv_nb(){
         this->pending_recv=nullptr;
         this->put4B(16,0);
         this->put4B(0,0);
+        this->irq_pending=true;
         return 0;
     }
     this->pending_recv_off+=n;
@@ -170,6 +179,7 @@ int net_card::blk_recv_nb(){
         delete[] this->pending_recv;
         this->pending_recv=nullptr;
         this->put4B(0,0);//通知接收完成
+        this->irq_pending=true;
     }
     return 0;
 }
@@ -178,10 +188,16 @@ int net_card::blk_close(){
     int sockfd=this->get4B(4);
     if(sockfd>=0) close(sockfd);
     this->put4B(0,0);//通知关闭完成
+    this->irq_pending=true;
     return 0;
 }
 
 int net_card::process(Bus* bus,uint32_t tick){
+    bus->set_irq(5, false);
+    if(this->irq_pending){
+        bus->set_irq(5, true);
+        this->irq_pending = false;
+    }
     switch(this->get4B(0)){//命令寄存器, 0=空闲
         case 1:this->blk_accept_nb();break;
         case 2:this->blk_send_nb();break;

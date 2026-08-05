@@ -54,11 +54,13 @@ void regist_net(){
     int* gdt_addr_accept=(int*)(&syscall_table[_NR_accept]);
     int* gdt_addr_connect=(int*)(&syscall_table[_NR_connect]);
     int* gdt_addr_close=(int*)(&syscall_table[_NR_close]);
-    regist_accept(gdt_addr_accept);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    int* idt_addr_nic=(int*)(&inter_table[_NI_nic]);
+    regist_accept(gdt_addr_accept);
     regist_connect(gdt_addr_connect);
     regist_send(gdt_addr_send);
     regist_recv(gdt_addr_recv);
     regist_close(gdt_addr_close);
+    regist_nic_interrupt(idt_addr_nic);
 }
 
 void regist_graphic(){

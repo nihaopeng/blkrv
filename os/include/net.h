@@ -51,4 +51,8 @@ void regist_send(int* dt_addr);
 
 void regist_recv(int* dt_addr);
 
+void regist_nic_interrupt(int* dt_addr);
+
+extern volatile int nic_done;
+
 #endif // !_NET_H_

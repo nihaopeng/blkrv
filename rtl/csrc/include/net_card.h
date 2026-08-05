@@ -19,6 +19,7 @@ private:
     char* pending_recv;         // 接收缓冲
     int pending_recv_len;
     int pending_recv_off;
+    bool irq_pending;           // 有操作完成, 待触发中断
 public:
     net_card(uint32_t size);
     ~net_card();
