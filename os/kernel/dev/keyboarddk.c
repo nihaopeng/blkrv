@@ -35,17 +35,21 @@ int kbhitk(){//change to syscall//kbhit ret 1
 
 void keydown_interrupt_i(){
     uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
+    int next_bp;
     if((ch_int&0x000000ff)!=0){
-        in_cache[in_cache_backp++]=(char)(ch_int&0x000000ff);
-        in_cache_backp=mod(in_cache_backp,IO_CACHE);
+        in_cache[in_cache_backp]=(char)(ch_int&0x000000ff);
+        next_bp=mod(in_cache_backp+1,IO_CACHE);
+        if(next_bp!=in_cache_frontp) in_cache_backp=next_bp; // 溢出保护: 满则丢弃
     }
     if((ch_int&0x0000ff00)!=0){
-        in_cache[in_cache_backp++]=(char)((ch_int&0x0000ff00)>>8);
-        in_cache_backp=mod(in_cache_backp,IO_CACHE);
+        in_cache[in_cache_backp]=(char)((ch_int&0x0000ff00)>>8);
+        next_bp=mod(in_cache_backp+1,IO_CACHE);
+        if(next_bp!=in_cache_frontp) in_cache_backp=next_bp;
     }
     if((ch_int&0x00ff0000)!=0){
-        in_cache[in_cache_backp++]=(char)((ch_int&0x00ff0000)>>16);
-        in_cache_backp=mod(in_cache_backp,IO_CACHE);
+        in_cache[in_cache_backp]=(char)((ch_int&0x00ff0000)>>16);
+        next_bp=mod(in_cache_backp+1,IO_CACHE);
+        if(next_bp!=in_cache_frontp) in_cache_backp=next_bp;
     }
 }
 

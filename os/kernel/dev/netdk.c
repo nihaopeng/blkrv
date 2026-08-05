@@ -20,7 +20,8 @@ int recvk(int sockfd, char* buf, uint32_t buf_length){
         *(uint32_t*)(NIC_CTRL_ADDR + 12) = buf_length;
         nic_done = 0;
         *(uint32_t*)NIC_CTRL_ADDR = 3;
-        while (!nic_done);  // 中断驱动等待, 不碰总线
+        int nic_timeout = 0;
+        while (!nic_done && ++nic_timeout < 50000000); // 超时保护, 约 5 秒
         return *(uint32_t*)(NIC_CTRL_ADDR + 16);
     }
     return -1;

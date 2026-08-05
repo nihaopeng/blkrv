@@ -115,8 +115,18 @@ int net_card::blk_send_nb(){
         this->pending_send=new char[data_len];
         this->pending_send_len=data_len;
         this->pending_send_off=0;
-        for(int i=0;i<data_len;i++){
-            this->pending_send[i]=this->bus->read(data_phy_addr+i,0);//DMA读, 走总线
+        // 按字批量读, 减少总线访问次数
+        int i=0;
+        int aligned_end=data_len & ~3;
+        for(;i<aligned_end;i+=4){
+            uint32_t w=this->bus->read(data_phy_addr+i,2);
+            this->pending_send[i]=w&0xff;
+            this->pending_send[i+1]=(w>>8)&0xff;
+            this->pending_send[i+2]=(w>>16)&0xff;
+            this->pending_send[i+3]=(w>>24)&0xff;
+        }
+        for(;i<data_len;i++){
+            this->pending_send[i]=this->bus->read(data_phy_addr+i,0);
         }
     }
     int n=send(sockfd, this->pending_send+this->pending_send_off,
@@ -172,8 +182,15 @@ int net_card::blk_recv_nb(){
     }
     this->pending_recv_off+=n;
     if(this->pending_recv_off>=this->pending_recv_len){//收满, DMA 写入内存
-        for(int i=0;i<this->pending_recv_len;i++){
-            this->bus->write(data_phy_addr+i,this->pending_recv[i],0);//DMA写, 走总线
+        int i=0;
+        int aligned_end=this->pending_recv_len & ~3;
+        for(;i<aligned_end;i+=4){
+            uint32_t w=(uint8_t)this->pending_recv[i]|((uint8_t)this->pending_recv[i+1]<<8)
+                       |((uint8_t)this->pending_recv[i+2]<<16)|((uint8_t)this->pending_recv[i+3]<<24);
+            this->bus->write(data_phy_addr+i,w,2);
+        }
+        for(;i<this->pending_recv_len;i++){
+            this->bus->write(data_phy_addr+i,this->pending_recv[i],0);
         }
         this->put4B(16,this->pending_recv_len);//通知接收数据长度
         delete[] this->pending_recv;

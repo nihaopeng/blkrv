@@ -25,6 +25,7 @@ void str_cpy(const char* src,char* dst){//
     for(uint32_t i=0;i<data_len;i++){
         dst[i]=src[i];
     }
+    dst[data_len]='\0';
 }
 
 void str_cpy_s(const char* src,char* dst,uint32_t start,uint32_t end){//[]
@@ -214,11 +215,10 @@ void uint32_to_char(uint32_t value, char *buf) {
 }
 
 int tolower(int c){
-    if (c <= 'z'){
-        return c;
+    if (c >= 'A' && c <= 'Z'){
+        return c + 32;
     }
-
-    return c + 40;
+    return c;
 }
 
 int isdigit(int c){

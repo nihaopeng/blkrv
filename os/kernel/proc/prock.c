@@ -9,10 +9,20 @@ int exitk(){
     uint32_t pid=satp&0x00000fff;
     printk("process: %d, mem space free list:\n",pid);
     show_free_node_list((uint32_t*)(satp&0xfffff000),&(global_pcb_list[pid].free_block_head));
-    printk("process exit wait to implement\n");
+    // 回收用户空间已映射的物理页
+    uint32_t* pca=(uint32_t*)(satp&0xfffff000);
+    for(uint32_t vpn=(0x1000>>12);vpn<(USER_START>>12);vpn++){
+        uint32_t phys=vir2phy(pca,vpn<<12);
+        if(phys){
+            uint32_t ppn=(phys-RAM_START)>>12;  // 物理地址→页号
+            free_page(ppn);
+        }
+        write_page_table(pca,vpn<<12,0,0);
+    }
+    free_page(((satp&0xfffff000)-RAM_START)>>12); // 释放页表目录页
+    global_pcb_list[pid].is_alive=0;
     shutdown();
-    //回收程序内存空间。
-    //调用schedular进入下一个进程。
+    //TODO: 调度器就绪后, 改为切换到内核 shell 进程而非 shutdown
 }
 
 int get_free_pid(){
@@ -21,6 +31,7 @@ int get_free_pid(){
             return i;
         }
     }
+    return -1;  // 无空闲 PID
 }
 
 uint32_t init_pcb(int new_pid,int stdout){
