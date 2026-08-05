@@ -13,12 +13,12 @@ typedef struct mnode{
 }mnode;
 
 typedef struct pcb{
-    uint8_t is_alive;
-    uint32_t pc;
-    uint32_t general_regs[32];
-    uint32_t satp;
+    uint8_t is_alive;           // PROC_RUNNING/READY/BLOCKED/DEAD
+    uint32_t pc;                // saved mepc
+    uint32_t general_regs[32];  // saved regs_cp_m snapshot
+    uint32_t satp;              // page table base | pid
+    uint32_t ksp;               // kernel stack (reserved)
     mnode free_block_head;
-    // free_vir_block* free_vir_block_list;
     int stdout;//-1 for screen print, other is inode_id
 }pcb;
 
@@ -43,6 +43,12 @@ int execk(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
 int exec(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
 
 int scheduler();
+
+int load_proc(uint32_t inode_id, char** para, uint32_t para_num);
+
+void start_first_process(void);
+
+void timer_interrupt_i(void);
 
 void regist_exec(int* gdt_addr_exec);
 

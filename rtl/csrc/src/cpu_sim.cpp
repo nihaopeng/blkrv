@@ -265,8 +265,27 @@ void CpuSim::csr_op(uint32_t inst){
     uint32_t rd=(inst>>7)&0x1f;
     uint32_t rs1=(inst>>15)&0x1f;
     uint32_t zimm=rs1;
+    uint32_t funct3=(inst>>12)&0x7;
+
+    // REGS_CP_M CSR window (0x3c0 ~ 0x3df), for context switch save/restore
+    if(csr_addr >= 0x3c0 && csr_addr <= 0x3df){
+        uint32_t ridx = csr_addr - 0x3c0;
+        uint32_t old = regs_cp_m[ridx];
+        switch(funct3){
+            case 1: if(rs1!=0) regs_cp_m[ridx]=regs[rs1]; break;       // CSRRW
+            case 2: if(rs1!=0) regs_cp_m[ridx]=old|regs[rs1]; break;   // CSRRS
+            case 3: if(rs1!=0) regs_cp_m[ridx]=old&(~regs[rs1]); break;// CSRRC
+            case 5: regs_cp_m[ridx]=zimm; break;                       // CSRRWI
+            case 6: regs_cp_m[ridx]=old|zimm; break;                   // CSRRSI
+            case 7: regs_cp_m[ridx]=old&(~zimm); break;                // CSRRCI
+            default: break;
+        }
+        wb(rd, old);
+        return;
+    }
+
     uint32_t old=csr[csr_addr];
-    switch((inst>>12)&0x7){
+    switch(funct3){
         case 1: if(rs1!=0) csr[csr_addr]=regs[rs1]; break;       // CSRRW
         case 2: if(rs1!=0) csr[csr_addr]=old|regs[rs1]; break;   // CSRRS
         case 3: if(rs1!=0) csr[csr_addr]=old&(~regs[rs1]); break;// CSRRC

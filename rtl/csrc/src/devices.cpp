@@ -19,14 +19,17 @@ devices::devices(Bus* bus){
         std::cout<<"$init gpu"<<std::endl;
         this->my_gpu=new gpu(1<<28,this->my_keyboard);
     #endif // ENABLE_GPU
+    std::cout<<"$init timer"<<std::endl;
+    this->my_timer=new Timer(1<<20, 100000);  // ~100ms interval
     std::cout<<"$init pmc"<<std::endl;
     this->my_pmc=new pmc(0);
     this->my_bios->sync();
     this->my_flash->sync();
 
-    // 注册设备到总线, 顺序即地址解码优先级
+    // 注册设备到总线, 顺序即地址解码优先级 (first-match)
     bus->register_dev(my_bios,     0x00000000, 1<<20,   0xFF);
     bus->register_dev(my_ram,      0x00100000, 256<<20, 0xFF);
+    bus->register_dev(my_timer,    0x60400000, 1<<20,   7);   // CLINT-style timer, IRQ 7, after all other devices
     bus->register_dev(my_keyboard, 0x10100000, 1<<20,   2);
     bus->register_dev(my_screen,   0x10200000, 256<<20, 0xFF);
     #ifdef ENABLE_GPU
@@ -44,6 +47,7 @@ int devices::process(Bus* bus,uint32_t tick){
     this->my_keyboard->process(bus,tick);
     this->my_screen->process(bus,tick);
     this->my_net_card->process(bus,tick);
+    this->my_timer->process(bus,tick);
     #ifdef ENABLE_GPU
         this->my_gpu->process(bus,tick);
     #endif // ENABLE_GPU

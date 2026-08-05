@@ -31,6 +31,12 @@ wire if2id_read_valid,id2if_write_ready,id2exu_read_valid,id2exu_write_ready;
 wire hold_flag,jump_inst_flag,mret_flag,sret_flag,interrupt_response,syscall_flag;
 wire[1:0] pc_change_flag;
 
+// REGS_CP_M CSR access wires (context switch)
+wire [4:0]  cp_idx;
+wire [31:0] cp_data;
+wire        cp_we;
+wire [31:0] cp_wdata;
+
 ifu ifu(
     .clk_i(clk_i),
     .new_pc_i(new_pc),
@@ -157,7 +163,12 @@ regs regs(
     .read_valid_o(),
     .read_valid_i(regs_read_valid),
     .write_ready_o(),
-    .write_ready_i()
+    .write_ready_i(),
+    // REGS_CP_M CSR access
+    .cp_idx_i(cp_idx),
+    .cp_data_o(cp_data),
+    .cp_we_i(cp_we),
+    .cp_wdata_i(cp_wdata)
 );
 wire[31:0] csr,mtvec,mepc,stvec,sepc;
 
@@ -182,7 +193,12 @@ csrs csrs(
     .mepc_o(mepc),
     .stvec_o(stvec),
     .sepc_o(sepc),
-    .satp_o(satp_o)
+    .satp_o(satp_o),
     // .asid_csr_o(asid_csr_o)
+    // REGS_CP_M CSR access
+    .cp_data_i(cp_data),
+    .cp_idx_o(cp_idx),
+    .cp_we_o(cp_we),
+    .cp_wdata_o(cp_wdata)
 );
 endmodule

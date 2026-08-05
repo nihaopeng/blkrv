@@ -14,7 +14,7 @@
 
 #define _vir2phyk(type,addr) do{\
     uint32_t p=0;\
-    __asm__ volatile("csrrw %0,0x181,zero":"=r"(p));\
+    __asm__ volatile("csrr %0,0x181":"=r"(p));\
     _vir2phy(type,addr,p);\
 }while(0)
 

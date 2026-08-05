@@ -55,4 +55,6 @@ void regist_kbhit(int* dt_addr);
 
 void regist_powoff(int* dt_addr);
 
+void regist_timer_interrupt(int* dt_addr);
+
 #endif // !_DRIVERS_H_

@@ -11,6 +11,7 @@ void regist_sysmethod(){
     regist_graphic();
     regist_monitor();
     regist_mm();
+    regist_timer();
 }
 
 void regist_std(){
@@ -88,4 +89,9 @@ void regist_mm(){
     int* gdt_addr_free=(int*)(&syscall_table[_NR_free]);
     regist_malloc(gdt_addr_malloc);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_free(gdt_addr_free);
+}
+
+void regist_timer(){
+    int* idt_addr_timer=(int*)(&inter_table[_NI_timer]);
+    regist_timer_interrupt(idt_addr_timer);
 }

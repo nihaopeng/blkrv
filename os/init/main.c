@@ -84,11 +84,11 @@ int main(){
     // init_ps();
     //init_console是shell进程，运行在线性内核空间，pid=1。
 
-    printk("BBBB     LL      K   K\n");
-    printk("B   B    LL      KK K\n");
-    printk("BBBB     LL      KKK\n");
-    printk("B   B    LL      KK K\n");
-    printk("BBBB     LLLLLLL K   K\n");
+    printk("BBBB     LL        K   K\n");
+    printk("B   B    LL        KK K\n");
+    printk("BBBB     LL        KKK\n");
+    printk("B   B    LL        KK K\n");
+    printk("BBBB     LLLLLLL   K   K\n");
     
     // inode ino;
     // char ppt1[]="/tmp/1.png";
@@ -172,46 +172,32 @@ int main(){
     // char* para[]={para1};
     // execk(inode_id,-1,para,1);
 
+    // ---- 调度器模式 ----
+    init_ps();
+
+    // 下载 shell 用户程序
     inode ino;
     uint32_t tmp=0;
-    uint32_t inode_id=createk("/bin/test_cli",FILE_TYPE,&tmp);
-    // open_monitor_k();
-    finfo_k(inode_id,&ino);
-    // close_monitor_k();
-    printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
-    // below is a simple wget
-    get_file_from_server("./test_cli/test_cli","/bin/test_cli","127.0.0.1",8080);
-    char para1[]="./test_cli";
+    uint32_t shell_inode_id=createk("/bin/shell",FILE_TYPE,&tmp);
+    finfo_k(shell_inode_id,&ino);
+    printk("shell inode_id:%d,size:%d\n",shell_inode_id,ino.size);
+    get_file_from_server("./shell/shell","/bin/shell","127.0.0.1",8080);
+
+    // 加载 shell 为 pid=1 (PCB 就绪, 不跳转)
+    char para1[]="./shell";
     char* para[]={para1};
-    execk(inode_id,-1,para,1);
+    int shell_pid=load_proc(shell_inode_id,para,1);
+    if(shell_pid<0){ printk("load_proc shell failed!\n"); shutdown(); }
 
-    /*
-        test input
-    */
-    // char s[20];
-    // printk("getline:");
-    // gl(s);
-    // printk("gl:%s\n",s);
-    // int ifkbhit=0;
-    // char ch;
-    // char iskbhit=0;
-    // printk("press q to exit\n");
-    // while(1){
-    //     iskbhit = kbhitk();
-    //     if(iskbhit){
-    //         ch = vgetchk();
-    //         if(ch=='q')
-    //             break;
-    //         printk("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
-    //     }
-    // }
-    
-    /*
-        test monitor.
-    */
-    // open_monitor_k();
-    // finfo_k(inode_id,&ino);
-    // close_monitor_k();
+    // 模拟中断返回, 启动 shell (不返回)
+    printk("starting shell (pid=1)...\n");
 
-    shutdown();
+    // 启动定时器: 必须在 start_first_process 之前, 确保 shell 跑起来后才开始调度
+    volatile uint32_t* const t_lo = (uint32_t*)TIMER_ADDR;
+    volatile uint32_t* const tcmp_lo = (uint32_t*)(TIMER_ADDR + 8);
+    *tcmp_lo = *t_lo + 100000;   // handler 完全空, 测纯中断路径
+
+    start_first_process();
+
+    shutdown();  // 不可达
 }

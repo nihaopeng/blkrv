@@ -109,20 +109,29 @@ _gdt_search:
     sret
 
 _idt_search:
-    # _vir2phy//新的物理sp地址存储在t6中，保存虚拟地址sp后，sp赋值为物理地址
+    # 固定中断栈 (物理地址, satp=0, identity mapping)
     li sp,0x00300000
-    # addi t6,t6,-132
-    # sw ra,128(t6)
-    # sw s0,124(t6)
-    # addi s0,t6,132
-    # save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。同时保存了虚拟sp
-    csrrw a7,mcause,zero
-    slli a7,a7,2
-    la t1,inter_table//中断表基址
-    add a7,a7,t1
-    lw a7,0(a7)
-    jalr ra,a7
-    # lw s0,124(sp)//还原s0，此时sp仍是物理地址
-    # lw ra,128(sp)//还原ra，貌似没用
-    # recover_ctx//恢复上下文，此时sp还原为虚拟地址
+    addi sp,sp,-12
+
+    csrrw t0, mepc, zero
+    sw t0, 0(sp)                # [sp+0] = mepc
+    csrrw t0, mcause, zero
+    sw t0, 4(sp)                # [sp+4] = mcause
+    sw ra, 8(sp)                # [sp+8] = ra
+
+    # 分发中断: mcause 索引 inter_table
+    slli t0, t0, 2
+    la t1, inter_table
+    add t0, t0, t1
+    lw t0, 0(t0)
+
+    jalr ra, t0
+
+_idt_done:
+    # 恢复 (handler/调度器可能已修改栈上的值)
+    lw t0, 0(sp)
+    csrrw zero, mepc, t0
+    lw ra, 8(sp)
+
+    addi sp, sp, 12
     mret

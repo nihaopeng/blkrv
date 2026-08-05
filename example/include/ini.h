@@ -76,7 +76,7 @@
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2
-#define _NI_timer 9
+#define _NI_timer 7
 
 #define IO_CACHE 1024
 #define FMT_STRING_SIZE 64

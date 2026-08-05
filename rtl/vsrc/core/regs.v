@@ -1,29 +1,39 @@
 module regs(
-	input clk_i,
-	input rst,
-	input[4:0] r1_id_i,
-	input[4:0] r2_id_i,
-	input[4:0] rd_id_i,
-	input we_i,
-    input interrupt_flag_i,
-    input syscall_flag_i,
-    input mret_flag_i,
-    input sret_flag_i,
-	input[31:0] write_data_i,
-	output[31:0] r1_o,
-	output[31:0] r2_o,
+		input clk_i,
+		input rst,
+		input[4:0] r1_id_i,
+		input[4:0] r2_id_i,
+		input[4:0] rd_id_i,
+		input we_i,
+	    input interrupt_flag_i,
+	    input syscall_flag_i,
+	    input mret_flag_i,
+	    input sret_flag_i,
+		input[31:0] write_data_i,
+		output[31:0] r1_o,
+		output[31:0] r2_o,
 
-    input hold_flag_i,
-    output reg read_valid_o,
-    input read_valid_i,
-    output write_ready_o,
-    input write_ready_i 
-);
+	    input hold_flag_i,
+	    output reg read_valid_o,
+	    input read_valid_i,
+	    output write_ready_o,
+	    input write_ready_i,
+
+	    // REGS_CP_M CSR access (for context switch)
+	    input  [4:0]  cp_idx_i,
+	    output [31:0] cp_data_o,
+	    input         cp_we_i,
+	    input  [31:0] cp_wdata_i
+	);
 reg[31:0] REGS[31:0];
 reg[31:0] REGS_CP_S[31:0];
 reg[31:0] REGS_CP_M[31:0];
 assign	r1_o=REGS[r1_id_i];
 assign	r2_o=REGS[r2_id_i];
+
+// REGS_CP_M read port (combinational)
+assign	cp_data_o = REGS_CP_M[cp_idx_i];
+
 integer i;
 always @(posedge clk_i) begin
     if(interrupt_flag_i) begin
@@ -51,9 +61,13 @@ always @(posedge clk_i) begin
             REGS[i]<=REGS_CP_S[i];
         end
     end
+    // REGS_CP_M CSR write (for context switch)
+    else if(cp_we_i) begin
+        REGS_CP_M[cp_idx_i] <= cp_wdata_i;
+    end
     else if(read_valid_i) begin
         if(we_i&&rd_id_i!=5'd0) begin
-            REGS[rd_id_i]<=write_data_i;		
+            REGS[rd_id_i]<=write_data_i;
         end
         read_valid_o<=1'b1;
     end

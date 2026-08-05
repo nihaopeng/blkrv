@@ -8,6 +8,7 @@
 #include "net_card.h"
 #include "pmc.h"
 #include "graphics.h"
+#include "timer.h"
 #include "bus.h"
 
 class devices
@@ -25,6 +26,7 @@ public:
         gpu* my_gpu;
     #endif // ENABLE_GPU
     pmc* my_pmc;
+    Timer* my_timer;
     devices(Bus* bus);
     ~devices();
     int process(Bus* bus,uint32_t tick=0);

@@ -19,8 +19,14 @@ module csrs (
     output[31:0] mepc_o,
     output[31:0] satp_o,
     output[31:0] stvec_o,
-    output[31:0] sepc_o
+    output[31:0] sepc_o,
     // output[31:0] asid_csr_o
+
+    // REGS_CP_M CSR access (for context switch)
+    input  [31:0] cp_data_i,
+    output [4:0]  cp_idx_o,
+    output reg    cp_we_o,
+    output reg [31:0] cp_wdata_o
 );
 parameter[11:0] mtvec_a  =12'h305;
 parameter[11:0] mepc_a   =12'h341;
@@ -44,7 +50,14 @@ reg[31:0] REGS[4095:0];
 wire[31:0] mstatus_d;
 assign mstatus_d=REGS[mstatus_a];//tmp
 assign mie_o=REGS[mstatus_a][mie];
-assign csr_o=REGS[imm_i[31:20]];
+
+// REGS_CP_M CSR window: addresses 0x3c0 ~ 0x3df
+wire is_cp = (imm_i[31:20] >= 12'h3c0) && (imm_i[31:20] <= 12'h3df);
+assign cp_idx_o = imm_i[24:20];  // low 5 bits of CSR address = register index
+
+// csr_o mux: REGS_CP_M for 0x3c0-0x3df, REGS array otherwise
+assign csr_o = is_cp ? cp_data_i : REGS[imm_i[31:20]];
+
 assign mtvec_o=REGS[mtvec_a];
 assign mepc_o=REGS[mepc_a];
 assign satp_o=REGS[satp_a];
@@ -66,46 +79,89 @@ always @(posedge clk_i) begin
         REGS[mstatus_a][mie]<=1'b0;
         REGS[satp_i_cp_a]<=REGS[satp_a];
         REGS[satp_a]<=32'h0;
+        cp_we_o<=1'b0;
     end
     else if(syscall_flag_i) begin
         REGS[sepc_a]<=cur_pc_i-4;
         REGS[satp_s_cp_a]<=REGS[satp_a];
         REGS[satp_a]<=32'h0;
+        cp_we_o<=1'b0;
     end
     else if(mret_flag_i) begin
         REGS[mstatus_a][mie]<=REGS[mstatus_a][mpie];
         REGS[satp_a]<=REGS[satp_i_cp_a];
         REGS[satp_i_cp_a]<=32'd0;
+        cp_we_o<=1'b0;
     end
     else if(sret_flag_i) begin
         // REGS[satp_a][31]<=1'b1;
         REGS[satp_a]<=REGS[satp_s_cp_a];
         REGS[satp_s_cp_a]<=32'd0;
+        cp_we_o<=1'b0;
     end
     //sret 不做其他操作
     else if(we_i) begin
-        case(imm_i[14:12])
-            CSRRW:begin
-                REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:r1_i;
-            end
-            CSRRS:begin
-                REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:REGS[imm_i[31:20]]|r1_i;
-            end
-            CSRRC:begin
-                REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:REGS[imm_i[31:20]]&(~r1_i);
-            end
-            CSRRWI:begin
-                REGS[imm_i[31:20]]<={27'd0,imm_i[19:15]};
-            end
-            CSRRSI:begin
-                REGS[imm_i[31:20]]<=REGS[imm_i[31:20]]|{27'd0,imm_i[19:15]};
-            end
-            CSRRCI:begin
-                REGS[imm_i[31:20]]<=REGS[imm_i[31:20]]|(~{27'd0,imm_i[19:15]});
-            end
-            default:begin
-            end
-        endcase
+        if(is_cp) begin
+            // Write to REGS_CP_M via cp_we_o
+            case(imm_i[14:12])
+                CSRRW: begin
+                    cp_wdata_o <= r1_i;
+                    cp_we_o <= (r1_id != 5'd0);
+                end
+                CSRRS: begin
+                    cp_wdata_o <= cp_data_i | r1_i;
+                    cp_we_o <= (r1_id != 5'd0);
+                end
+                CSRRC: begin
+                    cp_wdata_o <= cp_data_i & (~r1_i);
+                    cp_we_o <= (r1_id != 5'd0);
+                end
+                CSRRWI: begin
+                    cp_wdata_o <= {27'd0, imm_i[19:15]};
+                    cp_we_o <= 1'b1;
+                end
+                CSRRSI: begin
+                    cp_wdata_o <= cp_data_i | {27'd0, imm_i[19:15]};
+                    cp_we_o <= 1'b1;
+                end
+                CSRRCI: begin
+                    cp_wdata_o <= cp_data_i & (~{27'd0, imm_i[19:15]});
+                    cp_we_o <= 1'b1;
+                end
+                default: begin
+                    cp_wdata_o <= 32'd0;
+                    cp_we_o <= 1'b0;
+                end
+            endcase
+        end
+        else begin
+            cp_we_o <= 1'b0;
+            case(imm_i[14:12])
+                CSRRW:begin
+                    REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:r1_i;
+                end
+                CSRRS:begin
+                    REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:REGS[imm_i[31:20]]|r1_i;
+                end
+                CSRRC:begin
+                    REGS[imm_i[31:20]]<=(r1_id==5'd0)?REGS[imm_i[31:20]]:REGS[imm_i[31:20]]&(~r1_i);
+                end
+                CSRRWI:begin
+                    REGS[imm_i[31:20]]<={27'd0,imm_i[19:15]};
+                end
+                CSRRSI:begin
+                    REGS[imm_i[31:20]]<=REGS[imm_i[31:20]]|{27'd0,imm_i[19:15]};
+                end
+                CSRRCI:begin
+                    REGS[imm_i[31:20]]<=REGS[imm_i[31:20]]|(~{27'd0,imm_i[19:15]});
+                end
+                default:begin
+                end
+            endcase
+        end
+    end
+    else begin
+        cp_we_o <= 1'b0;
     end
 end
 endmodule //csrs

@@ -7,6 +7,12 @@
 
 #define MAX_PRO_NUM 32
 
+// process states
+#define PROC_RUNNING  0
+#define PROC_READY    1
+#define PROC_BLOCKED  2
+#define PROC_DEAD     3
+
 //fs
 #define MAX_NAME 128
 #define MAX_PATH_LEN 256
@@ -47,6 +53,8 @@
 
 #define MONITOR_ADDR 0x60300000//3MB
 
+#define TIMER_ADDR 0x60400000
+
 #define _NR_open 0
 #define _NR_delete 1
 #define _NR_write 2
@@ -77,7 +85,7 @@
 //interrupt num should same with hardware port
 #define _NI_kbdown 2
 #define _NI_nic    5
-#define _NI_timer 9
+#define _NI_timer  7   // timer device on IRQ 7
 
 #define IO_CACHE 1024
 #define FMT_STRING_SIZE 64
