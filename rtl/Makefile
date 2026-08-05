@@ -1,46 +1,62 @@
+# === BLKRv RTL 编译: 不执行、不加载镜像、只产出 BLKRv 可执行文件 ===
+
 ifeq ($(VERILATOR_ROOT),)
 VERILATOR = verilator
+SYSPATH ?=/usr/local/share/verilator/include
 else
-export VERILATOR_ROOT
 VERILATOR = $(VERILATOR_ROOT)/bin/verilator
+SYSPATH ?=$(VERILATOR_ROOT)/share/verilator/include
 endif
 
 cc = g++
-ccflag = -lstdc++ -lm -pthread 
+ccflag = -lstdc++ -lm -pthread
 ifeq ($(ENABLE_GPU), 1)
     ccflag += -DENABLE_GPU -lfltk -lfltk_images
 endif
 
-# the include and src of verilator
-SYSPATH :=/usr/local/share/verilator/include
-SYSPATH1:=/usr/local/share/verilator/include/vltstd 
-SYSPATH2:=/usr/share/verilator/include
-# SYSSRC := $(wildcard $(SYSPATH)/*.cpp)
+# CPU backend
+BACKEND ?= verilog
+ifeq ($(BACKEND), sim)
+    ccflag += -DBACKEND_SIM
+    CPU_STEP :=
+    LINK_VERILOG :=
+else
+    CPU_STEP := verilog2cc
+    LINK_VERILOG = $(wildcard $(VERILOG_PATH)/*.o)
+endif
 
-# some variable about verilog
+# verilator include
+SYSPATH1:=$(SYSPATH)/vltstd
+SYSPATH2:=$(SYSPATH)
+
+# verilog 源文件
 VSRC :=$(wildcard vsrc/core/*.v vsrc/*.v)
-VINCLUDE :=./vsrc/core
 TOP_MODULE :=--top-module top
 
-# directory of result of compiling
+# 构建输出目录
 BUILD_ROOT := ./build
 OBJ_PATH := $(BUILD_ROOT)/objs
 VERILOG_PATH := $(BUILD_ROOT)/verilog
 EXECUTABLE_PATH := $(BUILD_ROOT)/dist
 DEVICES_PATH := ./devices
 
-# some variable about wrapper file
+# C++ 包装文件
 CSRC_PATH := ./csrc/src
+ifeq ($(BACKEND), sim)
 CSRC := $(wildcard $(CSRC_PATH)/*.cpp)
+else
+CSRC := $(filter-out $(CSRC_PATH)/cpu_sim.cpp,$(wildcard $(CSRC_PATH)/*.cpp))
+endif
 OBJS := $(patsubst $(CSRC_PATH)/%.cpp,$(OBJ_PATH)/%.o,$(CSRC))
 CINCLUDE :=./csrc/include
 
-# final executable file
+# 最终可执行文件
 EXECUTABLE_NAME := $(EXECUTABLE_PATH)/BLKRv
 
-all:info build_dir verilog2cc $(OBJS) mkutils makeos mkexecutable 
+# ---------------- 编译目标 ----------------
 
-# create necessary directory
+all:info build_dir $(CPU_STEP) $(OBJS) mkutils mkexecutable
+
 build_dir:
 	@mkdir -p $(VERILOG_PATH)
 	@mkdir -p $(OBJ_PATH)
@@ -48,46 +64,25 @@ build_dir:
 	@mkdir -p $(BUILD_ROOT)/bios
 	@mkdir -p $(DEVICES_PATH)
 
-# --cc to generate c++ code, --exe for wrapper file, --build for obj_dir .o	
-# below is to make verilog code converted into c++ code
 verilog2cc:
 	$(VERILATOR) --trace --build --cc $(TOP_MODULE) $(VSRC) -Mdir $(VERILOG_PATH)
 
-# all cpp file will exeucte below action
 $(OBJ_PATH)/%.o: $(CSRC_PATH)/%.cpp
 	$(cc) -c $< -o $@ -I$(CINCLUDE) -I$(SYSPATH) -I$(SYSPATH1) -I$(SYSPATH2) -I$(VERILOG_PATH) $(ccflag)
 
-makeos:
-	make -C ../os/
-
 mkexecutable:
-	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) $(ccflag)
+	$(cc) $(LINK_VERILOG) $(OBJS) -o $(EXECUTABLE_NAME) $(ccflag)
 
-mkexecutable-nox:
-	$(cc) $(wildcard $(VERILOG_PATH)/*.o) $(OBJS) -o $(EXECUTABLE_NAME) $(ccflag)
+mkutils:./utils/manage_mem.cpp
+	$(cc) ./utils/manage_mem.cpp -o $(EXECUTABLE_PATH)/manage_mem
 
 info:
 	@echo $(VSRC)
 	@echo $(CSRC)
 
-mkutils:./utils/manage_mem.cpp
-	$(cc) ./utils/manage_mem.cpp -o $(EXECUTABLE_PATH)/manage_mem
-
-mkbios:
-	@riscv32-unknown-elf-gcc -c ./asm/bios.s -o $(BUILD_ROOT)/bios/bios.o -march=rv32i_zicsr
-
-loadmem:mkutils mkbios
-#	加载bios中的拉取指令，定制
-	@$(EXECUTABLE_PATH)/manage_mem -src $(BUILD_ROOT)/bios/bios.o -tar ./devices/bios -src_start 52 -src_end 1139 -tar_start 0 -tar_end 1087
-#	加载bootsect,定制
-	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/boot/bootsect.o -tar ./devices/flash -src_start 52 -src_end 563 -tar_start 0 -tar_end 511
-#	加载sys,max 1MB
-	@$(EXECUTABLE_PATH)/manage_mem -src ../os/build/init/sysimg -tar ./devices/flash -src_start 0 -src_end 1048576 -tar_start 512 -tar_end 1049088
-
-run:
-	$(EXECUTABLE_NAME) $(FILE_PATH)
+# ---------------- 清理 ----------------
 
 clean:
 	@rm -rf $(BUILD_ROOT)
 
-.PHONY:run clean loadmem mkutils
+.PHONY:all build_dir verilog2cc mkexecutable mkutils info clean

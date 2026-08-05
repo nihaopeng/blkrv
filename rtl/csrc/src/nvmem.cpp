@@ -1,25 +1,25 @@
 #include "nvmem.h"
+#include <cstring>
+#include <iostream>
+#include <stdexcept>
 
 nvmem::nvmem(std::string mem_file_path,uint32_t size){
     this->size=size;
     this->mem_file_path=mem_file_path;
-    if(access((mem_file_path).c_str(),F_OK)!=0){//file not exist
+    std::ifstream probe(mem_file_path);
+    if(!probe.good()){//file not exist
+        probe.close();
         this->fp.open(mem_file_path,std::ios::binary|std::ios::out);
-        // uint32_t d=0;
-        // for(uint64_t i=0;i<size;i+=4){
-        //     printf("\r(size:%dByte)process:%f/100",size,(float(i+4)/size)*100);
-        //     this->fp.seekp(i);
-        //     this->fp.write(reinterpret_cast<const char*>(&d),sizeof(d));
-        // }
         char* write_data=(char*)malloc(size);
         if (write_data != NULL) {
             memset(write_data, 0, size); // 初始化为0
         }
         this->fp.write(write_data,size);
         this->fp.close();
+        free(write_data);
     }else{
         this->fp.open(mem_file_path,std::ios::binary|std::ios::out|std::ios::in);//同时使用in和out是为了修改某一部分内容而不清空文件
-    }   
+    }
     if (!this->fp) {
         // system("pwd");
         std::cout << "can not open the file:"<<mem_file_path << std::endl;
@@ -77,6 +77,20 @@ void nvmem::sync(){
     this->fp.open(this->mem_file_path,std::ios::binary|std::ios::out|std::ios::in);
 }
 
-int nvmem::process(rib* rib,uint32_t tick){
-    return 0;
+uint32_t nvmem::read(uint32_t offset, uint8_t op_type){
+    switch(op_type){
+        case 0:return uint8_t(this->getB(offset));
+        case 1:return uint16_t(this->get2B(offset));
+        case 2:return uint32_t(this->get4B(offset));
+        default:return 0;
+    }
+}
+
+void nvmem::write(uint32_t offset, uint32_t data, uint8_t op_type){
+    switch(op_type){
+        case 0:this->putB(offset,uint8_t(data));break;
+        case 1:this->put2B(offset,uint16_t(data));break;
+        case 2:this->put4B(offset,uint32_t(data));break;
+        default:break;
+    }
 }

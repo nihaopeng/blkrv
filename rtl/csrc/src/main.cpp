@@ -1,17 +1,65 @@
-#include<verilated.h>
-#include<verilated_vcd_c.h> //可选，如果要导出vcd则需要加上
-#include "Vtop.h"  // create `top.v`,so use `Vtop.h`
+#include <iostream>
+#include <ctime>
+#include "bus.h"
 #include "devices.h"
 #include "mmu.h"
 #include "monitor.h"
 
-extern vluint64_t main_time;
-extern devices my_devices;
-extern rib my_rib;
-extern mmu my_mmu;
+#ifdef BACKEND_SIM
+#include "cpu_sim.h"
+#else
+#include <verilated.h>
+#include <verilated_vcd_c.h> //可选，如果要导出vcd则需要加上
+#include "Vtop.h"  // create `top.v`,so use `Vtop.h`
+#endif
 
 int main(int argc, char** argv, char** env) {
     std::cout<<"\033[3;1;31mstarting sim...\033[0m"<<std::endl;
+
+    Bus my_bus;
+    devices my_devices(&my_bus);
+    mmu my_mmu(&my_bus);
+
+    monitor* my_monitor;
+    if(argc>=2)
+        my_monitor=new monitor(1<<28,argv[1]);
+    else
+        my_monitor=new monitor(1<<28,"../data.txt");
+    my_bus.register_dev(my_monitor,0x60300000,1<<20,0xFF);
+
+    clock_t start,end;
+    start=clock();
+    int i=0;
+
+#ifdef BACKEND_SIM
+    CpuSim cpu;
+    CpuSim& p=cpu;
+    for(;;i++){
+        p.eval();//执行一个周期: 消费上一请求的响应, 发出新请求
+
+        uint32_t phys=my_mmu.convert(p.load_addr_v,p.satp);
+        if(p.we){
+            my_bus.write(phys,p.write_data,p.mem_op_type);
+            p.read_data=0;
+        }else{
+            p.read_data=my_bus.read(phys,p.mem_op_type);
+        }
+        p.read_valid=1;
+        p.int_port0=my_bus.get_irq(0);
+        p.int_port1=my_bus.get_irq(1);
+        p.int_port2=my_bus.get_irq(2);
+        p.int_port3=my_bus.get_irq(3);
+        p.int_port4=my_bus.get_irq(4);
+        p.int_port5=my_bus.get_irq(5);
+        p.int_port6=my_bus.get_irq(6);
+        p.int_port7=my_bus.get_irq(7);
+        p.int_port8=my_bus.get_irq(8);
+        my_monitor->process(&my_bus,&my_mmu,main_time,p.inst_type_o);
+        if(my_devices.process(&my_bus,i)){
+            break;
+        }
+    }
+#else
     VerilatedContext* contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
     Vtop* top = new Vtop{contextp};
@@ -20,89 +68,45 @@ int main(int argc, char** argv, char** env) {
     contextp->traceEverOn(true); //打开追踪功能
     top->trace(tfp, 0); //
     tfp->open("wave.vcd"); //设置输出的文件wave.vcd
-    
-    std::cout<<"start initializing devices..."<<std::endl;
-    std::cout<<"$init monitor"<<std::endl;
-    monitor* my_monitor;
-    if(argc>=2)
-        my_monitor=new monitor(1<<28,argv[1]);
-    else
-        my_monitor=new monitor(1<<28,"../data.txt");
-    clock_t start,end;
-    start=clock();
-    top->clk=0;
-    int i=0;
-    for(;;i++){
-        top->clk=0;
-        top->eval();
-        // tfp->dump(main_time); //dump wave
-        // main_time+=1;
 
+    std::cout<<"start initializing devices..."<<std::endl;
+    top->clk=0;
+    Vtop& p=*top;
+    for(;;i++){
+        p.clk=0;
+        p.eval();
         //经过mmu转换虚址后，将数据请求发给各设备
-        // if(top->load_addr_v==0x112ed0&&top->we){
-        //     uint32_t data=my_devices.my_ram->get4B(top->load_addr_v);
-        //     printf("tick:%d,data:%x,write_data:%x\n",main_time,data,top->write_data);
-        // }
-        my_rib.dispatch(top,my_mmu.convert(top,&my_devices));
-        my_monitor->process(&my_rib,&my_mmu,main_time);
-        if(my_devices.process(&my_rib,i)){
+        uint32_t phys=my_mmu.convert(p.load_addr_v,p.satp);
+        if(p.we){
+            my_bus.write(phys,p.write_data,p.mem_op_type);
+            p.read_data=0;
+        }else{
+            p.read_data=my_bus.read(phys,p.mem_op_type);
+        }
+        p.read_valid=1;
+        p.int_port0=my_bus.get_irq(0);
+        p.int_port1=my_bus.get_irq(1);
+        p.int_port2=my_bus.get_irq(2);
+        p.int_port3=my_bus.get_irq(3);
+        p.int_port4=my_bus.get_irq(4);
+        p.int_port5=my_bus.get_irq(5);
+        p.int_port6=my_bus.get_irq(6);
+        p.int_port7=my_bus.get_irq(7);
+        p.int_port8=my_bus.get_irq(8);
+        my_monitor->process(&my_bus,&my_mmu,main_time,p.inst_type_o);
+        if(my_devices.process(&my_bus,i)){
             break;
         }
-        //rib将信号传给rtl
-        my_rib.set_flag(top);
 
-        top->clk=1;
-        top->eval();
-        // tfp->dump(main_time); //dump wave
-        // main_time+=1;
+        p.clk=1;
+        p.eval();
     }
-    end=clock();
-    printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);
     delete top;
     tfp->close();
     delete contextp;
+#endif
+
+    end=clock();
+    printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);
     return 0;
 }
-
-// int main(int argc, char** argv, char** env) {
-//     std::cout<<"\033[3;1;31mstarting sim...\033[0m"<<std::endl;
-//     Vtop* top = new Vtop;
-    
-//     std::cout<<"\033[3;1;31mstart init the mem...\033[0m"<<std::endl;
-//     mem ram("./devices/ram",1024*50,0);
-//     mem keyboard("./devices/keyboard",4,1);
-//     mem screen("./devices/screen",4,2);
-//     screen.put4B(0,0);
-//     ram.put4B_from_file(0,"./test/interrupt_test.bin");
-//     ram.put4B(104,52);
-    
-//     top->clk=0;
-//     for(int i=0;;i++){
-//         top->s0_read_valid=0;
-//         top->clk=0;
-//         top->eval();
-
-//         ram.ram_interface(top);
-//         keyboard.ram_interface(top);
-//         screen.ram_interface(top);
-//         if(top->int_response1==1){
-//             top->int_port1=0;
-//         }
-//         if(kbhit()){
-//             top->int_port1=1;
-//             char ch=getchar();
-// 			std::cout<<ch<<std::endl;
-//             keyboard.putB(0,ch);
-//             top->s1_read_valid=1;
-//         }
-//         top->s0_read_valid=1;
-//         if(screen.get4B(0)){
-//             printf("%c",char(screen.get4B(0)));
-//             screen.put4B(0,0);
-//         }
-//         top->clk=1;
-//         top->eval();
-//     }
-//     delete top;
-//     return 0;
-// }

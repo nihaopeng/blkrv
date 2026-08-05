@@ -2,41 +2,33 @@
 #define _NET_CARD_H_
 
 #include "vmem.h"
-#include "ram.h"
-#include <pthread.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string>
-// typedef struct dataframe
-// {
-//     /* data */
-//     char ip[16];
-//     uint32_t port;
-//     uint32_t data_phy_addr;
-//     uint32_t data_len;
-// }dataframe;
 
 
 class net_card:public vmem
 {
 private:
-    /* data */
-    ram* my_ram;
-    pthread_t thread;
-    int if_start_up;
+    int pending_sockfd;         // accept/connect 进行中的 socket, -1 表示无
+    int pending_connect_fd;     // connect 进行中的 socket, -1 表示无
+    char* pending_send;         // 待发送的数据缓冲
+    int pending_send_len;
+    int pending_send_off;
+    char* pending_recv;         // 接收缓冲
+    int pending_recv_len;
+    int pending_recv_off;
 public:
     net_card(uint32_t size);
     ~net_card();
-    // dataframe* datafram_from_blkos();
-    int blk_accept();
-    int blk_connect();
-    int blk_send();
-    int blk_recv();
+    int blk_accept_nb();
+    int blk_connect_nb();
+    int blk_send_nb();
+    int blk_recv_nb();
     int blk_close();
-    static void* thread_function(void* arg);
-    int process(rib* rib,uint32_t tick=0) override;
-    int dma_link(ram* ram);
+    // 每 tick 检查命令寄存器, 非阻塞执行 DMA 传输
+    int process(Bus* bus,uint32_t tick=0);
 };
 
 #endif // !_NET_CARD_H_

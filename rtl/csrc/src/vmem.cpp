@@ -1,6 +1,6 @@
 #include "vmem.h"
-
-vluint64_t main_time=0;
+#include <cstdlib>
+#include <cstdio>
 
 vmem::vmem(uint32_t size){
     this->size=size;
@@ -57,6 +57,19 @@ void vmem::put4B(uint32_t pointer,uint32_t data){
     }
     *((uint32_t*)(this->mem_space+pointer))=data;
 }
-int vmem::process(rib* rib,uint32_t tick){
-    return 0;
+uint32_t vmem::read(uint32_t offset, uint8_t op_type){
+    switch(op_type){
+        case 0:return uint8_t(this->getB(offset));
+        case 1:return uint16_t(this->get2B(offset));
+        case 2:return uint32_t(this->get4B(offset));
+        default:return 0;
+    }
+}
+void vmem::write(uint32_t offset, uint32_t data, uint8_t op_type){
+    switch(op_type){
+        case 0:this->putB(offset,uint8_t(data));break;
+        case 1:this->put2B(offset,uint16_t(data));break;
+        case 2:this->put4B(offset,uint32_t(data));break;
+        default:break;
+    }
 }

@@ -3,8 +3,7 @@
 
 #include<fstream>
 #include<map>
-#include "Vtop.h"
-#include "devices.h"
+#include "bus.h"
 
 class tlb{
     uint32_t size_pages1=64;
@@ -22,17 +21,18 @@ class tlb{
 
 class mmu{
     public:
+        Bus* my_bus;
         uint32_t addr=0;
         uint32_t is_hit=0;
         uint32_t is_enable=0;
         tlb my_tlb;
-        mmu();
+        mmu(Bus* bus);
         ~mmu();
         uint32_t get_addr() const;
         uint32_t get_is_hit() const;
         uint32_t get_is_enable() const;
-        uint32_t check_page_list(Vtop* top);
-        uint32_t convert(Vtop* top,devices* devices);
+        uint32_t check_page_list(uint32_t addr, uint32_t satp);
+        uint32_t convert(uint32_t addr, uint32_t satp);
 };
 
 #endif // !_MMU_H_

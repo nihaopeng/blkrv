@@ -9,7 +9,8 @@ public:
     int is_active;
     keyboard(uint32_t size);
     ~keyboard();
-    int process(rib* rib,uint32_t tick=0) override;
+    // 每 tick 轮询输入并触发中断, 读写走 vmem 基类
+    int process(Bus* bus,uint32_t tick=0);
 };
 
 

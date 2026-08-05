@@ -1,4 +1,4 @@
-// #include "std.h"
+#include "std.h"
 #include "file.h"
 #include "proc.h"
 
@@ -50,6 +50,27 @@ int get_file_from_server(char* remote_file_name,char* local_file_name,char* ip,u
     return inode_id;
 }
 
+int gl(char* str){
+    uint32_t p=0;
+    while(1){
+        // print("getting ch\n");
+        char ch=vgetchk();
+        if(ch==10){
+            // printk("enter]%c",ch);
+            break;
+        }else if(ch!=0){
+            // printk("%d ",ch);
+            if(ch==127){
+                p-=1;
+                str[p]=0;
+            }else{
+               str[p++]=ch;
+            }
+        }
+    }
+    return p;
+}
+
 int main(){
     regist_sysmethod();
     init_input();
@@ -63,11 +84,11 @@ int main(){
     // init_ps();
     //init_console是shell进程，运行在线性内核空间，pid=1。
 
-    // printk("BBBB     LL      K   K\n");
-    // printk("B   B    LL      KK K\n");
-    // printk("BBBB     LL      KKK\n");
-    // printk("B   B    LL      KK K\n");
-    // printk("BBBB     LLLLLLL K   K\n");
+    printk("BBBB     LL      K   K\n");
+    printk("B   B    LL      KK K\n");
+    printk("BBBB     LL      KKK\n");
+    printk("B   B    LL      KK K\n");
+    printk("BBBB     LLLLLLL K   K\n");
     
     // inode ino;
     // char ppt1[]="/tmp/1.png";
@@ -137,30 +158,30 @@ int main(){
     /*
         get exec file from server and exec it.
     */
-    
+
     // inode ino;
     // uint32_t tmp=0;
-    // uint32_t inode_id=createk("/bin/ppt_player",FILE_TYPE,&tmp);
-    // open_monitor_k();
+    // uint32_t inode_id=createk("/bin/snake_game",FILE_TYPE,&tmp);
+    // // open_monitor_k();
     // finfo_k(inode_id,&ino);
-    // close_monitor_k();
+    // // close_monitor_k();
     // printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // // below is a simple wget
-    // get_file_from_server("./ppt_player/ppt_player","/bin/ppt_player","127.0.0.1",8080);
-    // char para1[]="./user_program.bin";
+    // get_file_from_server("./snake_game/snake","/bin/snake_game","127.0.0.1",8080);
+    // char para1[]="./snake_game";
     // char* para[]={para1};
     // execk(inode_id,-1,para,1);
 
     inode ino;
     uint32_t tmp=0;
-    uint32_t inode_id=createk("/bin/snake_game",FILE_TYPE,&tmp);
-    open_monitor_k();
+    uint32_t inode_id=createk("/bin/test_cli",FILE_TYPE,&tmp);
+    // open_monitor_k();
     finfo_k(inode_id,&ino);
-    close_monitor_k();
+    // close_monitor_k();
     printk("inode_id:%d,file size:%d\n",inode_id,ino.size);
     // below is a simple wget
-    get_file_from_server("./snake_game/snake","/bin/snake_game","127.0.0.1",8080);
-    char para1[]="./snake_game";
+    get_file_from_server("./test_cli/test_cli","/bin/test_cli","127.0.0.1",8080);
+    char para1[]="./test_cli";
     char* para[]={para1};
     execk(inode_id,-1,para,1);
 
@@ -169,17 +190,19 @@ int main(){
     */
     // char s[20];
     // printk("getline:");
-    // getline(s);
-    // printk("%s",s);
+    // gl(s);
+    // printk("gl:%s\n",s);
     // int ifkbhit=0;
     // char ch;
+    // char iskbhit=0;
+    // printk("press q to exit\n");
     // while(1){
-    //     kbhit(&ifkbhit);
-    //     if(ifkbhit){
-    //         vgetch(&ch);
+    //     iskbhit = kbhitk();
+    //     if(iskbhit){
+    //         ch = vgetchk();
     //         if(ch=='q')
     //             break;
-    //         // print("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
+    //         printk("\033[1;40;31mchar:%c,int:%d\033[0m",ch,ch);
     //     }
     // }
     

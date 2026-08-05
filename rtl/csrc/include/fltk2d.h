@@ -9,12 +9,12 @@
 #include <FL/Fl_JPEG_Image.H>  // 新增JPEG支持头文件
 #include <FL/Fl_PNG_Image.H>
 #include <cmath>  // 用于 sin 和 cos 函数
-#include "rib.h"
+#include "bus.h"
 #include "keyboard.h"
 
 class MyWindow : public Fl_Window {
 public:
-    rib* my_rib;
+    Bus* my_bus;
     keyboard* my_keyboard;
     MyWindow(int w, int h, const char* title) : Fl_Window(w, h, title) {}
 
@@ -35,7 +35,7 @@ public:
     void draw_jpg(unsigned char* jpg_data, size_t data_length,int x, int y);
 
     void draw_png(unsigned char* png_data, size_t data_length,int x, int y);
-    
+
     BufferedWidget(int X, int Y, int W, int H, const char* L = nullptr);
 
     ~BufferedWidget();
@@ -44,7 +44,7 @@ public:
     void flush();
 
     void draw() override;
-    
+
     // int handle(int event) override;
 };
 

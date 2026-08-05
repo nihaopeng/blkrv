@@ -101,21 +101,11 @@ _start:
 
 _gdt_search:
     _vir2phy//转换后的物理sp地址存储在t6中，保存虚拟地址sp后，sp赋值为物理地址
-    # addi t6,t6,-132
-    # sw ra,128(t6)
-    # sw s0,124(t6)
-    # addi s0,t6,132
-    # save_ctx//保存上下文,ra,s0已独立保存，不用重复操作。同时保存了虚拟sp
-    # mv sp,t6//t6赋值物理sp
     slli a7,a7,2
     la t1,syscall_table//调用表基址
     add a7,a7,t1
     lw a7,0(a7)
     jalr ra,a7
-    # recover_ctx//恢复上下文
-    # lw s0,124(sp)//还原s0，此时sp仍是物理地址
-    # lw ra,128(sp)//还原ra，貌似没用
-    # lw sp,116(sp)//还原sp
     sret
 
 _idt_search:

@@ -5,7 +5,7 @@
     #include "vmem.h"
     #include "fltk2d.h"
     #include "keyboard.h"
-    #include "rib.h"
+    #include "bus.h"
     #include <atomic>
 
     #define GPU_ADDR_CACHE 0x00000000
@@ -31,14 +31,15 @@
     public:
         int if_start_up;
         int if_clear;
-        rib* my_rib;
+        Bus* my_bus;
         keyboard* my_keyboard;
         MyWindow* win;
         BufferedWidget* buffered_widget;
         pthread_t thread;
         gpu(uint32_t size,keyboard* my_keyboard);
         ~gpu();
-        int process(rib* my_rib,uint32_t tick=0);
+        // 每 tick 确保 FLTK 窗口线程已启动
+        int process(Bus* bus,uint32_t tick=0);
         static void draw(void* arg);
         static void* thread_function(void* arg);
     };
@@ -46,4 +47,3 @@
     #endif // !_GPU_H_
 
 #endif // !ENABLE_GPU
-

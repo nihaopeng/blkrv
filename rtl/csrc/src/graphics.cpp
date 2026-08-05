@@ -15,21 +15,21 @@
         fp.read(reinterpret_cast<char*>(&data), sizeof(data));
         return data;
     }
-    
+
     screen_inode* get_inode_by_id_s(std::fstream &fp,uint32_t inode_id){
         fp.seekg(INODE_START+inode_id*sizeof(screen_inode));
         screen_inode* data=new screen_inode;
         fp.read(reinterpret_cast<char*>(data), sizeof(screen_inode));
         return data;
     }
-    
+
     char getB(std::fstream &fp,char* addr){
         fp.seekg((uint64_t)addr);
         char data;
         fp.read(reinterpret_cast<char*>(&data), sizeof(data));
         return data;
     }
-    
+
     // 读取文件
     int readk_s(uint32_t inode_id,unsigned char* buf) {
         std::fstream f;
@@ -124,7 +124,7 @@
         gpu* gput = static_cast<gpu*>(arg);
         gput->win = new MyWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Rotating Triangle Example");
         gput->buffered_widget = new BufferedWidget(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gput->win->my_rib=gput->my_rib;
+        gput->win->my_bus=gput->my_bus;
         gput->win->my_keyboard=gput->my_keyboard;
         Fl::add_timeout(1/500,gpu::draw,arg);
         gput->win->show();
@@ -132,30 +132,11 @@
         return nullptr;
     }
 
-    int gpu::process(rib* my_rib,uint32_t tick){
+    int gpu::process(Bus* bus,uint32_t tick){
         if(!this->if_start_up){
-            this->my_rib=my_rib;
+            this->my_bus=bus;
             pthread_create(&thread,NULL,thread_function,this);
             this->if_start_up=1;
-        }
-        if(my_rib->s4_req){
-            if(my_rib->s4_we){
-                switch(my_rib->s4_mem_op_type){
-                    case 0:this->putB(my_rib->s4_addr,uint8_t(my_rib->s4_write_data));break;
-                    case 1:this->put2B(my_rib->s4_addr,uint16_t(my_rib->s4_write_data));break;
-                    case 2:this->put4B(my_rib->s4_addr,uint32_t(my_rib->s4_write_data));
-                            // printf("%d:%d:%d\n",rib->s1_addr,rib->s1_write_data,this->get4B(rib->s1_addr));
-                            break;
-                    default:break;
-                }
-            }else{
-                switch(my_rib->s4_mem_op_type){
-                    case 0:my_rib->s4_read_data=uint8_t(this->getB(my_rib->s4_addr));break;
-                    case 1:my_rib->s4_read_data=uint16_t(this->get2B(my_rib->s4_addr));break;
-                    case 2:my_rib->s4_read_data=uint32_t(this->get4B(my_rib->s4_addr));break;
-                    default:break;
-                }
-            }
         }
         return 0;
     }

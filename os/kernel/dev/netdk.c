@@ -9,7 +9,7 @@ int init_net(){
 int recvk(int sockfd,char* buf,uint32_t buf_length){
     if(*(uint32_t*)NIC_CTRL_ADDR==0){
         *(uint32_t*)(NIC_CTRL_ADDR+4)=sockfd;
-        *(uint32_t*)(NIC_CTRL_ADDR+8)=(uint32_t)buf-RAM_START;//网卡dma不经过总线，所以需要相对偏移地址
+        *(uint32_t*)(NIC_CTRL_ADDR+8)=(uint32_t)buf;//网卡DMA走总线, 直接传物理地址
         *(uint32_t*)(NIC_CTRL_ADDR+12)=buf_length;
         *(uint32_t*)NIC_CTRL_ADDR=3;
         while(*(uint32_t*)NIC_CTRL_ADDR==3);//网卡通知接收结束，阻塞
@@ -21,7 +21,7 @@ int sendk(int sockfd,char* buf,uint32_t buf_length){
     if(*(uint32_t*)NIC_CTRL_ADDR==0){
         *(uint32_t*)(NIC_CTRL_ADDR+4)=sockfd;
         // printk("sendk:buf:%x,%s\n",buf,buf);
-        *(uint32_t*)(NIC_CTRL_ADDR+8)=(uint32_t)buf-RAM_START;//网卡dma不经过总线，所以需要相对偏移地址
+        *(uint32_t*)(NIC_CTRL_ADDR+8)=(uint32_t)buf;//网卡DMA走总线, 直接传物理地址
         *(uint32_t*)(NIC_CTRL_ADDR+12)=buf_length;
         *(uint32_t*)NIC_CTRL_ADDR=2;
         while(*(uint32_t*)NIC_CTRL_ADDR==2);//网卡通知发送结束，阻塞

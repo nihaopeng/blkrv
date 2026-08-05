@@ -4,10 +4,10 @@
 #include<string>
 #include<fstream>
 #include <chrono>
-#include "rib.h"
+#include "bus.h"
 #include "mmu.h"
 
-class monitor
+class monitor : public Device
 {
 public:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
@@ -34,7 +34,9 @@ public:
     void putB(uint32_t pointer,uint8_t data);
     void put2B(uint32_t pointer,uint16_t data);
     void put4B(uint32_t pointer,uint32_t data);
-    int process(rib* rib,mmu* my_mmu,uint32_t tick=0);
+    uint32_t read(uint32_t offset, uint8_t op_type) override;
+    void write(uint32_t offset, uint32_t data, uint8_t op_type) override;
+    int process(Bus* bus,mmu* my_mmu,uint32_t tick,uint32_t inst_type);
 };
 
 #endif // !_MONITOR_H_

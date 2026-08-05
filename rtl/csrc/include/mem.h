@@ -1,19 +1,12 @@
 #ifndef _MEM_H_
 #define _MEM_H_
 
-#include<fstream>
-#include<string>
-#include<iostream>
-#include<cstdlib>
-#include<sstream>
-#include "rib.h"
+#include "bus.h"
 
-class mem{
-    public:
-        uint32_t size;
-        mem();
-        ~mem();
-        virtual int process(rib* rib,uint32_t tick=0);
+class mem : public Device {
+public:
+    uint32_t size;
+    mem();
+    virtual ~mem();
 };
 #endif // !_MEM_H_
-

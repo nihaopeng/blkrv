@@ -1,9 +1,8 @@
 #include "devices.h"
+#include <iostream>
 
-devices my_devices;
-
-devices::devices(){
-    // printf("1");
+devices::devices(Bus* bus){
+    this->my_bus=bus;
     std::cout<<"$init bios"<<std::endl;
     this->my_bios=new bios("./devices/bios",1<<20);
     std::cout<<"$init keyboard"<<std::endl;
@@ -22,28 +21,35 @@ devices::devices(){
     #endif // ENABLE_GPU
     std::cout<<"$init pmc"<<std::endl;
     this->my_pmc=new pmc(0);
-    // std::cout<<"$init monitor"<<std::endl;
-    // this->my_monitor=new monitor(1<<28,"../data.csv");
-    system("make loadmem");
-    this->my_net_card->dma_link(this->my_ram);//建立dma连接，此处不走bus
     this->my_bios->sync();
     this->my_flash->sync();
+
+    // 注册设备到总线, 顺序即地址解码优先级
+    bus->register_dev(my_bios,     0x00000000, 1<<20,   0xFF);
+    bus->register_dev(my_ram,      0x00100000, 256<<20, 0xFF);
+    bus->register_dev(my_keyboard, 0x10100000, 1<<20,   2);
+    bus->register_dev(my_screen,   0x10200000, 256<<20, 0xFF);
+    #ifdef ENABLE_GPU
+        bus->register_dev(my_gpu,  0x20200000, 256<<20, 0xFF);
+    #endif // ENABLE_GPU
+    bus->register_dev(my_net_card, 0x30200000, 256<<20, 0xFF);
+    bus->register_dev(my_flash,    0x40200000, 512<<20, 0xFF);
+    bus->register_dev(my_pmc,      0x60200000, 1<<20,   0xFF);
 }
 
 devices::~devices(){
 }
 
-int devices::process(rib* top,uint32_t tick){
-    this->my_bios->process(top);
-    this->my_keyboard->process(top,tick);
-    this->my_ram->process(top);
-    this->my_flash->process(top);
-    this->my_screen->process(top);
-    this->my_net_card->process(top);
-    // this->my_monitor->process(top);
+int devices::process(Bus* bus,uint32_t tick){
+    this->my_keyboard->process(bus,tick);
+    this->my_screen->process(bus,tick);
+    this->my_net_card->process(bus,tick);
     #ifdef ENABLE_GPU
-        this->my_gpu->process(top);
+        this->my_gpu->process(bus,tick);
     #endif // ENABLE_GPU
 
-    return this->my_pmc->process(top);
+    if(this->my_pmc->should_shutdown){
+        return -1;
+    }
+    return 0;
 }

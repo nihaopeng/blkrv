@@ -1,13 +1,12 @@
 #include "monitor.h"
+#include <cstdlib>
+#include <cstdio>
 
 monitor::monitor(uint32_t size,std::string data_path){
     this->size=size;
     this->mem_space=(uint8_t*)malloc(sizeof(uint8_t)*size);
     this->data_path=data_path;
     this->fp.open(this->data_path,std::ios::out | std::ios::trunc);  // 关键：使用 trunc 清空文件
-    // this->fp<<
-    // "lui,auipc,jal,jalr,bj,load,store,calc,calci,sys,bios,ram,keyboard,screen,nic,flash"
-    // <<std::endl;
 }
 
 monitor::~monitor(){
@@ -63,25 +62,25 @@ void monitor::put4B(uint32_t pointer,uint32_t data){
     *((uint32_t*)(this->mem_space+pointer))=data;
 }
 
-int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
-    if(rib->s8_req){
-        if(rib->s8_we){
-            switch(rib->s8_mem_op_type){
-                case 0:this->putB(rib->s8_addr,uint8_t(rib->s8_write_data));break;
-                case 1:this->put2B(rib->s8_addr,uint16_t(rib->s8_write_data));break;
-                case 2:this->put4B(rib->s8_addr,uint32_t(rib->s8_write_data));break;
-                default:break;
-            }
-        }else{
-            switch(rib->s8_mem_op_type){
-                case 0:rib->s8_read_data=uint8_t(this->getB(rib->s8_addr));break;
-                case 1:rib->s8_read_data=uint16_t(this->get2B(rib->s8_addr));break;
-                case 2:rib->s8_read_data=uint32_t(this->get4B(rib->s8_addr));break;
-                default:break;
-            }
-            // printf("%d",rib->s2_read_data);
-        }
+uint32_t monitor::read(uint32_t offset, uint8_t op_type){
+    switch(op_type){
+        case 0:return uint8_t(this->getB(offset));
+        case 1:return uint16_t(this->get2B(offset));
+        case 2:return uint32_t(this->get4B(offset));
+        default:return 0;
     }
+}
+
+void monitor::write(uint32_t offset, uint32_t data, uint8_t op_type){
+    switch(op_type){
+        case 0:this->putB(offset,uint8_t(data));break;
+        case 1:this->put2B(offset,uint16_t(data));break;
+        case 2:this->put4B(offset,uint32_t(data));break;
+        default:break;
+    }
+}
+
+int monitor::process(Bus* bus,mmu* my_mmu,uint32_t tick,uint32_t inst_type){
     // if(this->is_enable=0)
     if(this->get4B(0)==1)//TODO:传输写入的文件。
     {
@@ -91,7 +90,6 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
             this->start_time = std::chrono::high_resolution_clock::now();
         }
         this->is_enable=1;
-        uint32_t inst_type=rib->inst_type_o;
         this->sum_ticks+=1;
         this->lui_times+=((inst_type&(0x000003ff))>>9);
         this->auipc_times+=((inst_type&(0x000001ff))>>8);
@@ -103,14 +101,14 @@ int monitor::process(rib* rib,mmu* my_mmu,uint32_t tick){
         this->calc_times+=((inst_type&(0x00000007))>>2);
         this->calci_times+=((inst_type&(0x00000003))>>1);
         this->sys_times+=((inst_type&(0x00000001))>>0);
-        this->s0_req+=rib->s0_req;
-        this->s1_req+=rib->s1_req;
-        this->s2_req+=rib->s2_req;
-        this->s3_req+=rib->s3_req;
-        this->s4_req+=rib->s4_req;
-        this->s5_req+=rib->s5_req;
-        this->s6_req+=rib->s6_req;
-        if(((inst_type&(0x0000001f))>>4)&&rib->s1_addr%4==0){
+        this->s0_req+=bus->req_count[0];
+        this->s1_req+=bus->req_count[1];
+        this->s2_req+=bus->req_count[2];
+        this->s3_req+=bus->req_count[3];
+        this->s4_req+=bus->req_count[4];
+        this->s5_req+=bus->req_count[5];
+        this->s6_req+=bus->req_count[6];
+        if(((inst_type&(0x0000001f))>>4)&&bus->last_addr%4==0){
             this->align_times+=1;
         }else if(((inst_type&(0x0000001f))>>4)){
             this->none_align_times+=1;

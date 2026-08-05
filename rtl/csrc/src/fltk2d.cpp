@@ -6,9 +6,8 @@ int MyWindow::handle(int event) {
     if (event == FL_KEYDOWN) {
         int key = Fl::event_key();
         // printf("key:%c\n",key);
-        this->my_rib->int_port2=1;
+        this->my_bus->set_irq(2,true);
         this->my_keyboard->put4B(0, key);
-        this->my_rib->s2_read_valid=1;
         return 1; // 事件已处理
     }
     return Fl_Window::handle(event); // 调用基类的处理函数
@@ -77,7 +76,7 @@ void BufferedWidget::draw_png(unsigned char* png_data,size_t data_length,int x, 
 }
 
 void BufferedWidget::flush()
-{   
+{
     // 获取绘图结果
     Fl_RGB_Image* new_image = img_surf->image();
 
@@ -86,7 +85,7 @@ void BufferedWidget::flush()
     cached_image = new_image;
 
     Fl_Display_Device::display_device()->set_current();  // 恢复绘图到屏幕
-    
+
     redraw();
 }
 
@@ -99,15 +98,13 @@ void BufferedWidget::draw()
 }
 
 // int BufferedWidget::handle(int event) {
-//     this->my_rib->int_port2=0;
-//     this->my_rib->s2_read_valid=0;
+//     this->my_bus->set_irq(2,false);
 //     if (event == FL_KEYDOWN) {
 //         // 获取 ASCII 码和按键状态
 //         int key = Fl::event_key();
 //         printf("key:%d\n",key);
-//         this->my_rib->int_port2=1;
+//         this->my_bus->set_irq(2,true);
 //         this->my_keyboard->put4B(0, key);
-//         this->my_rib->s2_read_valid=1;
 //         return 1;
 //     }
 //     return Fl_Widget::handle(event);
@@ -115,4 +112,3 @@ void BufferedWidget::draw()
 
 
 #endif // ENABLE_GPU
-
