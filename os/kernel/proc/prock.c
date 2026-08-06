@@ -3,6 +3,57 @@
 pcb global_pcb_list[MAX_PRO_NUM];
 uint32_t syscall_active_pid;  // _gdt_search 写, 调度器读
 
+// ============================================================
+//  打开文件表 (fd table) 操作
+//  必须和 global_pcb_list 同文件, 避免跨文件访问走 GOT
+// ============================================================
+
+void fd_init(pcb* p){
+    for(int i=0;i<MAX_FD;i++){
+        p->fdt[i].type=FD_EMPTY;
+        p->fdt[i].inode_id=0;
+        p->fdt[i].offset=0;
+    }
+    p->fdt[STDIN_FILENO].type=FD_TTY;
+    p->fdt[STDOUT_FILENO].type=FD_TTY;
+    p->fdt[STDERR_FILENO].type=FD_TTY;
+}
+
+fd_entry* fd_get(pcb* p,int fd){
+    if(!p||fd<0||fd>=MAX_FD) return 0;
+    return &p->fdt[fd];
+}
+
+int fd_alloc(pcb* p){
+    if(!p) return -1;
+    for(int i=3;i<MAX_FD;i++){
+        if(p->fdt[i].type==FD_EMPTY) return i;
+    }
+    return -1;
+}
+
+fd_entry* fd_get_current(int fd){
+    uint32_t satp;
+    __asm__ volatile("csrr %0,0x181":"=r"(satp));
+    uint32_t pid=satp&0xfff;
+    if(pid==0||pid>=MAX_PRO_NUM) return 0;
+    return fd_get(&global_pcb_list[pid],fd);
+}
+
+int fd_alloc_current(void){
+    uint32_t satp;
+    __asm__ volatile("csrr %0,0x181":"=r"(satp));
+    uint32_t pid=satp&0xfff;
+    if(pid==0||pid>=MAX_PRO_NUM) return -1;
+    return fd_alloc(&global_pcb_list[pid]);
+}
+
+int fd_to_inode_current(int fd){
+    fd_entry* e=fd_get_current(fd);
+    if(!e||e->type!=FD_FILE) return -1;
+    return e->inode_id;
+}
+
 int exitk(){
     //获取调用exit的程序的进程号；
     uint32_t satp=0;
@@ -91,7 +142,8 @@ int get_free_pid(){
 uint32_t init_pcb(int new_pid,int stdout){
     // 不设置 is_alive — 由调用者 (load_proc/execk) 决定
     // 避免 timer 在加载期间触发时看到中间态
-    global_pcb_list[new_pid].stdout=stdout;
+    fd_init(&global_pcb_list[new_pid]);
+    (void)stdout;
     global_pcb_list[new_pid].ksp = 0x002f0000;  // 内核栈 (中断栈下方)
     global_pcb_list[new_pid].free_block_head.next=(mnode*)0x4;
     global_pcb_list[new_pid].free_block_head.size=0x0;
@@ -374,9 +426,11 @@ uint32_t restore_ctx_s_from_pcb(pcb* p) {
 // ============================================================
 
 __attribute__((visibility("hidden")))
-int spawn_i(uint32_t inode_id, char** para, uint32_t para_num){
+int spawn_i(int fd, char** para, uint32_t para_num){
     _vir2phyk(char**,para);
     for(int i=0;i<para_num;i++) _vir2phyk(char*,para[i]);
+    int inode_id=fd_to_inode_current(fd);
+    if(inode_id<0) return -1;
     uint32_t satp;
     __asm__ volatile("csrr %0,0x181":"=r"(satp));
     uint32_t parent_pid = satp & 0xfff;
@@ -489,5 +543,8 @@ void start_first_process(void) {
     #undef W
     __asm__ volatile("csrrw zero, 0x341, %0" :: "r"(p->pc));
     __asm__ volatile("csrrw zero, 0x182, %0" :: "r"(p->satp));
+    // 进用户态前确保 mstatus.MPIE=MIE=1: 否则 mret 后 MIE=0,
+    // 定时器/键盘中断全部收不到 (只有之前触发过中断的流程才碰巧正常)
+    __asm__ volatile("li t0, 0x88\n csrw 0x300, t0");
     __asm__ volatile(".word 0x30200073");  // mret
 }

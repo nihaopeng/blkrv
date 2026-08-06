@@ -15,16 +15,10 @@ void regist_sysmethod(){
 }
 
 void regist_std(){
-    int* gdt_addr_vprint=(int*)(&syscall_table[_NR_vprint]);
-    int* gdt_addr_vgetch=(int*)(&syscall_table[_NR_vgetch]);
     int* idt_addr_kbdown=(int*)(&inter_table[_NI_kbdown]);
     int* gdt_addr_powoff=(int*)(&syscall_table[_NR_powoff]);
-    int* gdt_addr_kbhit=(int*)(&syscall_table[_NR_kbhit]);
-    regist_vprint(gdt_addr_vprint);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_keydown_interrupt(idt_addr_kbdown);
     regist_poweroff(gdt_addr_powoff);
-    regist_vgetch(gdt_addr_vgetch);
-    regist_kbhit(gdt_addr_kbhit);
 }
 
 void regist_fs(){
@@ -33,12 +27,14 @@ void regist_fs(){
     int* gdt_addr_open=(int*)(&syscall_table[_NR_open]);
     int* gdt_addr_create=(int*)(&syscall_table[_NR_create]);
     int* gdt_addr_finfo=(int*)(&syscall_table[_NR_finfo]);
+    int* gdt_addr_finoid=(int*)(&syscall_table[_NR_finoid]);
     int* gdt_addr_delete=(int*)(&syscall_table[_NR_delete]);
     regist_read(gdt_addr_read);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
     regist_write(gdt_addr_write);
     regist_open(gdt_addr_open);
     regist_create(gdt_addr_create);
     regist_finfo(gdt_addr_finfo);
+    regist_finoid(gdt_addr_finoid);
     regist_delete(gdt_addr_delete);
 }
 

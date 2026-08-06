@@ -3,20 +3,11 @@
 #include "file.h"
 #include <stdarg.h>
 
-int stdout=-1;
-int stdout_start=0;
 char out_cache_k[1024];
 
 int init_out(){
-    stdout=-1;
-    stdout_start=0;
     memset_s(out_cache_k,0,1024);
-}
-
-void set_stdout(int stdouts,int stdout_starts){
-    //when you redirect to file, the stdout_start is start of file ptr
-    stdout=stdouts;
-    stdout_start=stdout_starts;
+    return 0;
 }
 
 int printk(const char* fmt,...){//放在这里为了访问out_cache
@@ -77,7 +68,6 @@ int printk(const char* fmt,...){//放在这里为了访问out_cache
     }
     va_end(args);
     out_cache_k[out_cache_n]='\0';
-    // vprint_i(out_cache_k,out_cache_n);//不使用这个函数是因为里面有satp寄存器读取
     for(uint32_t i=0;i<out_cache_n;i++){
         char ch=*(out_cache_k+i);
         char* addr=(char*)SCREEN_CACHE1_ADDR+i;
@@ -89,23 +79,3 @@ int printk(const char* fmt,...){//放在这里为了访问out_cache
     return 0;
 }
 
-int vprint_i(char* str,uint32_t length){
-    // str=(char*)user_to_global((void*)str);
-    // printk("%d\n",str);
-    if(stdout==-1){
-        _vir2phyk(char*,str);
-        
-        for(uint32_t i=0;i<length;i++){
-            char ch=*(str+i);
-            char* addr=(char*)SCREEN_CACHE1_ADDR+i;
-            *addr=ch;
-        }
-        char* ctrl_addr=(char*)SCREEN_CTRL_ADDR+3;
-        *ctrl_addr=1;
-    }else{
-        writek(stdout,str,stdout_start,length);
-    }
-    return 0;
-}
-
-_regist_syscall(void,vprint);//放在这里是为了避免vprint_i被编译在GOT表中

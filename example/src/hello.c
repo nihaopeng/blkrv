@@ -18,24 +18,24 @@ int main(int argc,char* argv[]){
     }else{
         print("what the fuck?\n");
     }
-    print("##vgetch pass\ninput 'q' to test:");
+    print("##tty read pass\ninput 'q' to test:");
     while(1){
-        if(kbhit()){
-            if(vgetch()=='q')
-                break;
+        char ch;
+        if(read(STDIN_FILENO,&ch,1)>0){
+            if(ch=='q') break;
         }
     }
-    print("##kbhit pass\n");
+    print("##tty read pass\n");
     uint32_t inode_id=0;
     create("/tmp/user_program_test.txt",'f',&inode_id);
     print("##create pass\n");
-    inode_id=open("/tmp/user_program_test.txt");
+    int fd=open("/tmp/user_program_test.txt");
     print("##open pass\n");
     char buf[]="hello world";
-    write(inode_id,buf,0,str_len(buf));
+    write(fd,buf,str_len(buf));
     print("##write pass\n");
     char read_buf[20];
-    read(inode_id,read_buf,0,20);
+    read(fd,read_buf,20);
     print("%s\n",read_buf);
     print("##read pass\n");
 
@@ -86,9 +86,9 @@ int main(int argc,char* argv[]){
     // draw_label(&p1,"hello, this is user, input 'q' to quit:",&c,180);
     // flush();
     // while(1){
-    //     if(kbhit()){
-    //         if(vgetch()=='q')
-    //             break;
+    //     char ch;
+    //     if(read(STDIN_FILENO,&ch,1)>0){
+    //         if(ch=='q') break;
     //     }
     // }
 

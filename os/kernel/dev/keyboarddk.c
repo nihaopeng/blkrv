@@ -15,9 +15,7 @@ int init_input(){
 char vgetchk(){
     //printk("g");//change to syscall
     if(in_cache_frontp!=in_cache_backp){
-        // printk("%d,%d\n",in_cache_frontp,in_cache_backp);
         char ch=in_cache[in_cache_frontp++];
-        // printk("%d ",*ch);
         in_cache_frontp=mod(in_cache_frontp,IO_CACHE);
         return ch;
     }else{
@@ -36,7 +34,6 @@ int kbhitk(){
 
 
 void keydown_interrupt_i(){
-    //printk("K");
     uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
     int next_bp;
     if((ch_int&0x000000ff)!=0){

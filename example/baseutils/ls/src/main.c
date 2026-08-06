@@ -1,9 +1,9 @@
 // BLKRV ls — 列出目录内容
-// syscall: print(vprint), open, finfo, read
+// syscall: write(1), open, finfo, read
 
 static void print(const char* s) {
     int n = 0; while (s[n]) n++;
-    __asm__ volatile("li a7, 5\n mv a0, %0\n mv a1, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a7");
+    __asm__ volatile("li a7, 2\n li a0, 1\n mv a1, %0\n mv a2, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a2","a7");
 }
 static int open(const char* path) {
     int r;
@@ -15,10 +15,15 @@ static int finfo(int fd, void* ino) {
     __asm__ volatile("li a7, 20\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd), "r"(ino) : "a0","a1","a7");
     return r;
 }
-static int readf(int fd, char* buf, int start, int count) {
+static int readf(int fd, char* buf, int count) {
     int r;
-    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n mv a3, %4\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(fd), "r"(buf), "r"(start), "r"(count) : "a0","a1","a2","a3","a7");
+    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
+        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
+    return r;
+}
+static int finoid(unsigned id, void* ino) {
+    int r;
+    __asm__ volatile("li a7, 28\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0" : "=r"(r) : "r"(id), "r"(ino) : "a0","a1","a7");
     return r;
 }
 
@@ -55,7 +60,7 @@ int main(int argc, char* argv[]) {
     }
 
     char buf[1024];
-    int rd = readf(fd, buf, 0, 1024);
+    int rd = readf(fd, buf, 1024);
     if (rd < 0) { print("ls: read dir failed\n"); return 1; }
     // rd == 0: 空目录, 直接结束 (不是错误)
 
@@ -64,7 +69,7 @@ int main(int argc, char* argv[]) {
         int id = *(int*)(buf + i);
         if (id == 0) continue;
         inode_t child;
-        if (finfo(id, &child) < 0) continue;
+        if (finoid(id, &child) < 0) continue;
         if (child.type == 0) continue;  // 已删除的幽灵条目
         print(child.type == 'd' ? "d " : "  ");
         print(child.name);

@@ -47,15 +47,21 @@
 
 #define MONITOR_ADDR 0x60300000//3MB
 
+// 统一的文件描述符约定: 0/1/2 是 TTY
+#define STDIN_FILENO  0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+#define MAX_FD 16
+#define FD_EMPTY 0
+#define FD_TTY   1
+#define FD_FILE  2
+
 #define _NR_open 0
 #define _NR_delete 1
 #define _NR_write 2
 #define _NR_read 3
 #define _NR_create 4
-#define _NR_vprint 5
-#define _NR_vgetch 6
 #define _NR_powoff 7
-#define _NR_kbhit 8
 #define _NR_exit 9
 #define _NR_exec 10
 #define _NR_send 11
@@ -75,6 +81,7 @@
 #define _NR_close 25
 #define _NR_spawn   26
 #define _NR_waitpid 27
+#define _NR_finoid  28
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

@@ -1,7 +1,7 @@
 // BLKRV cat — 输出文件内容
 static void print(const char* s) {
     int n = 0; while (s[n]) n++;
-    __asm__ volatile("li a7, 5\n mv a0, %0\n mv a1, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a7");
+    __asm__ volatile("li a7, 2\n li a0, 1\n mv a1, %0\n mv a2, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a2","a7");
 }
 static int open(const char* path) {
     int r;
@@ -13,10 +13,10 @@ static int finfo(int fd, void* ino) {
     __asm__ volatile("li a7, 20\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd), "r"(ino) : "a0","a1","a7");
     return r;
 }
-static int readf(int fd, char* buf, int start, int count) {
+static int readf(int fd, char* buf, int count) {
     int r;
-    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n mv a3, %4\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(fd), "r"(buf), "r"(start), "r"(count) : "a0","a1","a2","a3","a7");
+    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
+        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
     return r;
 }
 
@@ -28,17 +28,10 @@ int main(int argc, char* argv[]) {
     int fd = open(argv[1]);
     if (fd < 0) { print("cat: open failed\n"); return 1; }
 
-    inode_t ino;
-    finfo(fd, &ino);
-
     char buf[128];
-    int off = 0;
-    while (off < (int)ino.size) {
-        int n = readf(fd, buf, off, 128);
-        if (n <= 0) break;
-        // print as string (not null-terminated, use vprint directly)
-        __asm__ volatile("li a7, 5\n mv a0, %0\n mv a1, %1\n ecall\n" :: "r"(buf), "r"(n) : "a0","a1","a7");
-        off += n;
+    int n;
+    while ((n = readf(fd, buf, 128)) > 0) {
+        __asm__ volatile("li a7, 2\n li a0, 1\n mv a1, %0\n mv a2, %1\n ecall\n" :: "r"(buf), "r"(n) : "a0","a1","a2","a7");
     }
     return 0;
 }

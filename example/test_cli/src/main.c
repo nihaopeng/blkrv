@@ -1,11 +1,16 @@
-// BLKRv CLI 综合测试: vprint/kbhit/vgetch/exit syscall + 循环/分支/栈
-int kbhit(void);
-char vgetch(void);
+// BLKRv CLI 综合测试: write/read(tty)/exit syscall + 循环/分支/栈
 
 static void print(const char* s) {
     int n = 0;
     while (s[n]) n++;
-    __asm__ volatile("li a7, 5\n mv a0, %0\n mv a1, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a7");
+    __asm__ volatile("li a7, 2\n li a0, 1\n mv a1, %0\n mv a2, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a2","a7");
+}
+
+static int readf(int fd, void* buf, int count) {
+    int r;
+    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
+        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
+    return r;
 }
 
 static void print_int(int v) {
@@ -24,11 +29,10 @@ static void print_int(int v) {
 static void readline(char* buf, int max) {
     int p = 0;
     while (1) {
-        while (!kbhit()) { /* spin */ }
-        char ch = vgetch();
-        if (ch == 0) continue;
-        if (ch == 10 || ch == 13) break; // enter
-        if (ch == 127 || ch == 8) { // backspace
+        char ch;
+        if (readf(0, &ch, 1) <= 0) continue; /* raw 模式: 无输入则继续等 */
+        if (ch == 10 || ch == 13) break;     // enter
+        if (ch == 127 || ch == 8) {          // backspace
             if (p > 0) p--;
         } else if (p < max - 1) {
             buf[p++] = ch;
@@ -73,8 +77,8 @@ int main(int argc, char* argv[]) {
     // 5. 退出
     print("\nAll tests done. Press 'q' to exit.\n");
     while (1) {
-        while (!kbhit()) { /* spin */ }
-        char ch = vgetch();
+        char ch;
+        if (readf(0, &ch, 1) <= 0) continue; /* spin */
         if (ch == 'q' || ch == 'Q') break;
         print("(press 'q' to exit)\n");
     }

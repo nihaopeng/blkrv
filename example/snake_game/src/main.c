@@ -219,9 +219,9 @@ void draw_gaming(){
         draw_score();
         flush();
 
-        if(kbhit()){
-            char ch = vgetch();       
-            move(ch);                
+        char ch;
+        if(read(STDIN_FILENO,&ch,1)>0){
+            move(ch);
         }
 
         int grow = eat();
@@ -248,14 +248,14 @@ void draw_end(){
         draw_label(&hint, msg2, &COLOR_HINT, font2);
         flush();
         sleep_ms(10);
-        if(kbhit()){
-            char ch = vgetch();       
-            if(ch == 'm' || ch == 'M'){ 
-                restart = 1; 
+        char ch;
+        if(read(STDIN_FILENO,&ch,1)>0){
+            if(ch == 'm' || ch == 'M'){
+                restart = 1;
                 draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_BACKGROUND);
                 flush();
                 break;
-            }     
+            }
         }
     }
 }

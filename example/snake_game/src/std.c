@@ -7,12 +7,9 @@ char out_cache[IO_CACHE];
 
 _syscall0(int,exit);
 _syscall4(int,exec,uint32_t,inode_id,int,stdout,char**,para,uint32_t,para_num);
-_syscall0(char,vgetch);
-_syscall0(int,kbhit);
 _syscall0(int,powoff);
-_syscall2(int,vprint,char*,str,uint32_t,length);
-_syscall4(int,read,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,count);
-_syscall4(int,write,uint32_t,inode_id,char*,buf,uint32_t,start,uint32_t,length);
+_syscall3(int,read,int,fd,char*,buf,uint32_t,count);
+_syscall3(int,write,int,fd,const char*,buf,uint32_t,count);
 _syscall3(int,create,char*,file_path,char,type,uint32_t*,inode_id);
 _syscall1(int,open,const char*,file_path);
 _syscall1(int,free,void*,pointer);
@@ -24,8 +21,9 @@ _syscall4(int,draw_triangle,point*,p1,point*,p2,point*,p3,color*,c);
 _syscall0(int,flush);
 _syscall0(int,open_monitor);
 _syscall0(int,close_monitor);
-_syscall2(int,finfo,uint32_t,inode_id,inode*,finode);
-_syscall1(int,delete,uint32_t,inode_id);
+_syscall2(int,finfo,int,fd,inode*,finode);
+_syscall2(int,finoid,uint32_t,inode_id,inode*,finode);
+_syscall1(int,delete,int,fd);
 _syscall4(int,draw_jpg,uint32_t,inode_id,uint32_t,size,uint32_t,x,uint32_t,y);
 _syscall4(int,draw_png,uint32_t,inode_id,uint32_t,size,uint32_t,x,uint32_t,y);
 _syscall1(int,accept,socket*,sock);
@@ -90,7 +88,7 @@ int print(const char* fmt,...){//only support 'c' now;
     }
     va_end(args);
     out_cache[out_cache_n]='\0';
-    vprint(out_cache,out_cache_n);
+    write(STDOUT_FILENO,out_cache,out_cache_n);
     // out_cache_mutex=0;
     return 0;
 }
@@ -106,7 +104,8 @@ int input(const char* fmt,...){
             int num=0;
             while(1){
                 // print("getting ch\n");
-                char ch=vgetch();
+                char ch;
+                if(read(STDIN_FILENO,&ch,1)<=0) continue;
                 if(ch==10||ch==32){
                     // printk("%c",ch);
                    if(p==0)continue;
@@ -151,7 +150,8 @@ int getline(char* str){
     uint32_t p=0;
     while(1){
         // print("getting ch\n");
-        char ch=vgetch();
+        char ch;
+        if(read(STDIN_FILENO,&ch,1)<=0) continue;
         if(ch==10){
             // printk("enter]%c",ch);
             break;

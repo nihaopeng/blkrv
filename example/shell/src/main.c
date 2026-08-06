@@ -6,7 +6,7 @@
 
 static void print(const char* s) {
     int n = 0; while (s[n]) n++;
-    __asm__ volatile("li a7, 5\n mv a0, %0\n mv a1, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a7");
+    __asm__ volatile("li a7, 2\n li a0, 1\n mv a1, %0\n mv a2, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a2","a7");
 }
 static int openf(const char* path) {
     int r;
@@ -29,14 +29,10 @@ static int waitpid(int pid) {
     __asm__ volatile("li a7, 27\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(pid) : "a0","a7");
     return r;
 }
-static int kbhit(void) {
+static int readf(int fd, void* buf, int count) {
     int r;
-    __asm__ volatile("li a7, 8\n ecall\n mv %0, a0" : "=r"(r) :: "a0","a7");
-    return r;
-}
-static char vgetch(void) {
-    char r;
-    __asm__ volatile("li a7, 6\n ecall\n mv %0, a0" : "=r"(r) :: "a0","a7");
+    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
+        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
     return r;
 }
 
@@ -111,9 +107,8 @@ static void resolve_path(const char* src, char* out) {
 static void readline(char* buf, int max) {
     int p = 0;
     while (1) {
-        while (!kbhit()) { /* spin */ }
-        char ch = vgetch();
-        if (ch == 0) continue;
+        char ch;
+        if (readf(0, &ch, 1) <= 0) continue;   /* raw 模式: 无输入则继续等 */
         if (ch == 10 || ch == 13) break;
         if (ch == 127 || ch == 8) {
             if (p > 0) { p--; print("\b \b"); }

@@ -10,6 +10,13 @@ typedef struct mnode{
     struct mnode* next;
 }mnode;
 
+// 每个进程的打开文件表项
+typedef struct fd_entry{
+    uint32_t type;      // FD_EMPTY / FD_TTY / FD_FILE
+    uint32_t inode_id;  // FD_FILE 时指向全局 inode 表下标
+    uint32_t offset;    // 当前读写位置
+}fd_entry;
+
 typedef struct pcb{
     uint8_t is_alive;           // PROC_RUNNING/READY/BLOCKED/DEAD
     uint8_t parent_pid;         // 父进程 pid (进程树, exitk 递归杀子)
@@ -19,7 +26,7 @@ typedef struct pcb{
     uint32_t satp;              // page table base | pid
     uint32_t ksp;               // kernel stack (reserved)
     mnode free_block_head;
-    int stdout;//-1 for screen print, other is inode_id
+    fd_entry fdt[MAX_FD];       // 打开文件表: 0/1/2 预置为 TTY
 }pcb;
 
 extern pcb global_pcb_list[MAX_PRO_NUM];
@@ -29,6 +36,16 @@ int init_ps();
 
 void save_ctx_to_pcb(pcb* p);
 void save_ctx_s_to_pcb(pcb* p);
+
+pcb* current_pcb(void);
+
+// fd 表操作 (放在 prock.c, 避免跨文件访问 global_pcb_list 走 GOT)
+void fd_init(pcb* p);
+fd_entry* fd_get(pcb* p,int fd);
+int fd_alloc(pcb* p);
+fd_entry* fd_get_current(int fd);
+int fd_alloc_current(void);
+int fd_to_inode_current(int fd);
 
 void recover_contxt();
 
@@ -48,11 +65,11 @@ int exec(uint32_t inode_id,int stdout,char** para,uint32_t para_num);
 
 int scheduler();
 
-int spawn_i(uint32_t inode_id, char** para, uint32_t para_num);
+int spawn_i(int fd, char** para, uint32_t para_num);
 
 int waitpid_i(int pid);
 
-int spawn(uint32_t inode_id, char** para, uint32_t para_num);
+int spawn(int fd, char** para, uint32_t para_num);
 
 int waitpid(int pid);
 

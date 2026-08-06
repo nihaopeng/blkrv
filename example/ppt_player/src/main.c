@@ -50,7 +50,7 @@ int get_file_from_server(char* remote_file_name,char* local_file_name,char* ip,u
         if(data_len==0){
             break;
         }
-        write(inode_id,buf,fp,data_len);
+        write(inode_id,buf,data_len);
         fp+=data_len;
         print("file pointer:%d\r",fp);
     }
@@ -87,8 +87,8 @@ int main(int argc, char* argv[]) {
     draw_png(inode_id,ino.size,0,0);
     flush();
      while(1){
-         if(kbhit()){
-             char ch=vgetch();
+         char ch;
+         if(read(STDIN_FILENO,&ch,1)>0){
              if(ch=='j'){
                  cur_page=cur_page-1>=1?cur_page-1:0;
                  print("cur_page:%d\n",cur_page);

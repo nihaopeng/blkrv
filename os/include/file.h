@@ -25,11 +25,11 @@ int init_fs();
 
 int readk(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
+int read_i(int fd,char* buf,uint32_t count);
 
 int writek(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
 
-int write_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
+int write_i(int fd,char* buf,uint32_t count);
 
 int createk(char* file_path,char type,uint32_t* inode_id);
 
@@ -39,25 +39,29 @@ int openk(const char* file_path);
 
 int open_i(const char* file_path);
 
-int finfo_i(uint32_t inode_id,inode* finode);
+int finfo_i(int fd,inode* finode);
 
 int finfo_k(uint32_t inode_id,inode* finode);
 
-int delete_i(uint32_t inode_id);
+int delete_i(int fd);
 
 int deletek(uint32_t inode_id);
 
-int read(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
+int finoid_i(uint32_t inode_id,inode* finode);
 
-int write(uint32_t inode_id,char* buf,uint32_t start,uint32_t count);
+int read(int fd,char* buf,uint32_t count);
+
+int write(int fd,const char* buf,uint32_t count);
 
 int create(char* file_path,char type,uint32_t* inode_id);
 
 int open(const char* file_path);
 
-int finfo(uint32_t inode_id,inode* finode);
+int finfo(int fd,inode* finode);
 
-int delete(uint32_t inode_id);
+int finoid(uint32_t inode_id,inode* finode);
+
+int delete(int fd);
 
 void regist_finfo(int* dt_addr);
 
@@ -70,10 +74,9 @@ void regist_open(int* dt_addr);
 void regist_create(int* dt_addr);
 
 void regist_delete(int* dt_addr);
+void regist_finoid(int* dt_addr);
 
 //initialize the file system
 int root();
 
 #endif // !_FILE_H_
-
-
