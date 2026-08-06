@@ -42,4 +42,3 @@ _regist_syscall(void,open);
 _regist_syscall(void,create);
 _regist_syscall(void,finfo);
 _regist_syscall(void,delete);
-

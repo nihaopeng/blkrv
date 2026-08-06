@@ -24,9 +24,14 @@ module csrs (
 
     // REGS_CP_M CSR access (for context switch)
     input  [31:0] cp_data_i,
-    output [4:0]  cp_idx_o,
+    output reg [4:0]  cp_idx_o,
     output reg    cp_we_o,
-    output reg [31:0] cp_wdata_o
+    output reg [31:0] cp_wdata_o,
+    // 0 = REGS_CP_M (中断上下文), 1 = REGS_CP_S (ecall 上下文)
+    output reg    cp_sel_o,
+    // 读路径索引: 组合, 跟随当前指令 (写路径索引 cp_idx_o 必须寄存, 两者不可共用)
+    output [4:0]  cp_idx_rd_o,
+    output        cp_sel_rd_o
 );
 parameter[11:0] mtvec_a  =12'h305;
 parameter[11:0] mepc_a   =12'h341;
@@ -51,9 +56,13 @@ wire[31:0] mstatus_d;
 assign mstatus_d=REGS[mstatus_a];//tmp
 assign mie_o=REGS[mstatus_a][mie];
 
-// REGS_CP_M CSR window: addresses 0x3c0 ~ 0x3df
-wire is_cp = (imm_i[31:20] >= 12'h3c0) && (imm_i[31:20] <= 12'h3df);
-assign cp_idx_o = imm_i[24:20];  // low 5 bits of CSR address = register index
+// REGS_CP_M CSR window: addresses 0x3c0 ~ 0x3df (中断上下文)
+// REGS_CP_S CSR window: addresses 0x3e0 ~ 0x3ff (ecall 上下文, 与 C++ sim 一致)
+wire is_cp_m = (imm_i[31:20] >= 12'h3c0) && (imm_i[31:20] <= 12'h3df);
+wire is_cp_s = (imm_i[31:20] >= 12'h3e0) && (imm_i[31:20] <= 12'h3ff);
+wire is_cp   = is_cp_m | is_cp_s;
+assign cp_idx_rd_o = imm_i[24:20];  // 读: 当前指令的寄存器索引
+assign cp_sel_rd_o = is_cp_s;
 
 // csr_o mux: REGS_CP_M for 0x3c0-0x3df, REGS array otherwise
 assign csr_o = is_cp ? cp_data_i : REGS[imm_i[31:20]];
@@ -103,6 +112,9 @@ always @(posedge clk_i) begin
     else if(we_i) begin
         if(is_cp) begin
             // Write to REGS_CP_M via cp_we_o
+            // 注意: idx/sel 必须与 we/data 同拍寄存, 否则写入时用的是下一条指令的 CSR 索引
+            cp_idx_o <= imm_i[24:20];  // low 5 bits of CSR address = register index
+            cp_sel_o <= is_cp_s;
             case(imm_i[14:12])
                 CSRRW: begin
                     cp_wdata_o <= r1_i;

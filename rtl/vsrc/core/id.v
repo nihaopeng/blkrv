@@ -28,7 +28,10 @@ module id (
     output reg read_valid_o,
     input read_valid_i,
     output write_ready_o,
-    input write_ready_i 
+    input write_ready_i,
+    // sfence.vma 解码: main.cpp 据此刷新 TLB (与 C++ sim 的 sfence_pending 对应)
+    output sfence_flag_o,
+    output[4:0] sfence_asid_o
 );
 parameter[6:0] LUI  =7'b0110111;
 parameter[6:0] AUIPC=7'b0010111;
@@ -40,6 +43,12 @@ parameter[6:0] STORE=7'b0100011;
 parameter[6:0] CALCI=7'b0010011;
 parameter[6:0] CALC =7'b0110011;
 parameter[6:0] SYS  =7'b1110011;
+
+// sfence.vma: funct7=0001001, funct3=000, rd=0, opcode=1110011; rs2 为 ASID
+assign sfence_flag_o = read_valid_i &&
+    (inst_i[6:0]==SYS) && (inst_i[14:12]==3'b000) &&
+    (inst_i[31:25]==7'b0001001) && (inst_i[11:7]==5'b00000);
+assign sfence_asid_o = inst_i[24:20];
 
 always @(posedge clk) begin
     if(interrupt_flag_i) begin

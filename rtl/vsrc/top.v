@@ -20,7 +20,11 @@ module top(
     input[31:0] read_data,
     output[2:0] mem_op_type,
     input read_valid,
-    output we
+    output we,
+
+    // sfence.vma 执行指示 (组合脉冲), 供 C++ 主循环刷新 TLB
+    output sfence_flag_o,
+    output[4:0] sfence_asid_o
 );
 wire[3:0] interrupt_port;
 wire m0_read_req;
@@ -41,7 +45,9 @@ cpu cpu(
     .mie_o(mie),
     .satp_o(satp),
     // .asid_csr_o(asid_csr),
-    .inst_type(inst_type_o)
+    .inst_type(inst_type_o),
+    .sfence_flag_o(sfence_flag_o),
+    .sfence_asid_o(sfence_asid_o)
 );
 
 interrupt_ctrl interrupt_ctrl(

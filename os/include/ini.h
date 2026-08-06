@@ -81,6 +81,8 @@
 #define _NR_accept 23
 #define _NR_connect 24
 #define _NR_close 25
+#define _NR_spawn   26
+#define _NR_waitpid 27
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2

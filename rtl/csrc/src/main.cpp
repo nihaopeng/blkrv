@@ -34,9 +34,18 @@ int main(int argc, char** argv, char** env) {
 #ifdef BACKEND_SIM
     CpuSim cpu;
     CpuSim& p=cpu;
+    uint32_t last_satp=0;
     for(;;i++){
         p.eval();//执行一个周期: 消费上一请求的响应, 发出新请求
 
+        if(p.sfence_pending){// sfence.vma: 按 ASID 主动失效 (与 satp 变化全量刷互为兜底)
+            my_mmu.my_tlb.flush_asid(p.sfence_asid);
+            p.sfence_pending = false;
+        }
+        if(p.satp != last_satp){// satp 变化 = 进程切换/进出内核, TLB 必须刷新
+            my_mmu.my_tlb.flush();
+            last_satp = p.satp;
+        }
         uint32_t phys=my_mmu.convert(p.load_addr_v,p.satp);
         if(p.we){
             my_bus.write(phys,p.write_data,p.mem_op_type);
@@ -72,9 +81,17 @@ int main(int argc, char** argv, char** env) {
     std::cout<<"start initializing devices..."<<std::endl;
     top->clk=0;
     Vtop& p=*top;
+    uint32_t last_satp=0;
     for(;;i++){
         p.clk=0;
         p.eval();
+        if(p.sfence_flag_o){// sfence.vma: 按 ASID 主动失效
+            my_mmu.my_tlb.flush_asid(p.sfence_asid_o);
+        }
+        if(p.satp != last_satp){// satp 变化 = 进程切换/进出内核, TLB 必须刷新
+            my_mmu.my_tlb.flush();
+            last_satp = p.satp;
+        }
         //经过mmu转换虚址后，将数据请求发给各设备
         uint32_t phys=my_mmu.convert(p.load_addr_v,p.satp);
         if(p.we){
@@ -100,6 +117,9 @@ int main(int argc, char** argv, char** env) {
 
         p.clk=1;
         p.eval();
+        if(p.sfence_flag_o){
+            my_mmu.my_tlb.flush_asid(p.sfence_asid_o);
+        }
     }
     delete top;
     tfp->close();

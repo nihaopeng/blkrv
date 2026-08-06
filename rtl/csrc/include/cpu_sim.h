@@ -19,6 +19,9 @@ public:
     uint32_t inst_type_o;   // 指令类型编码 {lui,auipc,jal,jalr,bj,load,store,calc,calci,sys}
     uint8_t  int_port0, int_port1, int_port2, int_port3, int_port4,
              int_port5, int_port6, int_port7, int_port8;
+    // sfence.vma 执行指示: main.cpp 每拍读取后刷新 TLB (保持解耦, 不直接持有 mmu 指针)
+    bool     sfence_pending;
+    uint32_t sfence_asid;   // 待失效的 ASID (rs2)
 
     CpuSim();
     void eval();   // 主循环每拍调用: 消费上一请求的响应, 执行一条指令, 发出新请求

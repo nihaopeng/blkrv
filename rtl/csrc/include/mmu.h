@@ -13,6 +13,10 @@ class tlb{
     public:
         tlb();
         ~tlb();
+        // 上下文切换时必须清空: ASID 会复用 (同一 pid 反复 spawn), 旧映射会错位
+        void flush();
+        // 只清空指定 ASID 的项 (sfence.vma 语义), asid==0 时全清
+        void flush_asid(uint32_t asid);
         int insert(uint32_t vir,uint32_t ppn);
         int check_tlb1(uint32_t vir);
         int check_tlb2(uint32_t vir);

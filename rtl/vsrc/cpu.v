@@ -14,7 +14,10 @@ module cpu(
     output mie_o,
     output[31:0] satp_o,
     // output[31:0] asid_csr_o,
-    output[31:0] inst_type
+    output[31:0] inst_type,
+    // sfence.vma 执行指示 (组合脉冲): main.cpp 据此刷新 TLB
+    output sfence_flag_o,
+    output[4:0] sfence_asid_o
     //assign inst_type={22'd0,lui,auipc,jal,jalr,bj,load,store,calc,calci,sys};
 );
 wire[31:0] pc_ifu,pc_id,pc_exu;
@@ -30,12 +33,19 @@ wire jump_flag,regs_we,regs_read_valid,ifu_read_valid;
 wire if2id_read_valid,id2if_write_ready,id2exu_read_valid,id2exu_write_ready;
 wire hold_flag,jump_inst_flag,mret_flag,sret_flag,interrupt_response,syscall_flag;
 wire[1:0] pc_change_flag;
+wire sfence_flag;
+wire[4:0] sfence_asid;
+assign sfence_flag_o = sfence_flag;
+assign sfence_asid_o = sfence_asid;
 
-// REGS_CP_M CSR access wires (context switch)
+// REGS_CP_M / REGS_CP_S CSR access wires (context switch)
 wire [4:0]  cp_idx;
 wire [31:0] cp_data;
 wire        cp_we;
 wire [31:0] cp_wdata;
+wire        cp_sel;
+wire [4:0]  cp_idx_rd;
+wire        cp_sel_rd;
 
 ifu ifu(
     .clk_i(clk_i),
@@ -90,7 +100,9 @@ id id(
     .read_valid_o(id2exu_read_valid),
     .read_valid_i(if2id_read_valid),
     .write_ready_o(),
-    .write_ready_i()
+    .write_ready_i(),
+    .sfence_flag_o(sfence_flag),
+    .sfence_asid_o(sfence_asid)
 );
 assign addr_o=(load|store)?exu_addr_v:pc_ifu;
 assign we_o=(store)?1'b1:1'b0;
@@ -168,7 +180,10 @@ regs regs(
     .cp_idx_i(cp_idx),
     .cp_data_o(cp_data),
     .cp_we_i(cp_we),
-    .cp_wdata_i(cp_wdata)
+    .cp_wdata_i(cp_wdata),
+    .cp_sel_i(cp_sel),
+    .cp_idx_rd_i(cp_idx_rd),
+    .cp_sel_rd_i(cp_sel_rd)
 );
 wire[31:0] csr,mtvec,mepc,stvec,sepc;
 
@@ -199,6 +214,9 @@ csrs csrs(
     .cp_data_i(cp_data),
     .cp_idx_o(cp_idx),
     .cp_we_o(cp_we),
-    .cp_wdata_o(cp_wdata)
+    .cp_wdata_o(cp_wdata),
+    .cp_sel_o(cp_sel),
+    .cp_idx_rd_o(cp_idx_rd),
+    .cp_sel_rd_o(cp_sel_rd)
 );
 endmodule

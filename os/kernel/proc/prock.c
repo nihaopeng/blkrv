@@ -1,29 +1,52 @@
 #include "proc.h"
 
 pcb global_pcb_list[MAX_PRO_NUM];
+uint32_t syscall_active_pid;  // _gdt_search 写, 调度器读
 
 int exitk(){
     //获取调用exit的程序的进程号；
     uint32_t satp=0;
     __asm__ volatile("csrr %0,0x181":"=r"(satp));
     uint32_t pid=satp&0x00000fff;
-    printk("process: %d, mem space free list:\n",pid);
-    show_free_node_list((uint32_t*)(satp&0xfffff000),&(global_pcb_list[pid].free_block_head));
-    // 回收用户空间已映射的物理页
-    uint32_t* pca=(uint32_t*)(satp&0xfffff000);
-    for(uint32_t vpn=(0x1000>>12);vpn<(USER_START>>12);vpn++){
-        uint32_t phys=vir2phy(pca,vpn<<12);
-        if(phys){
-            uint32_t ppn=(phys-RAM_START)>>12;  // 物理地址→页号
-            free_page(ppn);
+
+    // 递归杀死所有子进程
+    for(int i=1;i<MAX_PRO_NUM;i++){
+        if(global_pcb_list[i].parent_pid == pid && global_pcb_list[i].is_alive != PROC_DEAD){
+            global_pcb_list[i].is_alive = PROC_DEAD;
         }
-        write_page_table(pca,vpn<<12,0,0);
     }
-    free_page(((satp&0xfffff000)-RAM_START)>>12); // 释放页表目录页
+
+    // 唤醒等待中的父进程
+    uint8_t ppid = global_pcb_list[pid].parent_pid;
+    if(ppid > 0 && global_pcb_list[ppid].wait_pid == pid){
+        global_pcb_list[ppid].wait_pid = 0;
+        if(global_pcb_list[ppid].is_alive == PROC_BLOCKED)
+            global_pcb_list[ppid].is_alive = PROC_READY;
+    }
+
     global_pcb_list[pid].is_alive=PROC_DEAD;
-    shutdown();
-    //TODO: 调度器就绪后, 改为切换到内核 shell 进程而非 shutdown
+
+    // 该 ASID(pid) 即将被回收复用, 主动失效其 TLB 项 (sfence.vma x0, pid)
+    __asm__ volatile("sfence.vma x0, %0" :: "r"(pid) : "memory");
+
+    if(pid==1){
+        // 回收用户空间已映射的物理页 (和之前一样)
+        uint32_t* pca=(uint32_t*)(satp&0xfffff000);
+        for(uint32_t vpn=(0x1000>>12);vpn<(USER_START>>12);vpn++){
+            uint32_t phys=vir2phy(pca,vpn<<12);
+            if(phys) free_page((phys-RAM_START)>>12);
+            write_page_table(pca,vpn<<12,0,0);
+        }
+        free_page(((satp&0xfffff000)-RAM_START)>>12);
+        shutdown();
+    }
+    // 子进程: 不能 sret 到用户态垃圾代码. 在内核态开中断等 timer 切走.
+    // _gdt_search 已禁用 MIE, 需要重新使能才能响应 timer 中断.
+    // MIE always enabled
+    for(;;) {}
 }
+
+_regist_syscall(void,spawn);  // 必须在 prock.c (和 spawn_i 同文件, 避免GOT)
 
 int get_free_pid(){
     for(uint32_t i=1;i<MAX_PRO_NUM;i++){
@@ -35,7 +58,8 @@ int get_free_pid(){
 }
 
 uint32_t init_pcb(int new_pid,int stdout){
-    global_pcb_list[new_pid].is_alive = PROC_RUNNING;
+    // 不设置 is_alive — 由调用者 (load_proc/execk) 决定
+    // 避免 timer 在加载期间触发时看到中间态
     global_pcb_list[new_pid].stdout=stdout;
     global_pcb_list[new_pid].ksp = 0x002f0000;  // 内核栈 (中断栈下方)
     global_pcb_list[new_pid].free_block_head.next=(mnode*)0x4;
@@ -44,45 +68,45 @@ uint32_t init_pcb(int new_pid,int stdout){
     //分配一页用于初始化
     uint32_t new_page=(alloc_page()<<12)+RAM_START;
     write_page_table((uint32_t*)page_content_addr,0,new_page,1);
-    printk("page_content_addr:%x\n",page_content_addr);
+    // printk("page_content_addr:%x\n",page_content_addr);
     global_pcb_list[new_pid].satp=page_content_addr|new_pid;
     //初始化空闲列表头。
     mnode* node_in_page=(mnode*)vir2phy((uint32_t*)page_content_addr,0x4);
-    printk("node_in_page:%x\n",node_in_page);
+    // printk("node_in_page:%x\n",node_in_page);
     node_in_page->next=0;
     node_in_page->size=0xffffff4;
-    printk("global_pcb_list[%d].satp:%x\n",new_pid,global_pcb_list[new_pid].satp);
+    // printk("global_pcb_list[%d].satp:%x\n",new_pid,global_pcb_list[new_pid].satp);
     return page_content_addr;
 }
 
 uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_block_head){
     //以下加载程序代码
-    inode* ino;
-    finfo_k(inode_id,ino);
-    printk("file size:%d\n",ino->size);
+    inode ino;
+    finfo_k(inode_id,&ino);
+    // printk("file size:%d\n",ino.size);
     char read_buf[512];
     memset_s(read_buf,0,512);
     //根据程序头加载可执行文件。
     //读取文件头
     readk(inode_id,read_buf,0,52);
-    printk("magic number:%c,%c,%c\n",read_buf[1],read_buf[2],read_buf[3]);
+    // printk("magic number:%c,%c,%c\n",read_buf[1],read_buf[2],read_buf[3]);
     //TODO:验证二进制魔数
 
     //程序头表存储地址的偏移量
-    uint32_t rec_addr_prog_head=0x28;
+    uint32_t rec_addr_prog_head=0x1c;  // Fix: e_phoff in ELF32 (was 0x28=e_ehsize by mistake)
     uint32_t rec_size_prog_head=0x2a;
     uint32_t rec_num_prog_head=0x2c;
     uint32_t rec_addr_start=0x18;
 
     //根据偏移量读取程序头表
-    uint8_t prog_head_table_addr=*(read_buf+rec_addr_prog_head);
+    uint32_t prog_head_table_addr=*(uint32_t*)(read_buf+rec_addr_prog_head);
     uint8_t prog_head_size=*(read_buf+rec_size_prog_head);
     uint8_t prog_head_num=*(read_buf+rec_num_prog_head);
     uint32_t prog_start_addr=*(uint32_t*)(read_buf+rec_addr_start);
-    printk("prog_head_table_addr:%d\n",prog_head_table_addr);
-    printk("prog_head_size:%d\n",prog_head_size);
-    printk("prog_head_num:%d\n",prog_head_num);
-    printk("prog_start_addr:%d\n",prog_start_addr);
+    // printk("prog_head_table_addr:%d\n",prog_head_table_addr);
+    // printk("prog_head_size:%d\n",prog_head_size);
+    // printk("prog_head_num:%d\n",prog_head_num);
+    // printk("prog_start_addr:%d\n",prog_start_addr);
 
     readk(inode_id,read_buf,prog_head_table_addr,prog_head_size*prog_head_num);
     //计算最大malloc边界，以确保数据加载到正确的虚拟地址位置。
@@ -117,7 +141,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
             // printk("program_start:%x\n",program_start);
             readk(inode_id,file_data_buf,prog_head_offset,512);
             while(prog_head_filesize){
-                printk("prog_head_filesize:%x\r",prog_head_filesize);
+                // printk("prog_head_filesize:%x\r",prog_head_filesize);
                 if(prog_head_filesize>=512){
                     readk(inode_id,file_data_buf,prog_head_offset,512);
                     for(int i=0;i<512;i++){
@@ -151,8 +175,8 @@ uint32_t load_params(uint32_t para_num,char** para,uint32_t page_content_addr,mn
     uint32_t argv=(uint32_t)mallock(sizeof(char*)*para_num,(uint32_t*)page_content_addr,free_block_head);//char* []的空间
     uint32_t* argv_phy=(uint32_t*)vir2phy((uint32_t*)page_content_addr,argv);
     for(int i=0;i<para_num;i++){
-        printk("para:%d,%s\n",i,para[i]);
-        show_free_node_list((uint32_t*)page_content_addr,free_block_head);
+        // printk("para:%d,%s\n",i,para[i]);
+        // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
         uint32_t para_size=str_len(para[i])+1;
         uint8_t* para_addr=(uint8_t*)mallock(para_size,(uint32_t*)page_content_addr,free_block_head);
         // show_free_node_list((uint32_t*)page_content_addr,free_block_head);
@@ -244,8 +268,6 @@ int load_proc(uint32_t inode_id, char** para, uint32_t para_num) {
     p->general_regs[11] = argv;                     // a1 = argv
     p->is_alive = PROC_READY;
 
-    printk("load_proc: pid=%d entry=%x sp=%x satp=%x\n",
-           new_pid, prog_start_addr, stack_bottom, p->satp);
     return new_pid;
 }
 
@@ -262,16 +284,16 @@ pcb* current_pcb(void) {
     return &global_pcb_list[pid];
 }
 
-// 宏展开: 逐个保存/恢复 regs_cp_m[i] (CSR 地址必须编译时常量)
+// 宏展开: 逐个保存/恢复 regs_cp_m[i] / regs_cp_s[i] (CSR 地址必须编译时常量)
 void save_ctx_to_pcb(pcb* p) {
     if (p == 0) return;
-    #define S(n) __asm__ volatile("csrrw %0, %1, zero" : "=r"(p->general_regs[n]) : "i"(0x3c0+n))
+    #define S(n) __asm__ volatile("csrr %0, %1" : "=r"(p->general_regs[n]) : "i"(0x3c0+n))
     S(0);S(1);S(2);S(3);S(4);S(5);S(6);S(7);
     S(8);S(9);S(10);S(11);S(12);S(13);S(14);S(15);
     S(16);S(17);S(18);S(19);S(20);S(21);S(22);S(23);
     S(24);S(25);S(26);S(27);S(28);S(29);S(30);S(31);
     #undef S
-    __asm__ volatile("csrrw %0, 0x341, zero" : "=r"(p->pc));  // mepc
+    __asm__ volatile("csrr %0, 0x341" : "=r"(p->pc));  // mepc
 }
 
 uint32_t restore_ctx_from_pcb(pcb* p) {
@@ -284,29 +306,68 @@ uint32_t restore_ctx_from_pcb(pcb* p) {
     return p->pc;
 }
 
+// ecall 上下文的保存/恢复 (regs_cp_s + sepc, 不碰 mepc)
+// REGS_CP_S CSR 窗口: 0x3e0 ~ 0x3ff (与 REGS_CP_M 的 0x3c0~0x3df 不重叠)
+void save_ctx_s_to_pcb(pcb* p) {
+    if (p == 0) return;
+    #define SS(n) __asm__ volatile("csrr %0, %1" : "=r"(p->general_regs[n]) : "i"(0x3e0+n))
+    SS(0);SS(1);SS(2);SS(3);SS(4);SS(5);SS(6);SS(7);
+    SS(8);SS(9);SS(10);SS(11);SS(12);SS(13);SS(14);SS(15);
+    SS(16);SS(17);SS(18);SS(19);SS(20);SS(21);SS(22);SS(23);
+    SS(24);SS(25);SS(26);SS(27);SS(28);SS(29);SS(30);SS(31);
+    #undef SS
+    __asm__ volatile("csrr %0, 0x141" : "=r"(p->pc));  // sepc (read-only, do NOT zero)
+    // csrrci/csrrsi prevents timer during ecall; sepc is correct
+}
+uint32_t restore_ctx_s_from_pcb(pcb* p) {
+    #define RS(n) __asm__ volatile("csrrw zero, %0, %1" :: "i"(0x3e0+n), "r"(p->general_regs[n]))
+    RS(0);RS(1);RS(2);RS(3);RS(4);RS(5);RS(6);RS(7);
+    RS(8);RS(9);RS(10);RS(11);RS(12);RS(13);RS(14);RS(15);
+    RS(16);RS(17);RS(18);RS(19);RS(20);RS(21);RS(22);RS(23);
+    RS(24);RS(25);RS(26);RS(27);RS(28);RS(29);RS(30);RS(31);
+    #undef RS
+    return p->pc;
+}
+
+// ============================================================
+//  spawn syscall handler — 必须在 prock.c (和 load_proc 同文件, 避免 GOT)
+// ============================================================
+
+__attribute__((visibility("hidden")))
+int spawn_i(uint32_t inode_id, char** para, uint32_t para_num){
+    _vir2phyk(char**,para);
+    for(int i=0;i<para_num;i++) _vir2phyk(char*,para[i]);
+    uint32_t satp;
+    __asm__ volatile("csrr %0,0x181":"=r"(satp));
+    uint32_t parent_pid = satp & 0xfff;
+    int child_pid = load_proc(inode_id, para, para_num);
+    if(child_pid < 0) return -1;
+    global_pcb_list[child_pid].parent_pid = parent_pid;
+    global_pcb_list[child_pid].is_alive = PROC_READY;
+    return child_pid;
+}
+
 // ============================================================
 //  调度器: 轮转, 返回下一个就绪进程的 pid (-1 表示无其他进程)
+//  先找 next_pid, 有切换才保存现场, 避免单进程时无谓的 save/restore
 // ============================================================
 
 int scheduler(void) {
-    // 获取当前进程
     uint32_t satp;
     __asm__ volatile("csrrw %0, 0x182, zero" : "=r"(satp));
     uint32_t old_pid = satp & 0xfff;
+    int from_ecall = (old_pid == 0);
 
-    // 保存旧进程现场 (save_ctx_to_pcb 已保存 regs_cp_m + mepc)
-    if (old_pid != 0 && global_pcb_list[old_pid].is_alive == PROC_RUNNING) {
-        pcb* old_pcb = &global_pcb_list[old_pid];
-        save_ctx_to_pcb(old_pcb);   // pcb->pc = mepc
-        old_pcb->satp = satp;
-        old_pcb->is_alive = PROC_READY;
+    if (from_ecall) {
+        __asm__ volatile("csrr %0, 0x181" : "=r"(satp));
+        old_pid = satp & 0xfff;
     }
 
-    // 轮转找下一个 READY
+    // 先找下一个 READY 进程
     static int last_pid = 1;
     int next_pid = -1;
     for (int i = 0; i < MAX_PRO_NUM; i++) {
-        int pid = (last_pid + i) % MAX_PRO_NUM;
+        int pid = (last_pid + 1 + i) % MAX_PRO_NUM;
         if (pid == 0) continue;
         if (global_pcb_list[pid].is_alive == PROC_READY) {
             next_pid = pid;
@@ -316,20 +377,44 @@ int scheduler(void) {
     }
 
     if (next_pid < 0) {
-        // 无其他进程, 恢复当前
-        __asm__ volatile("csrrw zero, 0x182, %0" :: "r"(satp));
-        if (old_pid != 0) global_pcb_list[old_pid].is_alive = PROC_RUNNING;
+        // 无其他进程可切, 恢复中断前的 satp 影子寄存器, 当前进程继续
+        if (from_ecall)
+            __asm__ volatile("csrrw zero, 0x181, %0" :: "r"(satp));
+        else
+            __asm__ volatile("csrrw zero, 0x182, %0" :: "r"(satp));
+        int any_alive = 0;
+        for (int i = 1; i < MAX_PRO_NUM; i++)
+            if (global_pcb_list[i].is_alive != PROC_DEAD) { any_alive = 1; break; }
+        if (!any_alive) shutdown();
         return -1;
     }
+    // 有切换: 保存旧进程现场
+    if (from_ecall) {
+        if (old_pid != 0 && global_pcb_list[old_pid].is_alive == PROC_RUNNING) {
+            pcb* old_pcb = &global_pcb_list[old_pid];
+            save_ctx_s_to_pcb(old_pcb);
+            old_pcb->satp = satp;
+            old_pcb->is_alive = PROC_READY;
+        }
+    } else {
+        if (old_pid != 0 && global_pcb_list[old_pid].is_alive == PROC_RUNNING) {
+            pcb* old_pcb = &global_pcb_list[old_pid];
+            save_ctx_to_pcb(old_pcb);
+            old_pcb->pc = ((volatile uint32_t*)0x002FFFF4)[0];  // 原始 mepc
+            old_pcb->satp = satp;
+            old_pcb->is_alive = PROC_READY;
+        }
+    }
 
-    // 恢复新进程
+    // 恢复新进程 — 统一用 mret (中断路径)
     pcb* next_pcb = &global_pcb_list[next_pid];
     next_pcb->is_alive = PROC_RUNNING;
-    uint32_t new_mepc = restore_ctx_from_pcb(next_pcb);
-    __asm__ volatile("csrrw zero, 0x341, %0" :: "r"(new_mepc));       // mepc
-    __asm__ volatile("csrrw zero, 0x182, %0" :: "r"(next_pcb->satp)); // satp_i_cp
+    uint32_t new_pc = restore_ctx_from_pcb(next_pcb);
+    __asm__ volatile("csrrw zero, 0x341, %0" :: "r"(new_pc));       // mepc
+    __asm__ volatile("csrrw zero, 0x182, %0" :: "r"(next_pcb->satp));// satp_i_cp
+    volatile uint32_t* const frame = (volatile uint32_t*)0x002FFFF4;
+    frame[0] = new_pc;
 
-    // printk("[sched] %d->%d\n", old_pid, next_pid);
     return next_pid;
 }
 

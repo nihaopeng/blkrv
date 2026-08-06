@@ -45,16 +45,12 @@ module interrupt_ctrl (
                 interrupt_port_o<=4'h6;
                 interrupt_flag_o<=1'b1;
             end
-            else if(port6_i) begin
+            else if(port7_i) begin
                 interrupt_port_o<=4'h7;
                 interrupt_flag_o<=1'b1;
             end
-            else if(port7_i) begin
-                interrupt_port_o<=4'h8;
-                interrupt_flag_o<=1'b1;
-            end
             else if(port8_i) begin
-                interrupt_port_o<=4'h9;
+                interrupt_port_o<=4'h8;
                 interrupt_flag_o<=1'b1;
             end
             else begin

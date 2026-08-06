@@ -6,6 +6,8 @@ CpuSim::CpuSim(){
     load_addr_v=0; write_data=0; satp=0; read_data=0; read_valid=0; inst_type_o=0;
     mem_op_type=2; we=0;
     int_port0=int_port1=int_port2=int_port3=int_port4=int_port5=int_port6=int_port7=int_port8=0;
+    sfence_pending=false;
+    sfence_asid=0;
     for(int i=0;i<32;i++) regs[i]=0;
     for(int i=0;i<4096;i++) csr[i]=0;
     pc=0;
@@ -201,6 +203,10 @@ void CpuSim::execute(uint32_t inst){
                     csr[0x181]=0;
                     this->satp = csr[0x180];//立即同步: 恢复用户态 satp
                     npc=csr[0x141];        // sepc
+                }else if((inst & 0xfe007fff)==0x12000073){//SFENCE.VMA
+                    // 仅上报给 main.cpp, 由外部刷新 TLB (rs2 携带 ASID)
+                    sfence_pending = true;
+                    sfence_asid = (inst>>20) & 0x1f;
                 }else{
                     // EBREAK 等暂不处理
                 }
@@ -267,7 +273,25 @@ void CpuSim::csr_op(uint32_t inst){
     uint32_t zimm=rs1;
     uint32_t funct3=(inst>>12)&0x7;
 
-    // REGS_CP_M CSR window (0x3c0 ~ 0x3df), for context switch save/restore
+    // REGS_CP_S CSR window (0x3e0 ~ 0x3ff), for ecall context switch.
+    // 注意与 REGS_CP_M (0x3c0 ~ 0x3df) 不重叠, 否则 0x3d0~0x3df 会命中错误的影子寄存器.
+    if(csr_addr >= 0x3e0 && csr_addr <= 0x3ff){
+        uint32_t ridx = csr_addr - 0x3e0;
+        uint32_t old = regs_cp_s[ridx];
+        switch(funct3){
+            case 1: if(rs1!=0) regs_cp_s[ridx]=regs[rs1]; break;       // CSRRW
+            case 2: if(rs1!=0) regs_cp_s[ridx]=old|regs[rs1]; break;   // CSRRS
+            case 3: if(rs1!=0) regs_cp_s[ridx]=old&(~regs[rs1]); break;// CSRRC
+            case 5: regs_cp_s[ridx]=zimm; break;                       // CSRRWI
+            case 6: regs_cp_s[ridx]=old|zimm; break;                   // CSRRSI
+            case 7: regs_cp_s[ridx]=old&(~zimm); break;                // CSRRCI
+            default: break;
+        }
+        wb(rd, old);
+        return;
+    }
+
+    // REGS_CP_M CSR window (0x3c0 ~ 0x3df), for interrupt context switch
     if(csr_addr >= 0x3c0 && csr_addr <= 0x3df){
         uint32_t ridx = csr_addr - 0x3c0;
         uint32_t old = regs_cp_m[ridx];

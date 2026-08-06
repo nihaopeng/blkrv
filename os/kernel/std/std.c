@@ -31,6 +31,8 @@ _syscall4(int,draw_png,uint32_t,inode_id,uint32_t,size,uint32_t,x,uint32_t,y);
 _syscall1(int,accept,socket*,sock);
 _syscall1(int,connect,socket*,sock);
 _syscall1(int,close,int,sockfd);
+_syscall3(int,spawn,uint32_t,inode_id,char**,para,uint32_t,para_num);
+_syscall1(int,waitpid,int,pid);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);

@@ -17,7 +17,7 @@ int free_i(void* pointer){
 void* malloc_i(uint32_t size){
     uint32_t satp=0;
     __asm__ volatile("csrr %0,0x181":"=r"(satp):);//获取satp的值，也就是页表基址
-    printk("malloc satp:%x\n",satp);
+    // printk("malloc satp:%x\n",satp);
     /*
         以下操作是由于global_pcb_list是外部引用，无法获取其实际物理地址偏移
         只能获得相对位置，由于os kernel加载时是按照从ram起始地址0x10000，因此

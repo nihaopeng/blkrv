@@ -23,7 +23,12 @@ module regs(
 	    input  [4:0]  cp_idx_i,
 	    output [31:0] cp_data_o,
 	    input         cp_we_i,
-	    input  [31:0] cp_wdata_i
+	    input  [31:0] cp_wdata_i,
+	    // 0 = REGS_CP_M (中断上下文), 1 = REGS_CP_S (ecall 上下文)
+	    input         cp_sel_i,
+	    // 读路径索引 (组合, 跟随当前指令) — 与写路径 cp_idx_i/cp_sel_i 分开
+	    input  [4:0]  cp_idx_rd_i,
+	    input         cp_sel_rd_i
 	);
 reg[31:0] REGS[31:0];
 reg[31:0] REGS_CP_S[31:0];
@@ -31,8 +36,8 @@ reg[31:0] REGS_CP_M[31:0];
 assign	r1_o=REGS[r1_id_i];
 assign	r2_o=REGS[r2_id_i];
 
-// REGS_CP_M read port (combinational)
-assign	cp_data_o = REGS_CP_M[cp_idx_i];
+// REGS_CP_M / REGS_CP_S read port (combinational), 由 cp_sel_i 选择
+assign	cp_data_o = cp_sel_rd_i ? REGS_CP_S[cp_idx_rd_i] : REGS_CP_M[cp_idx_rd_i];
 
 integer i;
 always @(posedge clk_i) begin
@@ -61,9 +66,14 @@ always @(posedge clk_i) begin
             REGS[i]<=REGS_CP_S[i];
         end
     end
-    // REGS_CP_M CSR write (for context switch)
+    // REGS_CP_M / REGS_CP_S CSR write (for context switch)
     else if(cp_we_i) begin
-        REGS_CP_M[cp_idx_i] <= cp_wdata_i;
+        if(cp_sel_i) REGS_CP_S[cp_idx_i] <= cp_wdata_i;
+        else         REGS_CP_M[cp_idx_i] <= cp_wdata_i;
+        // 修复: cp 窗口写不能遮蔽普通寄存器写回, 否则 lw→csrw 依赖链的写回会丢失
+        if(read_valid_i && we_i && rd_id_i!=5'd0) begin
+            REGS[rd_id_i] <= write_data_i;
+        end
     end
     else if(read_valid_i) begin
         if(we_i&&rd_id_i!=5'd0) begin

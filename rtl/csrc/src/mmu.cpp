@@ -4,6 +4,26 @@ tlb::tlb(){}
 
 tlb::~tlb(){}
 
+void tlb::flush(){
+    this->pages1.clear();
+    this->pages2.clear();
+}
+
+void tlb::flush_asid(uint32_t asid){
+    if(asid==0){
+        this->flush();
+        return;
+    }
+    for(auto it=this->pages1.begin(); it!=this->pages1.end(); ){
+        if((it->first & 0xfff)==asid) it=this->pages1.erase(it);
+        else ++it;
+    }
+    for(auto it=this->pages2.begin(); it!=this->pages2.end(); ){
+        if((it->first & 0xfff)==asid) it=this->pages2.erase(it);
+        else ++it;
+    }
+}
+
 int tlb::insert(uint32_t vir,uint32_t ppn){//TODO:采用什么换入换出策略
     if(this->pages1.size()>=size_pages1){
         this->pages1.erase(this->pages1.begin());

@@ -175,15 +175,17 @@ int main(){
     // ---- 调度器模式 ----
     init_ps();
 
-    // 下载 shell 用户程序
+    // 下载 shell 和 baseutils
     inode ino;
     uint32_t tmp=0;
     uint32_t shell_inode_id=createk("/bin/shell",FILE_TYPE,&tmp);
-    finfo_k(shell_inode_id,&ino);
-    printk("shell inode_id:%d,size:%d\n",shell_inode_id,ino.size);
     get_file_from_server("./shell/shell","/bin/shell","127.0.0.1",8080);
+    uint32_t ls_inode_id=createk("/bin/ls",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/ls/ls","/bin/ls","127.0.0.1",8080);
+    uint32_t cat_inode_id=createk("/bin/cat",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/cat/cat","/bin/cat","127.0.0.1",8080);
 
-    // 加载 shell 为 pid=1 (PCB 就绪, 不跳转)
+    // 加载 shell 为 pid=1
     char para1[]="./shell";
     char* para[]={para1};
     int shell_pid=load_proc(shell_inode_id,para,1);

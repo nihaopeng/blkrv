@@ -12,7 +12,8 @@ int init_input(){
     // memset_s(in_cache,0,IO_CACHE);
 }
 
-char vgetchk(){//change to syscall
+char vgetchk(){
+    //printk("g");//change to syscall
     if(in_cache_frontp!=in_cache_backp){
         // printk("%d,%d\n",in_cache_frontp,in_cache_backp);
         char ch=in_cache[in_cache_frontp++];
@@ -24,7 +25,8 @@ char vgetchk(){//change to syscall
     }
 }
 
-int kbhitk(){//change to syscall//kbhit ret 1
+int kbhitk(){
+    //printk("h");//change to syscall//kbhit ret 1
     if(in_cache_frontp!=in_cache_backp){
         return 1;
     }else{
@@ -34,6 +36,7 @@ int kbhitk(){//change to syscall//kbhit ret 1
 
 
 void keydown_interrupt_i(){
+    //printk("K");
     uint32_t ch_int=*(uint32_t*)KEYBOARD_CACHE_ADDR;
     int next_bp;
     if((ch_int&0x000000ff)!=0){

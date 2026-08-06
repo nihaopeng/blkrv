@@ -45,8 +45,12 @@ void regist_fs(){
 void regist_ps(){
     int* gdt_addr_exit=(int*)(&syscall_table[_NR_exit]);
     int* gdt_addr_exec=(int*)(&syscall_table[_NR_exec]);
+    int* gdt_addr_spawn=(int*)(&syscall_table[_NR_spawn]);
+    int* gdt_addr_waitpid=(int*)(&syscall_table[_NR_waitpid]);
     regist_exec(gdt_addr_exec);
     regist_exit(gdt_addr_exit);//之所以在这里传参是为了避免两张表的地址被编译在GOT表中
+    regist_spawn(gdt_addr_spawn);
+    regist_waitpid(gdt_addr_waitpid);
 }
 
 void regist_net(){
