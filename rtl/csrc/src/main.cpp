@@ -67,6 +67,11 @@ int main(int argc, char** argv, char** env) {
         if(my_devices.process(&my_bus,i)){
             break;
         }
+        // 周期性同步: 把 nvmem 脏页写回文件, 避免异常终止丢失最近写入
+        if((i & 0x3FFFF) == 0){
+            my_devices.my_flash->sync();
+            my_devices.my_bios->sync();
+        }
     }
 #else
     VerilatedContext* contextp = new VerilatedContext;
@@ -113,6 +118,10 @@ int main(int argc, char** argv, char** env) {
         my_monitor->process(&my_bus,&my_mmu,main_time,p.inst_type_o);
         if(my_devices.process(&my_bus,i)){
             break;
+        }
+        if((i & 0x3FFFF) == 0){// 周期性同步 nvmem 脏页
+            my_devices.my_flash->sync();
+            my_devices.my_bios->sync();
         }
 
         p.clk=1;

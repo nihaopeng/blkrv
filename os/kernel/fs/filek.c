@@ -258,22 +258,42 @@ int readk(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
         block_id=get_next_block_id(block_id);
         if(block_id==EOF) return 0;
     }
-    char* block_addr=(char*)get_block_addr(block_id);
-    char* fp=block_addr+start%BLOCK_SIZE;
-    uint32_t cur_size=(start/BLOCK_SIZE)*BLOCK_SIZE+start%BLOCK_SIZE;
+    char* fp=(char*)get_block_addr(block_id)+(start%BLOCK_SIZE);
+    uint32_t cur=start;
     uint32_t pos=0;
-    // printk("read:block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
-    for(int i=0;i<count;i++){
-        if(cur_size>=f_inode->size){
-            return pos;
-        }
-        buf[pos++]=*fp;
-        cur_size+=1;
-        fp+=1;
-        if(((uint32_t)fp-(uint32_t)DATA_START)%(uint32_t)BLOCK_SIZE==0){
+    // 用剩余计数代替逐字节取模; 对齐段按字读, 减少 4 倍访存/循环开销
+    uint32_t left_in_block=BLOCK_SIZE-(start%BLOCK_SIZE);
+    // 前缀: 对齐到 4 字节
+    while(pos<count&&cur<f_inode->size&&((((uint32_t)fp&3)!=0)||(((uint32_t)buf+pos)&3)!=0||left_in_block<4)){
+        buf[pos++]=*fp++;
+        cur++;
+        if(--left_in_block==0){
             block_id=get_next_block_id(block_id);
             if(block_id==EOF) return pos;
             fp=(char*)get_block_addr(block_id);
+            left_in_block=BLOCK_SIZE;
+        }
+    }
+    // 整字读
+    while(pos+4<=count&&cur+4<=f_inode->size&&left_in_block>=4){
+        *(uint32_t*)(buf+pos)=*(uint32_t*)fp;
+        fp+=4; cur+=4; pos+=4; left_in_block-=4;
+        if(left_in_block==0){
+            block_id=get_next_block_id(block_id);
+            if(block_id==EOF) return pos;
+            fp=(char*)get_block_addr(block_id);
+            left_in_block=BLOCK_SIZE;
+        }
+    }
+    // 尾部
+    while(pos<count&&cur<f_inode->size){
+        buf[pos++]=*fp++;
+        cur++;
+        if(--left_in_block==0){
+            block_id=get_next_block_id(block_id);
+            if(block_id==EOF) return pos;
+            fp=(char*)get_block_addr(block_id);
+            left_in_block=BLOCK_SIZE;
         }
     }
     return pos;
@@ -291,18 +311,18 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
         block_id=get_next_block_id(block_id);
         if(block_id==EOF) return 0;//start>file_size
     }
-    char* block_addr=(char*)get_block_addr(block_id);
-    char* fp=block_addr+start%BLOCK_SIZE;
+    char* fp=(char*)get_block_addr(block_id)+(start%BLOCK_SIZE);
     uint32_t pos=0;
-    uint32_t cur_size=(start/BLOCK_SIZE)*BLOCK_SIZE+start%BLOCK_SIZE;
-    // printk("block_id:%d,block_addr:%x,fp:%x\n",block_id,block_addr,fp);
-    for(int i=0;i<count;i++){
+    uint32_t cur=start;
+    uint32_t left_in_block=BLOCK_SIZE-(start%BLOCK_SIZE);
+    while(pos<count){
         *fp=buf[pos++];
-        cur_size+=1;
-        if(cur_size>f_inode->size)
+        cur++;
+        if(cur>f_inode->size)
             f_inode->size+=1;
-        fp+=1;
-        if(((uint32_t)fp-(uint32_t)DATA_START)%(uint32_t)BLOCK_SIZE==0){
+        fp++;
+        left_in_block--;
+        if(left_in_block==0){
             uint32_t prev_inode_id=block_id;
             block_id=get_next_block_id(block_id);
             if(block_id==(uint32_t)EOF){
@@ -311,6 +331,7 @@ int writek(uint32_t inode_id, char* buf, uint32_t start, uint32_t count) {
                 set_next_block_id(prev_inode_id,block_id);
             }
             fp=(char*)get_block_addr(block_id);
+            left_in_block=BLOCK_SIZE;
         }
     }
     free_block(get_next_block_id(block_id));//递归释放剩余块

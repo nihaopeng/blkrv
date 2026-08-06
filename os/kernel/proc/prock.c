@@ -121,7 +121,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
         }
     }
     uint32_t* program_malloc_space=(uint32_t*)mallock(max_vir,(uint32_t*)page_content_addr,free_block_head);
-    char file_data_buf[512];
+    char file_data_buf[512] __attribute__((aligned(4)));
     for(uint32_t i=0;i<prog_head_num;i++){
         uint32_t* prog_head_addr=(uint32_t*)(read_buf+i*prog_head_size);
         uint32_t prog_head_type=*(prog_head_addr+0);
@@ -144,10 +144,12 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
                 // printk("prog_head_filesize:%x\r",prog_head_filesize);
                 if(prog_head_filesize>=512){
                     readk(inode_id,file_data_buf,prog_head_offset,512);
-                    for(int i=0;i<512;i++){
-                        program_start_vir++;
-                        *(program_start++)=file_data_buf[i];
-                    }
+                    // 512 字节 = 128 字, 按字拷贝 (两者均 4 对齐)
+                    uint32_t* s4=(uint32_t*)file_data_buf;
+                    uint32_t* d4=(uint32_t*)program_start;
+                    for(int i=0;i<128;i++) d4[i]=s4[i];
+                    program_start_vir+=512;
+                    program_start+=512;
                     prog_head_offset+=512;
                     prog_head_filesize-=512;
                     //达到新的一页，读取新的物理地址。
@@ -157,8 +159,16 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
                 }
                 else{
                     readk(inode_id,file_data_buf,prog_head_offset,prog_head_filesize);
-                    for(int i=0;i<prog_head_filesize;i++){
+                    uint32_t n=prog_head_filesize;
+                    uint32_t nw=n>>2;
+                    uint32_t* s4=(uint32_t*)file_data_buf;
+                    uint32_t* d4=(uint32_t*)program_start;
+                    for(uint32_t i=0;i<nw;i++) d4[i]=s4[i];
+                    program_start+=nw*4;
+                    program_start_vir+=nw*4;
+                    for(uint32_t i=nw*4;i<n;i++){
                         *(program_start++)=file_data_buf[i];
+                        program_start_vir++;
                     }
                     prog_head_offset+=prog_head_filesize;
                     prog_head_filesize=0;

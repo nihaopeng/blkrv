@@ -3,12 +3,24 @@
 uint8_t pages[MAX_PAGE]={0};
 
 uint32_t alloc_page(){
-    for(uint32_t i=(USER_START>>12);i<MAX_PAGE;i++){//从用户空间地址开始
+    // 提示指针: 记住上次分配位置, 避免每次都从页0线性扫描 (O(n^2) → O(1) 摊还)
+    static uint32_t hint = USER_START>>12;
+    for(uint32_t i=hint;i<MAX_PAGE;i++){//从上次分配位置之后开始
         if(pages[i]==0){//页未被使用
             pages[i]=1;
+            hint=i+1;
             return i;//ppn
         }
     }
+    // 回绕: 处理 hint 之前被释放的页 (本系统目前只有 pid=1 退出时才释放)
+    for(uint32_t i=(USER_START>>12);i<hint;i++){
+        if(pages[i]==0){
+            pages[i]=1;
+            hint=i+1;
+            return i;
+        }
+    }
+    return 0;
 }
 
 uint32_t free_page(uint32_t page){

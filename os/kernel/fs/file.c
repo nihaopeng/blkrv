@@ -2,7 +2,6 @@
 
 int read_i(uint32_t inode_id,char* buf,uint32_t start,uint32_t count){//we hope your buf has been init;
     _vir2phyk(char*,buf);
-
     return readk(inode_id,buf,start,count);
 }
 
