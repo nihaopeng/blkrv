@@ -40,7 +40,7 @@ static void print_int(unsigned v) {
 }
 
 int main(int argc, char* argv[]) {
-    print("ls: list directory contents\n");
+    // print("ls: list directory contents\n");
     const char* path = "/";
     if (argc > 1) path = argv[1];
 
@@ -56,7 +56,8 @@ int main(int argc, char* argv[]) {
 
     char buf[1024];
     int rd = readf(fd, buf, 0, 1024);
-    if (rd <= 0) { print("ls: read dir failed\n"); return 1; }
+    if (rd < 0) { print("ls: read dir failed\n"); return 1; }
+    // rd == 0: 空目录, 直接结束 (不是错误)
 
     // 每 4 字节是一个 inode_id
     for (int i = 0; i < rd; i += 4) {
@@ -64,6 +65,7 @@ int main(int argc, char* argv[]) {
         if (id == 0) continue;
         inode_t child;
         if (finfo(id, &child) < 0) continue;
+        if (child.type == 0) continue;  // 已删除的幽灵条目
         print(child.type == 'd' ? "d " : "  ");
         print(child.name);
         print("  (");

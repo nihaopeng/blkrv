@@ -48,6 +48,37 @@ int exitk(){
 
 _regist_syscall(void,spawn);  // 必须在 prock.c (和 spawn_i 同文件, 避免GOT)
 
+// waitpid: 阻塞等待子进程退出
+// 必须在 prock.c: 跨文件访问 global_pcb_list 走 GOT, 而 GOT 存的是链接期绝对地址,
+// 内核实际运行基址与链接基址不同, 会指向错误内存; 同文件内为 PC-relative 访问, 正确.
+int waitpid_i(int pid){
+    uint32_t satp;
+    __asm__ volatile("csrr %0,0x181":"=r"(satp));
+    uint32_t my_pid = satp & 0xfff;
+
+    if(pid <= 0 || pid >= MAX_PRO_NUM) return -1;
+    if(global_pcb_list[pid].is_alive == PROC_DEAD) return 0;  // 已退出
+
+    // 先保存上下文再标记 BLOCKED, 防止调度器跳过保存导致上下文丢失
+    save_ctx_s_to_pcb(&global_pcb_list[my_pid]);
+    global_pcb_list[my_pid].satp = satp;
+    global_pcb_list[my_pid].wait_pid = pid;
+    global_pcb_list[my_pid].is_alive = PROC_BLOCKED;
+    int switched = scheduler();  // 立即调度, 让出 CPU
+    if (switched < 0) {
+        // 没有其他就绪进程: 恢复运行状态继续当前进程
+        global_pcb_list[my_pid].is_alive = PROC_RUNNING;
+        global_pcb_list[my_pid].wait_pid = 0;
+        return 0;
+    }
+    // scheduler 已把目标进程上下文装入 REGS_CP_M / mepc / satp_i_cp,
+    // 直接从 ecall 处理器执行 mret 进入新进程 (永不返回)
+    __asm__ volatile(".word 0x30200073");  // mret
+    for(;;){}  // 不可达
+}
+
+_regist_syscall(void,waitpid);
+
 int get_free_pid(){
     for(uint32_t i=1;i<MAX_PRO_NUM;i++){
         if(global_pcb_list[i].is_alive==PROC_DEAD){
@@ -197,7 +228,6 @@ uint32_t load_params(uint32_t para_num,char** para,uint32_t page_content_addr,mn
         for(int j=0;j<para_size;j++){
             *(para_addr++)=para[i][j];
         }
-        *para_addr='\0';
     }
     return argv;
 }
@@ -371,6 +401,13 @@ int scheduler(void) {
     if (from_ecall) {
         __asm__ volatile("csrr %0, 0x181" : "=r"(satp));
         old_pid = satp & 0xfff;
+        // 嵌套中断: 定时器在系统调用处理中途触发 (进程仍 RUNNING)。
+        // 此时绝不能切换 —— 会丢弃未完成的内核处理 (fs 写半截) 和进程状态。
+        // 恢复 0x181 后直接返回, 让系统调用处理继续完成, sret 再回到用户态。
+        if (old_pid != 0 && global_pcb_list[old_pid].is_alive == PROC_RUNNING) {
+            __asm__ volatile("csrrw zero, 0x181, %0" :: "r"(satp));
+            return -1;
+        }
     }
 
     // 先找下一个 READY 进程
@@ -399,14 +436,9 @@ int scheduler(void) {
         return -1;
     }
     // 有切换: 保存旧进程现场
-    if (from_ecall) {
-        if (old_pid != 0 && global_pcb_list[old_pid].is_alive == PROC_RUNNING) {
-            pcb* old_pcb = &global_pcb_list[old_pid];
-            save_ctx_s_to_pcb(old_pcb);
-            old_pcb->satp = satp;
-            old_pcb->is_alive = PROC_READY;
-        }
-    } else {
+    // from_ecall 的情况: 只有 waitpid 主动让出才会走到这里, 其上下文已由 waitpid_i
+    // 自己保存并置 BLOCKED; 嵌套中断已在上面提前返回, 不会到达此处.
+    if (!from_ecall) {
         if (old_pid != 0 && global_pcb_list[old_pid].is_alive == PROC_RUNNING) {
             pcb* old_pcb = &global_pcb_list[old_pid];
             save_ctx_to_pcb(old_pcb);

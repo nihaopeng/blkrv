@@ -184,6 +184,16 @@ int main(){
     get_file_from_server("./baseutils/ls/ls","/bin/ls","127.0.0.1",8080);
     uint32_t cat_inode_id=createk("/bin/cat",FILE_TYPE,&tmp);
     get_file_from_server("./baseutils/cat/cat","/bin/cat","127.0.0.1",8080);
+    uint32_t echo_inode_id=createk("/bin/echo",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/echo/echo","/bin/echo","127.0.0.1",8080);
+    uint32_t mkdir_inode_id=createk("/bin/mkdir",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/mkdir/mkdir","/bin/mkdir","127.0.0.1",8080);
+    uint32_t touch_inode_id=createk("/bin/touch",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/touch/touch","/bin/touch","127.0.0.1",8080);
+    uint32_t rm_inode_id=createk("/bin/rm",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/rm/rm","/bin/rm","127.0.0.1",8080);
+    uint32_t clear_inode_id=createk("/bin/clear",FILE_TYPE,&tmp);
+    get_file_from_server("./baseutils/clear/clear","/bin/clear","127.0.0.1",8080);
 
     // 加载 shell 为 pid=1
     char para1[]="./shell";
@@ -197,7 +207,7 @@ int main(){
     // 启动定时器: 必须在 start_first_process 之前, 确保 shell 跑起来后才开始调度
     volatile uint32_t* const t_lo = (uint32_t*)TIMER_ADDR;
     volatile uint32_t* const tcmp_lo = (uint32_t*)(TIMER_ADDR + 8);
-    *tcmp_lo = *t_lo + 100000;   // handler 完全空, 测纯中断路径
+    *tcmp_lo = *t_lo + 100000;
 
     start_first_process();
 

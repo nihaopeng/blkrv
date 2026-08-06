@@ -1,4 +1,8 @@
-// BLKRv User Shell — 由调度器加载为 pid=1, 支持 spawn 外部程序
+// BLKRv User Shell — pid=1
+// 内建: cd / pwd / help / exit (cd 必须内建, 子进程无法改变父进程工作目录)
+// 外部程序: echo / ls / cat / mkdir / touch / rm / clear (位于 /bin)
+
+#define MAX_PATH 256
 
 static void print(const char* s) {
     int n = 0; while (s[n]) n++;
@@ -7,6 +11,11 @@ static void print(const char* s) {
 static int openf(const char* path) {
     int r;
     __asm__ volatile("li a7, 0\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(path) : "a0","a7");
+    return r;
+}
+static int finfo(int fd, void* ino) {
+    int r;
+    __asm__ volatile("li a7, 20\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd), "r"(ino) : "a0","a1","a7");
     return r;
 }
 static int spawn(unsigned inode_id, char** argv, unsigned argc) {
@@ -31,12 +40,72 @@ static char vgetch(void) {
     return r;
 }
 
+typedef struct { char name[128]; unsigned size; unsigned start; char type; char _pad[3]; } inode_t;
+
 static int str_len(const char* s) { int n=0; while(s[n])n++; return n; }
 static int str_cmp(const char* a, const char* b) {
     int la=str_len(a), lb=str_len(b);
     if(la!=lb) return 0;
     for(int i=0;i<la;i++) if(a[i]!=b[i]) return 0;
     return 1;
+}
+static void str_cpy(const char* src, char* dst) {
+    int i=0; while(src[i]){ dst[i]=src[i]; i++; } dst[i]=0;
+}
+static void str_cat(char* dst, const char* src) {
+    int i=str_len(dst), j=0; while(src[j]){ dst[i++]=src[j++]; } dst[i]=0;
+}
+
+static char cwd[MAX_PATH];
+
+// 规范化绝对路径: 处理 . 与 .. 组件, 结果写入 out
+static void norm_path(const char* in, char* out) {
+    char stack[16][128];
+    int top = 0;
+    char comp[128];
+    int p = 0;
+    for (int i = 0; ; i++) {
+        char c = in[i];
+        if (c == '/' || c == 0) {
+            if (p > 0) {
+                comp[p] = 0;
+                if (str_cmp(comp, ".")) { /* 当前目录 */ }
+                else if (str_cmp(comp, "..")) { if (top > 0) top--; }
+                else { str_cpy(comp, stack[top++]); }
+                p = 0;
+            }
+            if (c == 0) break;
+        } else {
+            comp[p++] = c;
+        }
+    }
+    out[0] = '/';
+    int o = 1;
+    for (int i = 0; i < top; i++) {
+        for (int j = 0; stack[i][j]; j++) out[o++] = stack[i][j];
+        out[o++] = '/';
+    }
+    if (o > 1) o--;        // 去掉末尾 '/'
+    out[o] = 0;
+}
+
+// 把 src 解析为绝对路径到 out (基于 cwd)
+static void resolve_path(const char* src, char* out) {
+    char tmp[MAX_PATH];
+    if (src[0] == '/') {
+        str_cpy(src, tmp);
+    } else {
+        if (str_cmp(cwd, "/")) {
+            tmp[0]='/'; tmp[1]=0;
+            str_cat(tmp, src);
+        } else {
+            str_cpy(cwd, tmp);
+            int l = str_len(tmp);
+            tmp[l]='/'; tmp[l+1]=0;
+            str_cat(tmp, src);
+        }
+    }
+    norm_path(tmp, out);
 }
 
 static void readline(char* buf, int max) {
@@ -73,9 +142,25 @@ static int tokenize(char* line, char** argv, int max_arg) {
     return argc;
 }
 
+static void usage(void) {
+    print("  cd [dir]     - change directory\n");
+    print("  pwd          - print working directory\n");
+    print("  echo <msg>   - print message\n");
+    print("  ls [path]    - list directory\n");
+    print("  cat <file>   - print file content\n");
+    print("  mkdir <dir>  - create directory\n");
+    print("  touch <file> - create empty file\n");
+    print("  rm <file>    - delete file\n");
+    print("  clear        - clear screen\n");
+    print("  spawn <prog> [args...] - run executable\n");
+    print("  exit         - quit shell\n");
+}
+
 int main(int argc, char* argv[]) {
+    str_cpy("/", cwd);
     print("\n=== BLKRv Shell ===\n");
-    print("Commands: help, echo <msg>, ls, cat <f>, spawn <prog>, exit\n");
+    print("Commands: cd, pwd, echo, ls, cat, mkdir, touch, rm, clear, spawn, exit\n");
+    print("Type 'help' for details\n");
 
     char line[128];
     char* args[8];
@@ -90,44 +175,50 @@ int main(int argc, char* argv[]) {
         char* cmd = args[0];
 
         if (str_cmp(cmd, "exit")) { print("Goodbye!\n"); break; }
-        else if (str_cmp(cmd, "help")) {
-            print("  echo <msg>  - print message\n");
-            print("  ls [path]   - list directory\n");
-            print("  cat <file>  - print file content\n");
-            print("  spawn <prog> [args...] - run executable\n");
-            print("  exit        - quit shell\n");
+        else if (str_cmp(cmd, "help")) { usage(); }
+        else if (str_cmp(cmd, "pwd")) { print(cwd); print("\n"); }
+        else if (str_cmp(cmd, "cd")) {
+            const char* target = (ac > 1) ? args[1] : "/";
+            char abs[MAX_PATH];
+            resolve_path(target, abs);
+            int fd = openf(abs);
+            if (fd < 0) { print("cd: no such directory\n"); continue; }
+            inode_t ino;
+            finfo(fd, &ino);
+            if (ino.type != 'd') { print("cd: not a directory\n"); continue; }
+            str_cpy(abs, cwd);
         }
-        else if (str_cmp(cmd, "echo")) {
-            if (ac > 1) { print(args[1]); print("\n"); }
-            else print("\n");
-        }
-        else if (str_cmp(cmd, "spawn") || str_cmp(cmd, "ls") || str_cmp(cmd, "cat")) {
-            // 构造路径
-            char* prog;
-            if (str_cmp(cmd, "ls"))      prog = "/bin/ls";
-            else if (str_cmp(cmd, "cat")) prog = "/bin/cat";
-            else if (ac > 1)             prog = args[1];
-            else { print("Usage: spawn <path> [args...]\n"); continue; }
-
+        else {
+            // 独立程序: /bin/<cmd>
+            char prog[MAX_PATH];
+            str_cpy("/bin/", prog);
+            str_cat(prog, cmd);
             int fd = openf(prog);
-            if (fd < 0) { print("open failed: "); print(prog); print("\n"); continue; }
+            if (fd < 0) { print("unknown: "); print(cmd); print("\n"); continue; }
 
-            // 传参给子进程: argv[0]=程序名, 后面是剩余参数
             char* child_args[8];
+            char resolved[8][MAX_PATH];
             int ca = 0;
             child_args[ca++] = prog;
-            int start = str_cmp(cmd, "spawn") ? 1 : 2;  // 跳过命令名
-            for (; start < ac && ca < 7; start++)
-                child_args[ca++] = args[start];
+            int ri = 0;
+            // 路径类命令: 参数按 cwd 解析为绝对路径
+            int path_cmd = str_cmp(cmd,"ls")||str_cmp(cmd,"cat")||
+                           str_cmp(cmd,"mkdir")||str_cmp(cmd,"touch")||
+                           str_cmp(cmd,"rm")||str_cmp(cmd,"spawn");
+            if (str_cmp(cmd, "ls") && ac == 1) {
+                // ls 无参数时列出当前目录
+                resolve_path(cwd, resolved[ri]);
+                child_args[ca++] = resolved[ri++];
+            }
+            for (int i = 1; i < ac && ca < 7; i++) {
+                if (path_cmd) { resolve_path(args[i], resolved[ri]); child_args[ca++] = resolved[ri++]; }
+                else          { child_args[ca++] = args[i]; }
+            }
             child_args[ca] = 0;
 
             int pid = spawn(fd, child_args, ca);
             if (pid < 0) { print("spawn failed\n"); continue; }
-            // 前台命令: 等待子进程执行完毕再继续
-            waitpid(pid);
-        }
-        else {
-            print("unknown: "); print(cmd); print("\n");
+            waitpid(pid);  // 前台命令
         }
     }
     return 0;

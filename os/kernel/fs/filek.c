@@ -40,25 +40,17 @@ inode* get_inode_by_id(uint32_t inode_id){
 
 inode* get_inode_in_dir_by_name(char* file_name,inode* dir_inode){
     uint32_t block_id=dir_inode->start_block;
-    // uint32_t* block_id_addr=get_block_id_addr(block_id);
     uint32_t* block_addr=get_block_addr(block_id);
-    uint32_t cur_size=0;
     while(block_id!=EOF){//遍历所有块
         for(uint32_t j=0;j<(BLOCK_SIZE>>2);j++){
             uint32_t inode_id=*block_addr;
-            if(inode_id==0){//遇到空闲位
-                continue;
-            }
-            if(cur_size>=dir_inode->size){//到了文件夹末尾
-                return NULL;
-            }
-            inode* f_inode=get_inode_by_id(inode_id);
-            // printk("check:%s,check:%s\n",f_inode->file_name,file_name);
-            if(str_cmp(f_inode->file_name,file_name)){//文件名相等，找到文件
-                return f_inode;
+            if(inode_id!=0){//空闲位跳过, 但仍推进槽位
+                inode* f_inode=get_inode_by_id(inode_id);
+                if(str_cmp(f_inode->file_name,file_name)){//文件名相等，找到文件
+                    return f_inode;
+                }
             }
             block_addr+=1;
-            cur_size+=4;
         }
         uint32_t next_block_id=get_next_block_id(block_id);
         block_id=next_block_id;
@@ -71,22 +63,20 @@ int add_inode_id_to_dir(inode* dir_inode,uint32_t file_id){
     uint32_t block_id=dir_inode->start_block;
     uint32_t prev_block_id=block_id;
     uint32_t* block_addr=get_block_addr(block_id);
-    uint32_t cur_size=0;
+    uint32_t pos=0;//槽位序号
     while(block_id!=EOF){//遍历所有块
-        // printk("block_id_i:%d\n",block_id);
         for(uint32_t j=0;j<(BLOCK_SIZE>>2);j++){//遍历一个块内的所有数据
             uint32_t inode_id=*block_addr;
-            if(cur_size==dir_inode->size&&inode_id==0){//到了文件夹最大size末尾
-                *block_addr=file_id;
-                dir_inode->size+=4;
+            if(inode_id==file_id){//去重: 已存在则不重复添加
                 return 1;
             }
-            if(inode_id==0){//遇到空闲位,problem:存在相当多的空闲碎片
+            if(inode_id==0){//空闲位: 直接复用, size 维护为"最高占用槽+1"
                 *block_addr=file_id;
+                if(pos*4>=dir_inode->size) dir_inode->size=pos*4+4;
                 return 1;
             }
             block_addr+=1;
-            cur_size+=4;
+            pos++;
         }
         uint32_t next_block_id=get_next_block_id(block_id);
         prev_block_id=block_id;
@@ -95,8 +85,6 @@ int add_inode_id_to_dir(inode* dir_inode,uint32_t file_id){
     }
     //文件分配的块用完了，分配新的块
     uint32_t new_block_id=alloc_block();
-    // printk("blockout!new_block_id:%d\n",new_block_id);
-    // printk("block_id_start:%d,size:%d,filename:%s\n",dir_inode->start_block,dir_inode->size,dir_inode->file_name);
     if(new_block_id==-1) return NULL;
     if(dir_inode->start_block==(uint32_t)EOF){
         dir_inode->start_block=new_block_id;
@@ -104,10 +92,9 @@ int add_inode_id_to_dir(inode* dir_inode,uint32_t file_id){
     else{
         set_next_block_id(prev_block_id,new_block_id);//更新fat表
     } 
-    // printk("block_id_start1:%d,size1:%d,filename1:%s\n",dir_inode->start_block,dir_inode->size,dir_inode->file_name);
-    dir_inode->size+=4;
     uint32_t* data_block=get_block_addr(new_block_id);
     *data_block=file_id;
+    if(pos*4>=dir_inode->size) dir_inode->size=pos*4+4;
     return 1;
 }
 
@@ -119,8 +106,54 @@ int delete_inode(uint32_t inode_id){
     finode->start_block=0;
 }
 
+// 在所有目录的块中查找并移除 inode_id 条目 (删除文件后目录不应残留幽灵条目)
+static int remove_dir_entry(uint32_t inode_id){
+    // 扫描上限 1024: 覆盖本文件系统实际 inode 数 (性能考虑; 正确性由调度器嵌套中断修复保证,
+    // 与扫描长度无关)
+    for(uint32_t i=ROOT_INODE_ID;i<1024;i++){
+        inode* d=(inode*)INODE_START+i;
+        if(d->type!=DIR_TYPE) continue;
+        uint32_t block_id=d->start_block;
+        uint32_t slot=0;//全局槽位序号(跨块累计)
+        int removed=0;
+        while(block_id!=EOF){
+            uint32_t* p=(uint32_t*)get_block_addr(block_id);
+            for(uint32_t j=0;j<(BLOCK_SIZE>>2);j++){
+                if(p[j]==inode_id){
+                    p[j]=0;
+                    removed=1;
+                }
+                slot++;
+            }
+            block_id=get_next_block_id(block_id);
+        }
+        if(removed){
+            // 目录 size 维护为 "最高占用槽+1" 的字节数; 全部清空则为 0,
+            // 这样删除子项后空目录本身才能被 deletek 删除
+            uint32_t high=0;
+            block_id=d->start_block;
+            uint32_t s=0;
+            while(block_id!=EOF){
+                uint32_t* p=(uint32_t*)get_block_addr(block_id);
+                for(uint32_t j=0;j<(BLOCK_SIZE>>2);j++){
+                    if(p[j]!=0) high=s+1;
+                    s++;
+                }
+                block_id=get_next_block_id(block_id);
+            }
+            d->size=high*4;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int deletek(uint32_t inode_id){
     inode* finode=(inode*)INODE_START+inode_id;
+    if(finode->type==DIR_TYPE&&finode->size>0){// 非空目录拒绝删除, 避免子项孤儿化
+        return -1;
+    }
+    remove_dir_entry(inode_id);// 从父目录移除条目
     free_block(finode->start_block);
     delete_inode(inode_id);
     return 1;
@@ -129,8 +162,8 @@ int deletek(uint32_t inode_id){
 uint32_t create_inode(char* file_name,char type){
     uint32_t j=ROOT_INODE_ID;
     for(inode* i=(inode*)INODE_START+ROOT_INODE_ID;i<(inode*)FAT_START;i++,j++){//遍历inode
-        // printk("inode->type:%c\n",i->type);
         if(i->type==0){//找到inode空闲位
+            // 不在此清理旧目录项: add_inode_id_to_dir 的去重逻辑会复用旧的目录项 id
             str_cpy(file_name,i->file_name);
             i->type=type;
             i->start_block=EOF;
@@ -199,7 +232,6 @@ uint32_t create_Recursive(char* file_path, char type, uint32_t* inode_id,uint32_
             return create_file(filename,DIR_TYPE,get_inode_by_id(parent_inode_id));
         }
     }else{
-        printk("parent:%s,file:%s has been exist\n",parent,filename);
         return (file_inode-(inode*)INODE_START);//返回inode-id
     }
 }
