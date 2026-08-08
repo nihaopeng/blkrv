@@ -225,6 +225,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
             uint8_t* program_start=(uint8_t*)vir2phy((uint32_t*)page_content_addr,(uint32_t)program_start_vir);//转换为物理地址；根据新satp转换，
             // printk("program_start:%x\n",program_start);
             readk(inode_id,file_data_buf,prog_head_offset,512);
+            uint32_t prog_head_filesz_orig = prog_head_filesize;   // 供 .bss 清零使用
             while(prog_head_filesize){
                 // printk("prog_head_filesize:%x\r",prog_head_filesize);
                 if(prog_head_filesize>=512){
@@ -258,6 +259,16 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
                     prog_head_offset+=prog_head_filesize;
                     prog_head_filesize=0;
                 }
+            }
+            // 清零 .bss (memsz - filesz): 用户程序依赖零初始化 (newlib 等)
+            uint32_t bss_start = prog_head_vaddr + prog_head_filesz_orig;
+            uint32_t bss_end   = prog_head_vaddr + prog_head_memsize;
+            for (uint32_t a = bss_start; a < bss_end; ) {
+                uint32_t phys = vir2phy((uint32_t*)page_content_addr, a);
+                uint32_t chunk = 4096 - (a & 0xfff);       // 到本页末尾
+                if (chunk > bss_end - a) chunk = bss_end - a;
+                memset_s((char*)phys, 0, chunk);
+                a += chunk;
             }
         }
     }

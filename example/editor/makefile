@@ -1,10 +1,12 @@
 CC := riscv32-unknown-elf-gcc
-FLAGS := -I../../include -nostdlib -fPIE -lgcc -Wl,--no-relax
+CFLAGS := -march=rv32i -mabi=ilp32 -O1 -I../lib
+LDLIBS := ../lib/crt0.o ../lib/libblkrv.a -lgcc
+LDFLAGS := -nostdlib -Wl,--no-relax -Wl,-s
 
 all: editor
 
-editor: src/_start.S src/main.c
-	$(CC) $^ $(FLAGS) -o $@
+editor: src/main.c
+	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o editor
 
 clean:
 	rm -f editor

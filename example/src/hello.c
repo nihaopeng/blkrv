@@ -1,4 +1,4 @@
-#include "std.h"
+#include "blkrv.h"
 
 int main(int argc,char* argv[]){
     print("argc:%d,argv_addr:%x\n",argc,argv);
@@ -44,56 +44,26 @@ int main(int argc,char* argv[]){
     char buf1[1024];
     int sockfd=connect(&sock);
     send(sockfd,message,str_len(message));
-    // inode_id=open("/tmp/test.bin");
     recv(sockfd,buf1,1024);
     print("\n%s\n",buf1);
     print("##send and recv pass\n");
 
-    //test vmm
-    // open_monitor();
     char* tmp=(char*)malloc(30);
-    // tmp="this is blkrv malloc test";
     print("tmp:%d:%s\n",(uint32_t)tmp,tmp);
     char* tmp1=(char*)malloc(30);
-    // tmp1="this is blkrv malloc test1";
     print("tmp1:%d:%s\n",(uint32_t)tmp1,tmp1);
     char* tmp2=(char*)malloc(30);
-    // tmp2="this is blkrv malloc test2";//错误赋值方式。
     str_cpy("this is blkrv malloc test2",tmp2);
     print("tmp2:%d:%s\nfree tmp1\n",(uint32_t)tmp2,tmp2);
     free(tmp1);
-    // close_monitor();
 
     open_monitor();
     for(int i=0;i<10;i++){
         char* tmp=(char*)malloc(30);
-        // str_cpy("this is blkrv malloc test",tmp);
-        // print("tmp:%d:%s\n",(uint32_t)tmp,tmp);
-        // free(tmp);
     }
     close_monitor();
 
-    //严重违规操作，自己调用自己，将会陷入调用地狱，此处做测试使用。
-    // inode_id=open("/tmp/test.bin");
-    // char para1[]="test.bin";
-    // char para2[]="-a";
-    // char para3[]="-c";
-    // char* para[]={para1,para2,para3};
-    // exec(inode_id,-1,para,3);
-
-    // point p1={380,280};
-    // color c={0,255,0};
-    // draw_label(&p1,"hello, this is user, input 'q' to quit:",&c,180);
-    // flush();
-    // while(1){
-    //     char ch;
-    //     if(read(STDIN_FILENO,&ch,1)>0){
-    //         if(ch=='q') break;
-    //     }
-    // }
-
     print("graphic tests pass\n");
-
     print("##all tests pass!\n");
     return 0;
 }

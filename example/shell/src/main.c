@@ -2,62 +2,82 @@
 // 内建: cd / pwd / help / exit (cd 必须内建, 子进程无法改变父进程工作目录)
 // 外部程序: echo / ls / cat / mkdir / touch / rm / clear (位于 /bin)
 
+#include "blkrv.h"
+
 #define MAX_PATH 256
 
-static void print(const char* s) {
-    int n = 0; while (s[n]) n++;
-    __asm__ volatile("li a7, 2\n li a0, 1\n mv a1, %0\n mv a2, %1\n ecall\n" :: "r"(s), "r"(n) : "a0","a1","a2","a7");
-}
-static int openf(const char* path) {
-    int r;
-    __asm__ volatile("li a7, 0\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(path) : "a0","a7");
-    return r;
-}
-static int finfo(int fd, void* ino) {
-    int r;
-    __asm__ volatile("li a7, 20\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd), "r"(ino) : "a0","a1","a7");
-    return r;
-}
-static int spawn(unsigned inode_id, char** argv, unsigned argc) {
-    int r;
-    __asm__ volatile("li a7, 26\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(inode_id), "r"(argv), "r"(argc) : "a0","a1","a2","a7");
-    return r;
-}
-static int waitpid(int pid) {
-    int r;
-    __asm__ volatile("li a7, 27\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(pid) : "a0","a7");
-    return r;
-}
-static int closef(int fd) {
-    int r;
-    __asm__ volatile("li a7, 25\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd) : "a0","a7");
-    return r;
-}
-static int readf(int fd, void* buf, int count) {
-    int r;
-    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
-    return r;
-}
-
-typedef struct { char name[128]; unsigned size; unsigned start; char type; char _pad[3]; } inode_t;
-
-static int str_len(const char* s) { int n=0; while(s[n])n++; return n; }
-static int str_cmp(const char* a, const char* b) {
-    int la=str_len(a), lb=str_len(b);
-    if(la!=lb) return 0;
-    for(int i=0;i<la;i++) if(a[i]!=b[i]) return 0;
-    return 1;
-}
-static void str_cpy(const char* src, char* dst) {
-    int i=0; while(src[i]){ dst[i]=src[i]; i++; } dst[i]=0;
-}
-static void str_cat(char* dst, const char* src) {
-    int i=str_len(dst), j=0; while(src[j]){ dst[i++]=src[j++]; } dst[i]=0;
-}
-
 static char cwd[MAX_PATH];
+
+// ---------------- 历史记录 (上下箭头切换, 持久化到 /tmp/.history) ----------------
+#define HIST_MAX 32
+#define HIST_LEN 128
+
+static char hist[HIST_MAX][HIST_LEN];
+static int hist_n = 0;
+static int hist_pos = 0;      // 当前浏览位置, hist_n 表示"空输入"
+
+// 追加一条历史 (跳过空行, 相邻重复去重, 满 32 条后滚动丢弃最旧)
+static void hist_add(const char* line) {
+    if (line[0] == 0) return;
+    hist_pos = hist_n;   // 无论是否去重, 执行完命令后浏览位置都回到末尾
+    if (hist_n > 0 && str_cmp(hist[hist_n-1], line)) return;
+    if (hist_n < HIST_MAX) {
+        str_cpy(line, hist[hist_n]);
+        hist_n++;
+    } else {
+        for (int i = 1; i < HIST_MAX; i++) str_cpy(hist[i-1], hist[i]);
+        str_cpy(line, hist[HIST_MAX-1]);
+    }
+}
+
+// 把全部历史写回 /tmp/.history (create 对已存在文件返回 offset 0 的新 fd,
+// 顺序写完时 writek 会把 size 截断为新内容长度, 等价于覆写整个文件)
+static void hist_save(void) {
+    if (hist_n == 0) return;
+    char path[] = "/tmp/.history";
+    uint32_t ino;
+    int fd = create(path, FILE_TYPE, &ino);
+    if (fd < 0) return;
+    for (int i = 0; i < hist_n; i++) {
+        write(fd, hist[i], str_len(hist[i]));
+        write(fd, "\n", 1);
+    }
+    close(fd);
+}
+
+// 启动时从历史文件恢复 (逐块读, 支持跨块断行)
+static void hist_load(void) {
+    char path[] = "/tmp/.history";
+    int fd = open(path);
+    if (fd < 0) return;
+    char carry[HIST_LEN];
+    int carry_n = 0;
+    char rb[64];
+    int n;
+    while ((n = read(fd, rb, sizeof(rb))) > 0) {
+        int start = 0;
+        for (int i = 0; i < n; i++) {
+            if (rb[i] == '\n') {
+                char line[HIST_LEN];
+                int len = 0;
+                for (int c = 0; c < carry_n && len < HIST_LEN-1; c++) line[len++] = carry[c];
+                for (int c = start; c < i && len < HIST_LEN-1; c++) line[len++] = rb[c];
+                line[len] = 0;
+                if (len > 0) hist_add(line);
+                carry_n = 0;
+                start = i + 1;
+            }
+        }
+        carry_n = 0;
+        for (int i = start; i < n && carry_n < HIST_LEN-1; i++) carry[carry_n++] = rb[i];
+    }
+    if (carry_n > 0) {
+        carry[carry_n] = 0;
+        hist_add(carry);
+    }
+    close(fd);
+    hist_pos = hist_n;
+}
 
 // 规范化绝对路径: 处理 . 与 .. 组件, 结果写入 out
 static void norm_path(const char* in, char* out) {
@@ -109,14 +129,43 @@ static void resolve_path(const char* src, char* out) {
     norm_path(tmp, out);
 }
 
-static void readline(char* buf, int max) {
+static void readline(char* buf, int max, const char* prompt) {
     int p = 0;
     while (1) {
         char ch;
-        if (readf(0, &ch, 1) <= 0) continue;   /* raw 模式: 无输入则继续等 */
+            if (read(0, &ch, 1) <= 0) continue;   /* raw 模式: 无输入则继续等 */
         if (ch == 10 || ch == 13) break;
         if (ch == 27) {
-            /* 只丢弃 ESC 本身, 不连带消费后续字节, 避免吞掉命令首字符 */
+            /* 解析 ESC [ A / ESC [ B: 上下箭头切换历史; 其他 ESC 序列直接丢弃 */
+            char seq[2] = {0, 0};
+            int got = 0;
+            for (int k = 0; k < 2; k++) {
+                int r = 0, tries = 0;
+                while (tries < 6 && r <= 0) {   // 同一按键的后续字节可能分拍到达, 短忙等
+                    r = read(0, &seq[k], 1);
+                    if (r <= 0) {
+                        volatile int spin = 0;
+                        while (spin < 4000) spin++;
+                        tries++;
+                    }
+                }
+                if (r <= 0) break;
+                got++;
+            }
+            if (got == 2 && seq[0] == '[' && (seq[1] == 'A' || seq[1] == 'B')) {
+                if (seq[1] == 'A' && hist_pos > 0) hist_pos--;
+                else if (seq[1] == 'B' && hist_pos < hist_n) hist_pos++;
+                print("\r\e[K");               // 回到行首清掉整行, 重绘 提示符+历史行
+                print(prompt);
+                p = 0;
+                if (hist_pos < hist_n) {
+                    str_cpy(hist[hist_pos], buf);
+                    p = str_len(buf);
+                    print(buf);
+                } else {
+                    buf[0] = 0;                // 按 Down 回到最末尾: 只保留提示符
+                }
+            }
             continue;
         }
         if (ch == 127 || ch == 8) {
@@ -150,7 +199,7 @@ static void usage(void) {
     print("  cd [dir]     - change directory\n");
     print("  pwd          - print working directory\n");
     print("  echo <msg>   - print message\n");
-    print("  ls [path]    - list directory\n");
+    print("  ls [-l] [path] - list directory (-l: 详细)\n");
     print("  cat <file>   - print file content\n");
     print("  mkdir <dir>  - create directory\n");
     print("  touch <file> - create empty file\n");
@@ -166,31 +215,37 @@ int main(int argc, char* argv[]) {
     print("\n=== BLKRv Shell ===\n");
     print("Commands: cd, pwd, echo, ls, cat, mkdir, touch, rm, clear, editor, spawn, exit\n");
     print("Type 'help' for details\n");
+    hist_load();   // 从 /tmp/.history 恢复上次会话
 
     char line[128];
     char* args[8];
 
     while (1) {
-        print(">>> ");
-        readline(line, 128);
+        char prompt[MAX_PATH + 8];
+        str_cpy(cwd, prompt);
+        str_cat(prompt, " >>> ");
+        print(prompt);
+        readline(line, 128, prompt);
         if (line[0] == 0) continue;
+        hist_add(line);   // 记入历史并立即持久化, 异常退出也不丢
+        hist_save();
 
         int ac = tokenize(line, args, 8);
         if (ac == 0) continue;
         char* cmd = args[0];
 
-        if (str_cmp(cmd, "exit")) { print("Goodbye!\n"); break; }
+        if (str_cmp(cmd, "exit")) { hist_save(); print("Goodbye!\n"); break; }
         else if (str_cmp(cmd, "help")) { usage(); }
         else if (str_cmp(cmd, "pwd")) { print(cwd); print("\n"); }
         else if (str_cmp(cmd, "cd")) {
             const char* target = (ac > 1) ? args[1] : "/";
             char abs[MAX_PATH];
             resolve_path(target, abs);
-            int fd = openf(abs);
+            int fd = open(abs);
             if (fd < 0) { print("cd: no such directory\n"); continue; }
-            inode_t ino;
+            inode ino;
             finfo(fd, &ino);
-            closef(fd);   // cd 用完目录 fd 立即释放, 防止 fd 泄漏耗尽
+            close(fd);   // cd 用完目录 fd 立即释放, 防止 fd 泄漏耗尽
             if (ino.type != 'd') { print("cd: not a directory\n"); continue; }
             str_cpy(abs, cwd);
         }
@@ -199,7 +254,7 @@ int main(int argc, char* argv[]) {
             char prog[MAX_PATH];
             str_cpy("/bin/", prog);
             str_cat(prog, cmd);
-            int fd = openf(prog);
+            int fd = open(prog);
             if (fd < 0) { print("unknown: "); print(cmd); print("\n"); continue; }
 
             char* child_args[8];
@@ -218,13 +273,17 @@ int main(int argc, char* argv[]) {
                 child_args[ca++] = resolved[ri++];
             }
             for (int i = 1; i < ac && ca < 7; i++) {
-                if (path_cmd) { resolve_path(args[i], resolved[ri]); child_args[ca++] = resolved[ri++]; }
-                else          { child_args[ca++] = args[i]; }
+                if (path_cmd && args[i][0] != '-') {
+                    resolve_path(args[i], resolved[ri]);
+                    child_args[ca++] = resolved[ri++];
+                } else {
+                    child_args[ca++] = args[i];   // 选项 (-l 等) 或普通参数原样传
+                }
             }
             child_args[ca] = 0;
 
             int pid = spawn(fd, child_args, ca);
-            closef(fd);   // spawn 只用到 inode, 用完立即释放, 防止 fd 泄漏耗尽
+            close(fd);   // spawn 只用到 inode, 用完立即释放, 防止 fd 泄漏耗尽
             if (pid < 0) { print("spawn failed\n"); continue; }
             waitpid(pid);  // 前台命令
         }

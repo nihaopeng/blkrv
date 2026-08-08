@@ -1,5 +1,5 @@
-.text
-.global _start
+    .text
+    .global _start
 _start:
     addi sp,sp,-12
     sw ra,4(sp)

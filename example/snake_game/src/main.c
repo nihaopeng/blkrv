@@ -1,6 +1,4 @@
-#include "std.h" 
-#include "str.h"
-// #include "math.h"
+#include "blkrv.h"
 
 #define SCREEN_WIDTH 800    
 #define SCREEN_HEIGHT 800

@@ -1,14 +1,4 @@
-#include "std.h" 
-#include "str.h"
-// #include "math.h"
-
-int memset_s(char* addr,char ch,uint32_t count){
-    for(int i=0;i<count;i++){
-        *(addr) = ch;
-        addr+=1;
-    }
-    return 0;
-}
+#include "blkrv.h"
 
 int get_file_from_server(char* remote_file_name,char* local_file_name,char* ip,uint32_t port){
     inode ino;

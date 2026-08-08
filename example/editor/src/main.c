@@ -1,5 +1,7 @@
 // BLKRv 轻量文本编辑器 (精简版)
 // 用法: editor <绝对路径>      (无参数时以 untitled 新建)
+
+#include "blkrv.h"
 //
 // 普通模式:
 //   h/j/k/l 或方向键  移动光标
@@ -61,62 +63,13 @@ static char pat_buf[PROMPT_LEN + 1];
 static int pat_len = 0;
 static char last_pat[PROMPT_LEN + 1];
 
-// ---------------- syscalls ----------------
-static int writef(int fd, const char* buf, int count) {
-    int r;
-    __asm__ volatile("li a7, 2\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
-    return r;
-}
-static int readf(int fd, void* buf, int count) {
-    int r;
-    __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(fd), "r"(buf), "r"(count) : "a0","a1","a2","a7");
-    return r;
-}
-static int openf(const char* path) {
-    int r;
-    __asm__ volatile("li a7, 0\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(path) : "a0","a7");
-    return r;
-}
-static int createf(const char* path, int type, void* ino) {
-    int r;
-    __asm__ volatile("li a7, 4\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(path), "r"(type), "r"(ino) : "a0","a1","a2","a7");
-    return r;
-}
-static int closef(int fd) {
-    int r;
-    __asm__ volatile("li a7, 25\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd) : "a0","a7");
-    return r;
-}
-static int finfo(int fd, void* ino) {
-    int r;
-    __asm__ volatile("li a7, 20\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(fd), "r"(ino) : "a0","a1","a7");
-    return r;
-}
-static void exit_proc(void) {
-    __asm__ volatile("li a7, 9\n ecall\n");
-}
-static int tty_size_sys(unsigned int* w, unsigned int* h) {
-    int r;
-    __asm__ volatile("li a7, 30\n mv a0, %1\n mv a1, %2\n ecall\n mv %0, a0"
-        : "=r"(r) : "r"(w), "r"(h) : "a0","a1","a7");
-    return r;
-}
-static void flush_input_sys(void) {
-    // 丢弃启动前积压的输入, 避免提前输入被编辑器当成按键吃掉
-    __asm__ volatile("li a7, 31\n ecall\n");
-}
-
 // ---------------- 终端输出 (ANSI 转义序列) ----------------
 // 宿主侧 terminal 模拟器负责解析这些序列并渲染: 本编辑器只在进入时
 // 发送 \e[?1049h 启用备用缓冲, 退出时发送 \e[?1049l 切回主缓冲,
 // shell 的主屏内容由终端模拟器原样保留。
 static void tput(const char* s) {
     int n = 0; while (s[n]) n++;
-    writef(1, s, n);
+    write(1, s, n);
 }
 static void tput_num(char* buf, int* n, int v) {
     char tmp[12]; int t = 0;
@@ -131,7 +84,7 @@ static void tput_pos(int r, int c) {
     buf[n++] = ';';
     tput_num(buf, &n, c);
     buf[n++] = 'H';
-    writef(1, buf, n);
+    write(1, buf, n);
 }
 
 // ---------------- 字符串 / 行操作 ----------------
@@ -297,7 +250,7 @@ static void render(void) {
     // 终端尺寸变化检测: 变化后整屏重绘
     {
         unsigned int tw = 0, th = 0;
-        tty_size_sys(&tw, &th);
+        tty_size(&tw, &th);
         if (tw >= 10 && tw <= 512 && th >= 5 && th <= 200 &&
             ((int)tw != page_w || (int)th != page_h)) {
             page_w = (int)tw; page_h = (int)th;
@@ -370,7 +323,7 @@ static void render(void) {
         tput_pos(r + 1, 1);
         int len = page_w;
         while (len > 0 && row[len - 1] == ' ') len--;
-        if (len > 0) writef(1, row, len);
+        if (len > 0) write(1, row, len);
         tput("\033[K");       // 清到行尾, 覆盖上一帧残留
         for (int i = 0; i < page_w; i++) prev_page[r * page_w + i] = row[i];
     }
@@ -388,14 +341,14 @@ static int save(void) {
         text[p++] = '\n';
     }
     text[p] = 0;
-    int fd = openf(filename);
+    int fd = open(filename);
     if (fd < 0) {
         unsigned ino = 0;
-        fd = createf(filename, 'f', &ino);
+        fd = create(filename, 'f', &ino);
         if (fd < 0) return 0;
     }
-    int n = writef(fd, text, p);
-    closef(fd);
+    int n = write(fd, text, p);
+    close(fd);
     if (n < p) return 0;
     dirty = 0;
     return 1;
@@ -405,7 +358,7 @@ static void load(void) {
     cur_line = 0; cur_col = 0; top = 0; col_off = 0;
     dirty = 0;
 
-    int fd = openf(filename);
+    int fd = open(filename);
     if (fd < 0) { set_msg("new file"); return; }
 
     struct { char name[128]; unsigned size; unsigned start; char type; char _pad[3]; } ino;
@@ -413,8 +366,8 @@ static void load(void) {
 
     char buf[MAX_TEXT + 1];
     int total = 0, n;
-    while (total < MAX_TEXT && (n = readf(fd, buf + total, MAX_TEXT - total)) > 0) total += n;
-    closef(fd);
+    while (total < MAX_TEXT && (n = read(fd, buf + total, MAX_TEXT - total)) > 0) total += n;
+    close(fd);
     buf[total] = 0;
 
     nlines = 0;
@@ -549,17 +502,17 @@ static int read_key(void) {
     if (pend_r < pend_n) return (unsigned char)pend[pend_r++];
 
     char c;
-    if (readf(0, &c, 1) <= 0) return 0;
+    if (read(0, &c, 1) <= 0) return 0;
     if (c != 27) return (unsigned char)c;
 
     char c2;
-    if (readf(0, &c2, 1) <= 0) return 27;          // 单独的 ESC
+    if (read(0, &c2, 1) <= 0) return 27;          // 单独的 ESC
     if (c2 != '[') {                               // ESC 后紧跟普通键 (快速按键)
         pend[0] = c2; pend_n = 1; pend_r = 0;
         return 27;
     }
     char c3;
-    if (readf(0, &c3, 1) <= 0) { pend[0] = '['; pend_n = 1; pend_r = 0; return 27; }
+    if (read(0, &c3, 1) <= 0) { pend[0] = '['; pend_n = 1; pend_r = 0; return 27; }
     switch (c3) {
         case 'A': return KEY_UP;
         case 'B': return KEY_DOWN;
@@ -571,7 +524,7 @@ static int read_key(void) {
             char c4;
             int tries = 400;
             while (tries-- > 0) {
-                if (readf(0, &c4, 1) > 0) break;
+                if (read(0, &c4, 1) > 0) break;
             }
             if (tries >= 0) {
                 switch (c3) {
@@ -755,7 +708,7 @@ int main(int argc, char* argv[]) {
     if (argc >= 2 && argv[1] && argv[1][0]) scpy_n(filename, argv[1], sizeof(filename));
     {
         unsigned int tw = 0, th = 0;
-        tty_size_sys(&tw, &th);
+        tty_size(&tw, &th);
         if (tw >= 10 && tw <= 512 && th >= 5 && th <= 200) { page_w = (int)tw; page_h = (int)th; }
     }
     load();
@@ -763,7 +716,7 @@ int main(int argc, char* argv[]) {
     tput("\033[?1049h");
     render();
     // 进入输入循环前丢弃积压输入, 避免加载期间提前输入被当成按键吃掉
-    flush_input_sys();
+    flush_input();
     while (!quit) {
         int k = read_key();
         if (k == 0) {
@@ -779,6 +732,6 @@ int main(int argc, char* argv[]) {
     }
     // 退出前切回主缓冲, 由终端模拟器恢复 shell 界面
     tput("\033[?1049l");
-    exit_proc();
+    exit(0);
     return 0;
 }
