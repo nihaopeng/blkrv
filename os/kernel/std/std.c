@@ -31,6 +31,9 @@ _syscall1(int,connect,socket*,sock);
 _syscall1(int,close,int,sockfd);
 _syscall3(int,spawn,int,fd,char**,para,uint32_t,para_num);
 _syscall1(int,waitpid,int,pid);
+_syscall4(int,tty_frame,char*,buf,uint32_t,count,uint32_t,row,uint32_t,col);
+_syscall2(int,tty_size,uint32_t*,w,uint32_t*,h);
+_syscall0(int,flush_input);
 
 int print(const char* fmt,...){//only support 'c' now;
     int fmt_len=str_len(fmt);

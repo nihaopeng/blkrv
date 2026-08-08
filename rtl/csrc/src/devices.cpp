@@ -53,6 +53,7 @@ int devices::process(Bus* bus,uint32_t tick){
     #endif // ENABLE_GPU
 
     if(this->my_pmc->should_shutdown){
+        this->my_screen->flush_all();   // 关机前补刷最后一帧 (合并渲染)
         return -1;
     }
     return 0;

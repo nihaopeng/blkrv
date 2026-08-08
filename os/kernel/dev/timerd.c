@@ -7,7 +7,6 @@
 
 __attribute__((visibility("hidden")))
 void timer_interrupt_i(void) {
-    //printk("T");
     scheduler();
 }
 

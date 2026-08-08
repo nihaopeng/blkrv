@@ -1,4 +1,5 @@
 #include "net.h"
+#include "proc.h"
 
 int send_i(int sockfd,char* buf,uint32_t buf_length){
     _vir2phyk(char*,buf);
@@ -24,6 +25,14 @@ int connect_i(socket* sock){
 }
 
 int close_i(int sockfd){
+    // 文件 fd 由文件系统释放 (fd 表项清空), 网络 fd 才走网卡
+    fd_entry* e = fd_get_current(sockfd);
+    if (e && e->type == FD_FILE) {
+        e->type = FD_EMPTY;
+        e->inode_id = 0;
+        e->offset = 0;
+        return 0;
+    }
     return closek(sockfd);
 }
 

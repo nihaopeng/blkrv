@@ -38,8 +38,11 @@ int get_file_from_server(char* remote_file_name,char* local_file_name,char* ip,u
     printk("%d:%d file size is diff, need to download\n",recv_data_len,ino.size);
     uint32_t fp=0;
     while(fp<recv_data_len){
-        uint32_t data_len=recvk(sockfd,buf,1024);
-        if(data_len==0){
+        // 每次只请求剩余字节数, 避免尾段请求 1024 但服务端已发完并关闭
+        uint32_t want=recv_data_len-fp;
+        if(want>1024) want=1024;
+        int data_len=recvk(sockfd,buf,want);
+        if(data_len<=0){
             break;
         }
         writek(inode_id,buf,fp,data_len);
@@ -194,6 +197,8 @@ int main(){
     get_file_from_server("./baseutils/rm/rm","/bin/rm","127.0.0.1",8080);
     uint32_t clear_inode_id=createk("/bin/clear",FILE_TYPE,&tmp);
     get_file_from_server("./baseutils/clear/clear","/bin/clear","127.0.0.1",8080);
+    uint32_t editor_inode_id=createk("/bin/editor",FILE_TYPE,&tmp);
+    get_file_from_server("./editor/editor","/bin/editor","127.0.0.1",8080);
 
     // 加载 shell 为 pid=1
     char para1[]="./shell";

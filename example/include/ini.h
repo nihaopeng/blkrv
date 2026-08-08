@@ -27,10 +27,15 @@
 //size is 1
 #define KEYBOARD_CACHE_ADDR 0x10100000
 
-//size ctrl is 4
-#define SCREEN_CTRL_ADDR   0x10200000
-#define SCREEN_CACHE1_ADDR 0x10200004
-#define SCREEN_CACHE2_ADDR 0x10210004
+// 帧缓存文本终端: 寄存器区 20 字节 + W*H 字符帧数据
+#define SCREEN_WIDTH_ADDR  0x10200000  // uint32: 列数 W
+#define SCREEN_HEIGHT_ADDR 0x10200004  // uint32: 行数 H
+#define SCREEN_FRAME_ROW   0x10200008  // uint32: 光标行 (1-based)
+#define SCREEN_FRAME_COL   0x1020000C  // uint32: 光标列 (1-based)
+#define SCREEN_CTRL_ADDR   0x10200010  // 1B: ctrl=2 触发渲染
+#define SCREEN_CACHE1_ADDR 0x10200014  // 帧数据起始 (W*H 字节)
+#define SCREEN_CACHE2_ADDR 0x10210004  // 保留
+#define SCREEN_DIRTY_ADDR  0x10210004  // h 字节脏行位图 (内核写, 设备读后清零)
 
 #define GPU_ADDR_CACHE 0x20200000
 
@@ -82,6 +87,9 @@
 #define _NR_spawn   26
 #define _NR_waitpid 27
 #define _NR_finoid  28
+#define _NR_tty_frame 29
+#define _NR_tty_size 30
+#define _NR_flush_input 31
 
 //interrupt num should same with hardware port
 #define _NI_kbdown 2
@@ -96,5 +104,3 @@
 #define NULL 0
 
 #endif // !_INI_H_
-
-

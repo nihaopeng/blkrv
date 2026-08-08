@@ -27,6 +27,7 @@ public:
     int blk_connect_nb();
     int blk_send_nb();
     int blk_recv_nb();
+    void deliver_recv();   // 把已收到的 pending_recv 数据 DMA 写回访存并通知内核
     int blk_close();
     // 每 tick 检查命令寄存器, 非阻塞执行 DMA 传输
     int process(Bus* bus,uint32_t tick=0);

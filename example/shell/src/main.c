@@ -29,6 +29,11 @@ static int waitpid(int pid) {
     __asm__ volatile("li a7, 27\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(pid) : "a0","a7");
     return r;
 }
+static int closef(int fd) {
+    int r;
+    __asm__ volatile("li a7, 25\n mv a0, %1\n ecall\n mv %0, a0" : "=r"(r) : "r"(fd) : "a0","a7");
+    return r;
+}
 static int readf(int fd, void* buf, int count) {
     int r;
     __asm__ volatile("li a7, 3\n mv a0, %1\n mv a1, %2\n mv a2, %3\n ecall\n mv %0, a0"
@@ -67,18 +72,18 @@ static void norm_path(const char* in, char* out) {
                 comp[p] = 0;
                 if (str_cmp(comp, ".")) { /* 当前目录 */ }
                 else if (str_cmp(comp, "..")) { if (top > 0) top--; }
-                else { str_cpy(comp, stack[top++]); }
+                else { if (top < 16) str_cpy(comp, stack[top++]); }
                 p = 0;
             }
             if (c == 0) break;
         } else {
-            comp[p++] = c;
+            if (p < 127) comp[p++] = c;   // 组件超长截断, 防止越界
         }
     }
     out[0] = '/';
     int o = 1;
-    for (int i = 0; i < top; i++) {
-        for (int j = 0; stack[i][j]; j++) out[o++] = stack[i][j];
+    for (int i = 0; i < top && o < MAX_PATH - 2; i++) {
+        for (int j = 0; stack[i][j] && o < MAX_PATH - 2; j++) out[o++] = stack[i][j];
         out[o++] = '/';
     }
     if (o > 1) o--;        // 去掉末尾 '/'
@@ -110,9 +115,13 @@ static void readline(char* buf, int max) {
         char ch;
         if (readf(0, &ch, 1) <= 0) continue;   /* raw 模式: 无输入则继续等 */
         if (ch == 10 || ch == 13) break;
+        if (ch == 27) {
+            /* 只丢弃 ESC 本身, 不连带消费后续字节, 避免吞掉命令首字符 */
+            continue;
+        }
         if (ch == 127 || ch == 8) {
             if (p > 0) { p--; print("\b \b"); }
-        } else if (p < max - 1) {
+        } else if (p < max - 1 && ch >= 32 && ch < 127) {
             buf[p++] = ch;
             char tmp[2] = {ch, 0};
             print(tmp);
@@ -126,7 +135,7 @@ static void readline(char* buf, int max) {
 static int tokenize(char* line, char** argv, int max_arg) {
     int argc = 0;
     char* p = line;
-    while (*p && argc < max_arg) {
+    while (*p && argc < max_arg - 1) {
         while (*p == ' ') p++;
         if (*p == 0) break;
         argv[argc++] = p;
@@ -147,6 +156,7 @@ static void usage(void) {
     print("  touch <file> - create empty file\n");
     print("  rm <file>    - delete file\n");
     print("  clear        - clear screen\n");
+    print("  editor <file> - edit text file (vim-like)\n");
     print("  spawn <prog> [args...] - run executable\n");
     print("  exit         - quit shell\n");
 }
@@ -154,14 +164,14 @@ static void usage(void) {
 int main(int argc, char* argv[]) {
     str_cpy("/", cwd);
     print("\n=== BLKRv Shell ===\n");
-    print("Commands: cd, pwd, echo, ls, cat, mkdir, touch, rm, clear, spawn, exit\n");
+    print("Commands: cd, pwd, echo, ls, cat, mkdir, touch, rm, clear, editor, spawn, exit\n");
     print("Type 'help' for details\n");
 
     char line[128];
     char* args[8];
 
     while (1) {
-        print("> ");
+        print(">>> ");
         readline(line, 128);
         if (line[0] == 0) continue;
 
@@ -180,6 +190,7 @@ int main(int argc, char* argv[]) {
             if (fd < 0) { print("cd: no such directory\n"); continue; }
             inode_t ino;
             finfo(fd, &ino);
+            closef(fd);   // cd 用完目录 fd 立即释放, 防止 fd 泄漏耗尽
             if (ino.type != 'd') { print("cd: not a directory\n"); continue; }
             str_cpy(abs, cwd);
         }
@@ -199,7 +210,8 @@ int main(int argc, char* argv[]) {
             // 路径类命令: 参数按 cwd 解析为绝对路径
             int path_cmd = str_cmp(cmd,"ls")||str_cmp(cmd,"cat")||
                            str_cmp(cmd,"mkdir")||str_cmp(cmd,"touch")||
-                           str_cmp(cmd,"rm")||str_cmp(cmd,"spawn");
+                           str_cmp(cmd,"rm")||str_cmp(cmd,"spawn")||
+                           str_cmp(cmd,"editor");
             if (str_cmp(cmd, "ls") && ac == 1) {
                 // ls 无参数时列出当前目录
                 resolve_path(cwd, resolved[ri]);
@@ -212,6 +224,7 @@ int main(int argc, char* argv[]) {
             child_args[ca] = 0;
 
             int pid = spawn(fd, child_args, ca);
+            closef(fd);   // spawn 只用到 inode, 用完立即释放, 防止 fd 泄漏耗尽
             if (pid < 0) { print("spawn failed\n"); continue; }
             waitpid(pid);  // 前台命令
         }

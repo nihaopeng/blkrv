@@ -67,7 +67,7 @@ int exitk(){
         }
     }
 
-    // 唤醒等待中的父进程
+    // 唤醒等待中的父进程 (屏幕状态由宿主侧 terminal 管理, 退出无需恢复)
     uint8_t ppid = global_pcb_list[pid].parent_pid;
     if(ppid > 0 && global_pcb_list[ppid].wait_pid == pid){
         global_pcb_list[ppid].wait_pid = 0;
@@ -166,6 +166,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
     //以下加载程序代码
     inode ino;
     finfo_k(inode_id,&ino);
+    //printk("[load] inode=%d size=%d\n",inode_id,ino.size);
     // printk("file size:%d\n",ino.size);
     char read_buf[512];
     memset_s(read_buf,0,512);
@@ -186,6 +187,7 @@ uint32_t load_program(uint32_t inode_id,uint32_t page_content_addr,mnode* free_b
     uint8_t prog_head_size=*(read_buf+rec_size_prog_head);
     uint8_t prog_head_num=*(read_buf+rec_num_prog_head);
     uint32_t prog_start_addr=*(uint32_t*)(read_buf+rec_addr_start);
+    //printk("[load] inode=%d entry=%x\n",inode_id,prog_start_addr);
     // printk("prog_head_table_addr:%d\n",prog_head_table_addr);
     // printk("prog_head_size:%d\n",prog_head_size);
     // printk("prog_head_num:%d\n",prog_head_num);
@@ -431,6 +433,7 @@ int spawn_i(int fd, char** para, uint32_t para_num){
     for(int i=0;i<para_num;i++) _vir2phyk(char*,para[i]);
     int inode_id=fd_to_inode_current(fd);
     if(inode_id<0) return -1;
+    //printk("[spawn] fd=%d inode=%d\n",fd,inode_id);
     uint32_t satp;
     __asm__ volatile("csrr %0,0x181":"=r"(satp));
     uint32_t parent_pid = satp & 0xfff;

@@ -150,11 +150,33 @@ int net_card::blk_send_nb(){
 }
 
 // 非阻塞 recv: 分段接收, 收满后经总线 DMA 写入内存
+void net_card::deliver_recv(){
+    int data_phy_addr=this->get4B(8);
+    int got=this->pending_recv_off;
+    int i=0;
+    int aligned_end=got & ~3;
+    for(;i<aligned_end;i+=4){
+        uint32_t w=(uint8_t)this->pending_recv[i]|((uint8_t)this->pending_recv[i+1]<<8)
+                   |((uint8_t)this->pending_recv[i+2]<<16)|((uint8_t)this->pending_recv[i+3]<<24);
+        this->bus->write(data_phy_addr+i,w,2);
+    }
+    for(;i<got;i++){
+        this->bus->write(data_phy_addr+i,this->pending_recv[i],0);
+    }
+    this->put4B(16,got);//通知接收数据长度
+    delete[] this->pending_recv;
+    this->pending_recv=nullptr;
+    this->pending_recv_off=0;
+    this->put4B(0,0);//通知接收完成
+    this->irq_pending=true;
+}
+
 int net_card::blk_recv_nb(){
     int sockfd=this->get4B(4);
     int data_phy_addr=this->get4B(8);
     int data_len=this->get4B(12);
     if(this->pending_recv==nullptr){//新命令, 分配接收缓冲
+        // fprintf(stderr,"[net] recv cmd sock=%d len=%d\n", sockfd, data_len);
         this->pending_recv=new char[data_len];
         this->pending_recv_len=data_len;
         this->pending_recv_off=0;
@@ -162,41 +184,38 @@ int net_card::blk_recv_nb(){
     int n=recv(sockfd, this->pending_recv+this->pending_recv_off,
                this->pending_recv_len-this->pending_recv_off, 0);
     if(n<0){
-        if(errno==EAGAIN||errno==EWOULDBLOCK) return 0;//下个 tick 继续
-        this->pending_recv_off=0;
-        delete[] this->pending_recv;
-        this->pending_recv=nullptr;
-        this->put4B(16,0);
-        this->put4B(0,0);
-        this->irq_pending=true;
+        if(errno==EAGAIN||errno==EWOULDBLOCK){
+            // fprintf(stderr,"[net] recv EAGAIN off=%d remain=%d\n", this->pending_recv_off, this->pending_recv_len-this->pending_recv_off);
+            return 0;//下个 tick 继续
+        }
+        // fprintf(stderr,"[net] recv ERROR errno=%d\n", errno);
+        if(this->pending_recv_off>0){
+            // 出错前已收到部分数据: 交付已收部分, 避免内核误以为对端关闭
+            this->deliver_recv();
+        }else{
+            this->put4B(16,0);
+            this->put4B(0,0);
+            this->irq_pending=true;
+        }
         return 0;
     }
     if(n==0){//对端关闭
-        this->pending_recv_off=0;
-        delete[] this->pending_recv;
-        this->pending_recv=nullptr;
-        this->put4B(16,0);
-        this->put4B(0,0);
-        this->irq_pending=true;
+        // fprintf(stderr,"[net] recv CLOSED off=%d remain=%d\n", this->pending_recv_off, this->pending_recv_len-this->pending_recv_off);
+        if(this->pending_recv_off>0){
+            // 服务端发完剩余数据后关闭: 把已收到的部分交付内核 (标准 recv 语义:
+            // 最后一次返回剩余字节, 下一次再返回 0)
+            this->deliver_recv();
+        }else{
+            this->put4B(16,0);
+            this->put4B(0,0);
+            this->irq_pending=true;
+        }
         return 0;
     }
     this->pending_recv_off+=n;
+    // fprintf(stderr,"[net] recv got=%d off=%d/%d\n", n, this->pending_recv_off, this->pending_recv_len);
     if(this->pending_recv_off>=this->pending_recv_len){//收满, DMA 写入内存
-        int i=0;
-        int aligned_end=this->pending_recv_len & ~3;
-        for(;i<aligned_end;i+=4){
-            uint32_t w=(uint8_t)this->pending_recv[i]|((uint8_t)this->pending_recv[i+1]<<8)
-                       |((uint8_t)this->pending_recv[i+2]<<16)|((uint8_t)this->pending_recv[i+3]<<24);
-            this->bus->write(data_phy_addr+i,w,2);
-        }
-        for(;i<this->pending_recv_len;i++){
-            this->bus->write(data_phy_addr+i,this->pending_recv[i],0);
-        }
-        this->put4B(16,this->pending_recv_len);//通知接收数据长度
-        delete[] this->pending_recv;
-        this->pending_recv=nullptr;
-        this->put4B(0,0);//通知接收完成
-        this->irq_pending=true;
+        this->deliver_recv();
     }
     return 0;
 }

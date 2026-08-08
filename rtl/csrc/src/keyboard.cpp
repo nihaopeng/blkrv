@@ -26,8 +26,12 @@
         this->irq_pending=false;
     }
     keyboard::~keyboard(){
+        utils::restore_tty();   // 恢复宿主终端原始状态
     }
     int keyboard::process(Bus* bus,uint32_t tick){
+        // 节流: 每 512 tick 才轮询一次 stdin (之前每 tick 一次,
+        // 每次 6 个宿主系统调用, 把整个模拟器拖慢一到两个数量级)
+        if((tick & 0x1FF) != 0) return 0;
         // 把 stdin 中待读按键全部收入 FIFO (最多每 tick 3 字节), 不覆盖、不丢失
         uint32_t ch_int=utils::kbhit();
         if(ch_int & 0x000000ff) this->pending.push_back((uint8_t)(ch_int & 0x000000ff));

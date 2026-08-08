@@ -17,8 +17,14 @@ void regist_sysmethod(){
 void regist_std(){
     int* idt_addr_kbdown=(int*)(&inter_table[_NI_kbdown]);
     int* gdt_addr_powoff=(int*)(&syscall_table[_NR_powoff]);
+    int* gdt_addr_tty_frame=(int*)(&syscall_table[_NR_tty_frame]);
+    int* gdt_addr_tty_size=(int*)(&syscall_table[_NR_tty_size]);
+    int* gdt_addr_flush_input=(int*)(&syscall_table[_NR_flush_input]);
     regist_keydown_interrupt(idt_addr_kbdown);
     regist_poweroff(gdt_addr_powoff);
+    regist_tty_frame(gdt_addr_tty_frame);
+    regist_tty_size(gdt_addr_tty_size);
+    regist_flush_input(gdt_addr_flush_input);
 }
 
 void regist_fs(){

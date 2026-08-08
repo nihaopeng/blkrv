@@ -183,6 +183,24 @@ uint32_t create_file(char* file_name,char type,inode* parent_inode){
 uint32_t create_Recursive(char* file_path, char type, uint32_t* inode_id,uint32_t depth){
     //获取最后一个'/'的地址
     char* last_seperator=strrchr(file_path,'/');
+    if(last_seperator==NULL){// 无 '/' 的裸文件名: 视为根目录下的文件
+        inode* root_inode=get_inode_by_id(ROOT_INODE_ID);
+        if(root_inode->type==0){//根目录不存在
+            str_cpy("/\0",root_inode->file_name);
+            root_inode->type=DIR_TYPE;
+            root_inode->start_block=EOF;
+            root_inode->size=0;
+        }
+        inode* file_inode=get_inode_in_dir_by_name(file_path,root_inode);
+        if(!file_inode){
+            if(depth==0){
+                return create_file(file_path,type,root_inode);
+            }else{
+                return create_file(file_path,DIR_TYPE,root_inode);
+            }
+        }
+        return (file_inode-(inode*)INODE_START);
+    }
     *last_seperator=0;//拆分父目录和文件，/include/tmp.h->/include\0tmp.h->\0include
     char* parent=file_path;
     char* filename=last_seperator+1;
@@ -246,6 +264,14 @@ int openk(const char* file_path) {
     //获取最后一个'/'的地址
     // printk("file_path:%s\n",file_path);
     char* last_seperator=strrchr(file_path,'/');
+    if(last_seperator==NULL){// 无 '/' 的裸文件名: 视为根目录下的文件
+        inode* root_inode=get_inode_by_id(ROOT_INODE_ID);
+        inode* file_inode=get_inode_in_dir_by_name((char*)file_path,root_inode);
+        if(!file_inode){//如果文件不存在于根目录中
+            return -1;
+        }
+        return (file_inode-(inode*)INODE_START);//返回inode-id
+    }
     *last_seperator=0;//拆分父目录和文件，/include/tmp.h->/include\0tmp.h->\0include
     char* parent=file_path;
     char* filename=last_seperator+1;
@@ -383,6 +409,9 @@ int finfo_k(uint32_t inode_id,inode* finode){
 }
 
 int init_fs(){
+    uint32_t dbg_satp;
+    __asm__ volatile("csrr %0, 0x180" : "=r"(dbg_satp));
+    printk("[init_fs] called pid=%d\n", dbg_satp & 0xfff);
     uint32_t root_id;
     printk("create /,inode_id:%d\n",createk("/",DIR_TYPE,&root_id));
     printk("create /include,inode_id:%d\n",createk("/include",DIR_TYPE,&root_id));

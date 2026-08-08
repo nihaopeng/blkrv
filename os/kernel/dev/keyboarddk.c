@@ -55,6 +55,19 @@ void keydown_interrupt_i(){
 
 _regist_syscall(void,keydown_interrupt);
 
+// 排空输入队列 (in_cache + 键盘设备 FIFO), 供全屏程序启动时丢弃提前输入
+int flush_input_i(){
+    init_input();
+    // 反复读键盘数据寄存器直到为空 (每次最多取 3 字节)
+    for(int i=0;i<128;i++){
+        uint32_t v=*(uint32_t*)KEYBOARD_CACHE_ADDR;
+        if((v&0x00ffffff)==0) break;
+    }
+    return 0;
+}
+
+_regist_syscall(void,flush_input);
+
 int inputk(const char* fmt,...){
     int fmt_len=str_len(fmt);
     va_list args;

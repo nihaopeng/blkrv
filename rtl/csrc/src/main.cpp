@@ -1,9 +1,12 @@
 #include <iostream>
 #include <ctime>
+#include <csignal>
+#include <cstdlib>
 #include "bus.h"
 #include "devices.h"
 #include "mmu.h"
 #include "monitor.h"
+#include "utils.h"
 
 #ifdef BACKEND_SIM
 #include "cpu_sim.h"
@@ -13,8 +16,17 @@
 #include "Vtop.h"  // create `top.v`,so use `Vtop.h`
 #endif
 
+// Ctrl+C / kill 时先恢复终端, 避免退出后终端停留在 raw 模式无法输入
+static void sig_restore_tty(int){
+    utils::restore_tty();
+    _exit(130);
+}
+
 int main(int argc, char** argv, char** env) {
     std::cout<<"\033[3;1;31mstarting sim...\033[0m"<<std::endl;
+
+    signal(SIGINT, sig_restore_tty);
+    signal(SIGTERM, sig_restore_tty);
 
     Bus my_bus;
     devices my_devices(&my_bus);
@@ -136,6 +148,7 @@ int main(int argc, char** argv, char** env) {
 #endif
 
     end=clock();
+    utils::restore_tty();   // 正常退出 (shell exit) 前恢复宿主终端状态
     printf("ticktimes:%d,timecost:%f s\ndevices shuting down...\n",i,((double)(end-start))/CLOCKS_PER_SEC);
     return 0;
 }

@@ -22,8 +22,12 @@ int recvk(int sockfd, char* buf, uint32_t buf_length){
         *(uint32_t*)NIC_CTRL_ADDR = 3;
         int nic_timeout = 0;
         while (!nic_done && ++nic_timeout < 50000000); // 超时保护, 约 5 秒
-        return *(uint32_t*)(NIC_CTRL_ADDR + 16);
+        int got = *(uint32_t*)(NIC_CTRL_ADDR + 16);
+        //if (!nic_done) printk("[recv] TIMEOUT sock=%d want=%d\n", sockfd, buf_length);
+        //printk("[recv] sock=%d want=%d got=%d\n", sockfd, buf_length, got);
+        return got;
     }
+    //printk("[recv] BUSY sock=%d want=%d\n", sockfd, buf_length);
     return -1;
 }
 

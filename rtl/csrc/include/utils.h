@@ -14,6 +14,7 @@ private:
     /* data */
 public:
     static uint32_t kbhit(void);
+    static void restore_tty(void);
 };
 
 #endif // !_UTILS_H_

@@ -68,14 +68,8 @@ int printk(const char* fmt,...){//放在这里为了访问out_cache
     }
     va_end(args);
     out_cache_k[out_cache_n]='\0';
-    for(uint32_t i=0;i<out_cache_n;i++){
-        char ch=*(out_cache_k+i);
-        char* addr=(char*)SCREEN_CACHE1_ADDR+i;
-        *addr=ch;
-    }
-    char* ctrl_addr=(char*)SCREEN_CTRL_ADDR+3;
-    *ctrl_addr=1;
+    // 统一走帧缓存终端路径 (和 write(1) 相同), 由 screen 设备增量渲染
+    tty_writek(out_cache_k, out_cache_n);
     // out_cache_mutex=0;
     return 0;
 }
-
