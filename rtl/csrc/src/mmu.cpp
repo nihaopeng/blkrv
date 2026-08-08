@@ -1,12 +1,15 @@
 #include "mmu.h"
 
-tlb::tlb(){}
+tlb::tlb(){
+    for(uint32_t i=0;i<TLB1_SETS;i++) this->pages1[i].valid=false;
+    for(uint32_t i=0;i<TLB2_SETS;i++) this->pages2[i].valid=false;
+}
 
 tlb::~tlb(){}
 
 void tlb::flush(){
-    this->pages1.clear();
-    this->pages2.clear();
+    for(uint32_t i=0;i<TLB1_SETS;i++) this->pages1[i].valid=false;
+    for(uint32_t i=0;i<TLB2_SETS;i++) this->pages2[i].valid=false;
 }
 
 void tlb::flush_asid(uint32_t asid){
@@ -14,40 +17,29 @@ void tlb::flush_asid(uint32_t asid){
         this->flush();
         return;
     }
-    for(auto it=this->pages1.begin(); it!=this->pages1.end(); ){
-        if((it->first & 0xfff)==asid) it=this->pages1.erase(it);
-        else ++it;
-    }
-    for(auto it=this->pages2.begin(); it!=this->pages2.end(); ){
-        if((it->first & 0xfff)==asid) it=this->pages2.erase(it);
-        else ++it;
-    }
+    for(uint32_t i=0;i<TLB1_SETS;i++)
+        if(this->pages1[i].valid && (this->pages1[i].tag & 0xfff)==asid)
+            this->pages1[i].valid=false;
+    for(uint32_t i=0;i<TLB2_SETS;i++)
+        if(this->pages2[i].valid && (this->pages2[i].tag & 0xfff)==asid)
+            this->pages2[i].valid=false;
 }
 
-int tlb::insert(uint32_t vir,uint32_t ppn){//TODO:采用什么换入换出策略
-    if(this->pages1.size()>=size_pages1){
-        this->pages1.erase(this->pages1.begin());
-        this->pages1[vir]=ppn;
-    }else{
-        this->pages1[vir]=ppn;
-    }
+int tlb::insert(uint32_t vir,uint32_t ppn){
+    // 两级直接映射: 同时写入 L1/L2, 冲突时自然覆盖 (硬件直映 TLB 行为)
+    this->pages1[hash1(vir)] = {vir, ppn, true};
+    this->pages2[hash2(vir)] = {vir, ppn, true};
     return 0;
 }
 
 int tlb::check_tlb1(uint32_t vir){
-    std::map<uint32_t,uint32_t>::iterator it=pages1.find(vir);
-    if(it != pages1.end()){//命中
-        return it->second;//返回页号对应地址
-    }
-    return -1;//未命中
+    const tlb_entry& e = this->pages1[hash1(vir)];
+    return (e.valid && e.tag==vir) ? (int)e.ppn : -1;//命中返回页号, 未命中-1
 }
 
 int tlb::check_tlb2(uint32_t vir){
-    std::map<uint32_t,uint32_t>::iterator it=pages2.find(vir);
-    if(it != pages2.end()){//命中
-        return it->second;//返回页号对应地址
-    }
-    return -1;//未命中
+    const tlb_entry& e = this->pages2[hash2(vir)];
+    return (e.valid && e.tag==vir) ? (int)e.ppn : -1;//命中返回页号, 未命中-1
 }
 
 int tlb::check(uint32_t vir){

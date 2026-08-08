@@ -47,6 +47,11 @@ public:
 
     // 地址解码: 返回命中的设备与设备内偏移, 无命中返回 nullptr
     Device* resolve(uint32_t addr, uint32_t* offset = nullptr);
+
+private:
+    // 按 base 升序排列的 devs 下标 (稳定排序, 同 base 保持注册顺序), 供 O(log n) 区间解码
+    std::vector<uint32_t> decode_idx;
+    Device* resolve(uint32_t addr, uint32_t* offset, size_t* out_idx);
 };
 
 #endif // !_BUS_H_

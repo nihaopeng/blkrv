@@ -9,7 +9,9 @@ SYSPATH ?=$(VERILATOR_ROOT)/share/verilator/include
 endif
 
 cc = g++
-ccflag = -lstdc++ -lm -pthread
+# -O2: 解释器/设备代码编译优化 (实测约 7x)
+# -fno-strict-aliasing: vmem 等设备按 uint8_t*/uint32_t* 混写内存, 关闭严格别名避免潜在误编译
+ccflag = -O2 -fno-strict-aliasing -lstdc++ -lm -pthread
 ifeq ($(ENABLE_GPU), 1)
     ccflag += -DENABLE_GPU -lfltk -lfltk_images
 endif

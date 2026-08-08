@@ -1,15 +1,28 @@
 #ifndef _MMU_H_
 #define _MMU_H_
 
-#include<fstream>
-#include<map>
+#include <cstdint>
 #include "bus.h"
 
+// TLB 项: 直接映射 (索引=哈希, tag 比较), 仿真实硬件 SRAM 阵列
+struct tlb_entry {
+    uint32_t tag;   // vpn(20) | asid(12)
+    uint32_t ppn;   // 物理页号 (高 20 位)
+    bool     valid;
+};
+
 class tlb{
-    uint32_t size_pages1=64;
-    uint32_t size_pages2=1024;
-    std::map<uint32_t,uint32_t> pages1;//vir:ppn,对于第一个int，后12位为asid，前20位为vpn
-    std::map<uint32_t,uint32_t> pages2;
+    static const uint32_t TLB1_SETS = 64;    // L1 TLB (原 size_pages1)
+    static const uint32_t TLB2_SETS = 1024;  // L2 TLB (原 size_pages2)
+    tlb_entry pages1[TLB1_SETS];
+    tlb_entry pages2[TLB2_SETS];
+
+    static inline uint32_t hash1(uint32_t vir){
+        return (vir ^ (vir >> 5) ^ (vir >> 15)) & (TLB1_SETS - 1);
+    }
+    static inline uint32_t hash2(uint32_t vir){
+        return (vir ^ (vir >> 7) ^ (vir >> 17)) & (TLB2_SETS - 1);
+    }
     public:
         tlb();
         ~tlb();
