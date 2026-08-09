@@ -1,12 +1,10 @@
-CC := riscv32-unknown-elf-gcc
-CFLAGS := -march=rv32i -mabi=ilp32 -O1 -I../lib
-LDLIBS := ../lib/crt0.o ../lib/libblkrv.a -lgcc
-LDFLAGS := -nostdlib -Wl,--no-relax -Wl,-s
+# === shell 层 ===
+include ../rules.mk
 
 all: shell
 
 shell: src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o shell
+	$(CC) $(CFLAGS) $< $(LDLIBS) $(LDFLAGS) -o $@
 
 clean:
 	rm -f shell

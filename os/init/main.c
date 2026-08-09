@@ -199,6 +199,8 @@ int main(){
     get_file_from_server("./baseutils/clear/clear","/bin/clear","127.0.0.1",8080);
     uint32_t editor_inode_id=createk("/bin/editor",FILE_TYPE,&tmp);
     get_file_from_server("./editor/editor","/bin/editor","127.0.0.1",8080);
+    uint32_t snake_inode_id=createk("/bin/snake",FILE_TYPE,&tmp);
+    get_file_from_server("./snake_game/snake","/bin/snake","127.0.0.1",8080);
 
     // 加载 shell 为 pid=1
     char para1[]="./shell";

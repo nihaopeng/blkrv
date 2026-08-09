@@ -13,7 +13,14 @@ cc = g++
 # -fno-strict-aliasing: vmem 等设备按 uint8_t*/uint32_t* 混写内存, 关闭严格别名避免潜在误编译
 ccflag = -O2 -fno-strict-aliasing -lstdc++ -lm -pthread
 ifeq ($(ENABLE_GPU), 1)
-    ccflag += -DENABLE_GPU -lfltk -lfltk_images
+    ccflag += -DENABLE_GPU
+    # raylib 图形后端: 优先用系统安装的 -lraylib, 也可用 RAYLIB_PATH 指向本地构建
+    ifneq ($(RAYLIB_PATH),)
+        ccflag += -I$(RAYLIB_PATH) $(RAYLIB_PATH)/libraylib.a
+    else
+        ccflag += -lraylib
+    endif
+    ccflag += -lGL -lm -lpthread -ldl -lrt -lX11 -lXrandr -lXinerama -lXi -lXcursor -lXext
 endif
 
 # CPU backend

@@ -1,12 +1,10 @@
-CC := riscv32-unknown-elf-gcc
-CFLAGS := -march=rv32i -mabi=ilp32 -O1 -I../lib
-LDLIBS := ../lib/crt0.o ../lib/libblkrv.a -lgcc
-LDFLAGS := -nostdlib -Wl,--no-relax -Wl,-s
+# === snake_game 层 ===
+include ../rules.mk
 
 all: snake
 
 snake: src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o snake
+	$(CC) $(CFLAGS) $< $(LDLIBS) $(LDFLAGS) -o $@
 
 clean:
 	rm -f snake

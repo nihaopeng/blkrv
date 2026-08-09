@@ -15,10 +15,17 @@ BLKRv是一个基于RISC-V架构的教学级计算机系统模拟平台，项目
 
 + [riscv-unknow-elf-gcc](https://blog.csdn.net/m0_59161987/article/details/136761879)(required march:rv32i, mabi:ilp32)
 
-+ fltk [可选]
++ raylib [可选]
 
-详细的环境配置请见
-[BLKRv主页](https://blkrv.moeyuki.net/)
+`sudo apt install libraylib-dev`
+
+`sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev`
+
+`cd raylib/src/`
+
+`make PLATFORM=PLATFORM_DESKTOP` # To make the static version.
+
+`sudo make install # Static version.`
 
 ## 运行
 

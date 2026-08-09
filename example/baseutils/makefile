@@ -1,26 +1,19 @@
-CC := riscv32-unknown-elf-gcc
-CFLAGS := -march=rv32i -mabi=ilp32 -O1 -I../lib
-LDLIBS := ../lib/crt0.o ../lib/libblkrv.a -lgcc
-LDFLAGS := -nostdlib -Wl,--no-relax -Wl,-s
+# === baseutils 层: 一组基础命令 (cat/clear/echo/ls/mkdir/rm/touch) ===
+include ../rules.mk
 
-all: cat/cat clear/clear echo/echo ls/ls mkdir/mkdir rm/rm touch/touch
+APPS := cat clear echo ls mkdir rm touch
+BINS := $(foreach a,$(APPS),$(a)/$(a))
 
-cat/cat: cat/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
-clear/clear: clear/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
-echo/echo: echo/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
-ls/ls: ls/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
-mkdir/mkdir: mkdir/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
-rm/rm: rm/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
-touch/touch: touch/src/main.c
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(LDFLAGS) -o $@
+all: $(BINS)
+
+# 每个二进制依赖其目录下的 src/main.c, 例如 cat/cat <- cat/src/main.c
+define APP_RULE
+$(1)/$(1): $(1)/src/main.c
+	$(CC) $(CFLAGS) $$< $(LDLIBS) $(LDFLAGS) -o $$@
+endef
+$(foreach a,$(APPS),$(eval $(call APP_RULE,$(a))))
 
 clean:
-	rm -f cat/cat clear/clear echo/echo ls/ls mkdir/mkdir rm/rm touch/touch
+	rm -f $(BINS)
 
 .PHONY: all clean

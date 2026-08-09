@@ -33,10 +33,9 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // 绑定 socket
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
+    // 绑定 socket (SO_REUSEADDR 仅是优化, 某些受限环境不允许时忽略即可)
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt (ignored)");
     }
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY; // 监听所有 IP

@@ -1,13 +1,20 @@
 #ifdef ENABLE_GPU
 
     #include "graphics.h"
+    #include <pthread.h>
+    #include <fstream>
+
     gpu::gpu(uint32_t size,keyboard* my_keyboard):vmem(size){
         this->if_start_up=0;
         this->if_clear=0;
         this->my_keyboard=my_keyboard;
+        this->buffered_widget=nullptr;
     }
 
-    gpu::~gpu(){pthread_join(thread, nullptr);}
+    gpu::~gpu(){
+        // 窗口线程可能从未被惰性拉起 (没有程序绘制过), 此时不能 join 未初始化的 thread
+        if(this->if_start_up) pthread_join(thread, nullptr);
+    }
 
     uint32_t get_next_block_id_s(std::fstream &fp,uint32_t cur_block_id){
         fp.seekg(FAT_START+cur_block_id*4);
@@ -53,6 +60,7 @@
         return 0;
     }
 
+    // 轮询 GPU 命令寄存器, 在离屏 RenderTexture 上执行绘制原语
     void gpu::draw(void* arg){
         gpu* gput=static_cast<gpu*>(arg);
         //get event
@@ -60,7 +68,6 @@
         uint32_t event=gput->get4B(addr);
         // char* t=new char[1024];
         char* t;unsigned char* image_buf;int x0,y0,x1,y1,x2,y2,font,r,g,b,x,y,image_size,inode_id;
-        gput->buffered_widget->img_surf->set_current();  // 切换到缓冲区上下文
         if(gput->if_clear==0){
             gput->buffered_widget->clear_screen();
             gput->if_clear=1;
@@ -88,6 +95,7 @@
             // gput->buffered_widget->clear_screen();
             gput->put4B(addr,0);
             gput->buffered_widget->flush();
+            gput->buffered_widget->present();   // 帧完成: 提交完整帧到 front, 消除闪烁
             break;
         case 4:
             x=gput->get4B(addr+4);
@@ -100,6 +108,7 @@
             readk_s(inode_id,image_buf);
             // printf("image_buf:%c%c%c%c\n",image_buf[0],image_buf[1],image_buf[2],image_buf[3]);
             gput->buffered_widget->draw_jpg(image_buf,image_size,x,y);
+            delete[] image_buf;
             break;
         case 5:
             x=gput->get4B(addr+4);
@@ -112,33 +121,64 @@
             readk_s(inode_id,image_buf);
             // printf("image_buf:%c%c%c%c\n",image_buf[0],image_buf[1],image_buf[2],image_buf[3]);
             gput->buffered_widget->draw_png(image_buf,image_size,x,y);
+            delete[] image_buf;
             break;
         default:
             break;
         }
-        Fl::repeat_timeout(1/500,gpu::draw,arg);
     }
 
+    // raylib 窗口线程: 创建窗口 -> 500Hz 轮询 GPU 命令 + 呈现离屏缓冲
     void* gpu::thread_function(void* arg) {
         printf("gpu start up!\n");
         gpu* gput = static_cast<gpu*>(arg);
-        gput->win = new MyWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Rotating Triangle Example");
-        gput->buffered_widget = new BufferedWidget(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gput->win->my_bus=gput->my_bus;
-        gput->win->my_keyboard=gput->my_keyboard;
-        Fl::add_timeout(1/500,gpu::draw,arg);
-        gput->win->show();
-        Fl::run();
+
+        InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "BLKRv GPU");
+        if (!IsWindowReady()) {                             // 无显示环境 (如 docker/headless) 下优雅退出
+            printf("gpu: raylib window init failed (no display?), GPU disabled\n");
+            return nullptr;
+        }
+        SetExitKey(0);                                      // 禁用 raylib 默认 ESC 关窗, ESC 作为按键交给 OS
+        SetTargetFPS(500);                                  // 与原 FLTK 500Hz 轮询一致
+        gput->buffered_widget = new RayBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+        while (!WindowShouldClose()) {
+            poll_keyboard(gput->my_keyboard, gput->my_bus); // 键盘事件 -> 键盘设备
+            gpu::draw(gput);                                // 轮询 GPU 命令并绘制
+
+            BeginDrawing();
+            ClearBackground(BLACK);
+            // 呈现 front buffer (仅 flush 时更新的完整帧, source 高度取负翻转 Y 轴)
+            DrawTextureRec(gput->buffered_widget->front.texture,
+                           (Rectangle){ 0, 0, (float)SCREEN_WIDTH, -(float)SCREEN_HEIGHT },
+                           (Vector2){ 0, 0 }, WHITE);
+            EndDrawing();
+        }
+
+        delete gput->buffered_widget;
+        gput->buffered_widget = nullptr;
+        CloseWindow();
         return nullptr;
     }
 
     int gpu::process(Bus* bus,uint32_t tick){
-        if(!this->if_start_up){
-            this->my_bus=bus;
-            pthread_create(&thread,NULL,thread_function,this);
-            this->if_start_up=1;
-        }
+        // 窗口不再随模拟器启动而打开: 只有用户程序第一次写 GPU 设备
+        // (发绘制命令, 例如 snake/ppt_player) 时, 才由 write() 惰性拉起窗口线程
+        (void)bus; (void)tick;
         return 0;
+    }
+
+    // 惰性拉窗: 首次写 GPU 设备时启动 raylib 窗口线程
+    void gpu::ensure_window_started(){
+        if(this->if_start_up) return;
+        this->my_bus = this->bus;               // 总线指针由 register_dev 设置
+        pthread_create(&thread,NULL,thread_function,this);
+        this->if_start_up=1;
+    }
+
+    void gpu::write(uint32_t offset, uint32_t data, uint8_t op_type){
+        ensure_window_started();                // 第一次发绘制命令时才建窗
+        vmem::write(offset, data, op_type);
     }
 
 #endif // ENABLE_GPU

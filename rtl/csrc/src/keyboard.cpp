@@ -1,63 +1,56 @@
-#ifdef ENABLE_GPU
-    #include "keyboard.h"
-    keyboard::keyboard(uint32_t size):vmem(size){
-        this->putB(0,0);
-        this->is_active=0;
-        this->irq_pending=false;
+#include "keyboard.h"
+
+// 键盘设备: GPU / 非 GPU 共用同一套 FIFO 实现。
+//  - 输入源 1: 宿主终端 stdin, 由 process() 每 512 tick 轮询 (utils::kbhit);
+//  - 输入源 2: raylib 窗口键盘, 由窗口线程调用 push_key() 写入;
+// 两者合流到 pending FIFO, IRQ 拉高后保持, 直到 CPU 读走数据寄存器才回落。
+
+keyboard::keyboard(uint32_t size):vmem(size){
+    this->putB(0,0);
+    this->irq_pending=false;
+}
+keyboard::~keyboard(){
+    utils::restore_tty();   // 恢复宿主终端原始状态
+}
+int keyboard::process(Bus* bus,uint32_t tick){
+    // 节流: 每 512 tick 才轮询一次 stdin (之前每 tick 一次,
+    // 每次 6 个宿主系统调用, 把整个模拟器拖慢一到两个数量级)
+    if((tick & 0x1FF) != 0) return 0;
+    // 把 stdin 中待读按键全部收入 FIFO (最多每 tick 3 字节), 不覆盖、不丢失
+    uint32_t ch_int=utils::kbhit();
+    std::lock_guard<std::mutex> lock(mtx);
+    if(ch_int & 0x000000ff) this->pending.push_back((uint8_t)(ch_int & 0x000000ff));
+    if(ch_int & 0x0000ff00) this->pending.push_back((uint8_t)((ch_int>>8) & 0xff));
+    if(ch_int & 0x00ff0000) this->pending.push_back((uint8_t)((ch_int>>16) & 0xff));
+    // IRQ 拉高后保持, 直到 CPU 读走数据寄存器 (见 read) 才允许回落
+    if(!this->pending.empty() && !this->irq_pending){
+        bus->set_irq(2,true);
+        this->irq_pending=true;
     }
-    keyboard::~keyboard(){
-    }
-    int keyboard::process(Bus* bus,uint32_t tick){
-        // GPU 模式下按键由 FLTK 窗口回调设置, 这里锁存一拍后复位
-        uint32_t tmp_is_active=this->is_active;
-        bool irq=bus->get_irq(2);
-        this->is_active=(is_active==0&&irq)?1:0;
-        bus->set_irq(2,(tmp_is_active==0&&irq)?1:0);
-        return 0;
-    }
-    uint32_t keyboard::read(uint32_t offset, uint8_t op_type){
-        // GPU 模式: 按键由 FLTK 回调写入数据寄存器, 走原 vmem 路径
-        return vmem::read(offset, op_type);
-    }
-#else
-    #include "keyboard.h"
-    keyboard::keyboard(uint32_t size):vmem(size){
-        this->putB(0,0);
-        this->irq_pending=false;
-    }
-    keyboard::~keyboard(){
-        utils::restore_tty();   // 恢复宿主终端原始状态
-    }
-    int keyboard::process(Bus* bus,uint32_t tick){
-        // 节流: 每 512 tick 才轮询一次 stdin (之前每 tick 一次,
-        // 每次 6 个宿主系统调用, 把整个模拟器拖慢一到两个数量级)
-        if((tick & 0x1FF) != 0) return 0;
-        // 把 stdin 中待读按键全部收入 FIFO (最多每 tick 3 字节), 不覆盖、不丢失
-        uint32_t ch_int=utils::kbhit();
-        if(ch_int & 0x000000ff) this->pending.push_back((uint8_t)(ch_int & 0x000000ff));
-        if(ch_int & 0x0000ff00) this->pending.push_back((uint8_t)((ch_int>>8) & 0xff));
-        if(ch_int & 0x00ff0000) this->pending.push_back((uint8_t)((ch_int>>16) & 0xff));
-        // IRQ 拉高后保持, 直到 CPU 读走数据寄存器 (见 read) 才允许回落
-        if(!this->pending.empty() && !this->irq_pending){
-            bus->set_irq(2,true);
-            this->irq_pending=true;
+    return 0;
+}
+uint32_t keyboard::read(uint32_t offset, uint8_t op_type){
+    if(offset==0 && op_type==2){
+        std::lock_guard<std::mutex> lock(mtx);
+        // 一次最多弹出 3 字节 (对应 OS 驱动的 3 个字节通道), 与老接口兼容
+        uint32_t v=0;
+        for(int i=0;i<3 && !this->pending.empty();i++){
+            v |= ((uint32_t)this->pending.front()) << (8*i);
+            this->pending.pop_front();
         }
-        return 0;
-    }
-    uint32_t keyboard::read(uint32_t offset, uint8_t op_type){
-        if(offset==0 && op_type==2){
-            // 一次最多弹出 3 字节 (对应 OS 驱动的 3 个字节通道), 与老接口兼容
-            uint32_t v=0;
-            for(int i=0;i<3 && !this->pending.empty();i++){
-                v |= ((uint32_t)this->pending.front()) << (8*i);
-                this->pending.pop_front();
-            }
-            if(this->pending.empty() && this->irq_pending){
-                this->irq_pending=false;
-                if(this->bus) this->bus->set_irq(2,false);
-            }
-            return v;
+        if(this->pending.empty() && this->irq_pending){
+            this->irq_pending=false;
+            if(this->bus) this->bus->set_irq(2,false);
         }
-        return vmem::read(offset, op_type);
+        return v;
     }
-#endif // DEBUG
+    return vmem::read(offset, op_type);
+}
+void keyboard::push_key(uint8_t b){
+    std::lock_guard<std::mutex> lock(mtx);
+    this->pending.push_back(b);
+    if(!this->irq_pending){
+        this->irq_pending=true;
+        if(this->bus) this->bus->set_irq(2,true);
+    }
+}
