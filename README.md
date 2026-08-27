@@ -1,7 +1,7 @@
 ![logo](./doc/logo@498x280.png)
 
 # BLKRv
-![license](https://img.shields.io/badge/license-mit-blue) ![version](https://img.shields.io/badge/version-1.0-blue)
+![license](https://img.shields.io/badge/license-mit-blue) ![version](https://img.shields.io/badge/version-2.0-blue)
 
 BLKRv是一个基于RISC-V架构的教学级计算机系统模拟平台，项目完整实现了CPU寄存器体系、虚拟内存管理、总线通信、自定义外设协议和中断处理，其创新性的虚拟抽象协议简化了外设交互，帮助学生理解计算机体系结构核心原理的同时为研究者提供灵活扩展空间。
 
